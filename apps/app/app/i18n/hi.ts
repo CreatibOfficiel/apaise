@@ -58,10 +58,10 @@ const hi: Translations = {
     joinUsOnSlack:
       "क्या आप चाहते हैं कि दुनिया भर के React Native इंजीनियरों से जुड़ने के लिए कोई जगह हो? Infinite Red Community Slack में बातचीत में शामिल हों! हमारा बढ़ता हुआ समुदाय प्रश्न पूछने, दूसरों से सीखने और अपने नेटवर्क को बढ़ाने के लिए एक सुरक्षित स्थान है।",
     joinSlackLink: "Slack समुदाय में शामिल हों",
-    makeIgniteEvenBetterTitle: "Ignite को और बेहतर बनाएं",
-    makeIgniteEvenBetter:
-      "Ignite को और बेहतर बनाने का कोई विचार है? हमें यह सुनकर खुशी होगी! हम हमेशा ऐसे लोगों की तलाश में रहते हैं जो हमें सर्वश्रेष्ठ React Native टूलिंग बनाने में मदद करना चाहते हैं। Ignite के भविष्य को बनाने में हमारे साथ शामिल होने के लिए GitHub पर हमसे जुड़ें।",
-    contributeToIgniteLink: "Ignite में योगदान दें",
+    makeShipNativeEvenBetterTitle: "ShipNative को और बेहतर बनाएं",
+    makeShipNativeEvenBetter:
+      "ShipNative को और बेहतर बनाने का कोई विचार है? हमें यह सुनकर खुशी होगी! हम हमेशा ऐसे लोगों की तलाश में रहते हैं जो हमें सर्वश्रेष्ठ React Native टूलिंग बनाने में मदद करना चाहते हैं। ShipNative के भविष्य को बनाने में हमारे साथ शामिल होने के लिए GitHub पर हमसे जुड़ें।",
+    contributeToShipNativeLink: "ShipNative में योगदान दें",
     theLatestInReactNativeTitle: "React Native में नवीनतम",
     theLatestInReactNative: "हम आपको React Native के सभी प्रस्तावों पर अपडेट रखने के लिए यहां हैं।",
     reactNativeRadioLink: "React Native रेडियो",

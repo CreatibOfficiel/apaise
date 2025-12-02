@@ -46,10 +46,11 @@ export const ThemeProvider: FC<PropsWithChildren<ThemeProviderProps>> = ({
   children,
   initialContext,
 }) => {
+  const THEME_STORAGE_KEY = "shipnative.themeScheme"
   // The operating system theme:
   const systemColorScheme = useColorScheme()
   // Our saved theme context: can be "light", "dark", or undefined (system theme)
-  const [themeScheme, setThemeScheme] = useMMKVString("ignite.themeScheme", storage as any)
+  const [themeScheme, setThemeScheme] = useMMKVString(THEME_STORAGE_KEY, storage as any)
 
   /**
    * This function is used to set the theme context and is exported from the useAppTheme() hook.

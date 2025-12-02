@@ -80,7 +80,7 @@ export const DemoDebugScreen: FC<DemoTabScreenProps<"DemoDebug">> = function Dem
       <Text
         style={themed($reportBugsLink)}
         tx="demoDebugScreen:reportBugs"
-        onPress={() => openLinkInBrowser("https://github.com/infinitered/ignite/issues")}
+        onPress={() => openLinkInBrowser("https://github.com/shipnativeapp/shipnative/issues")}
       />
 
       <Text style={themed($title)} preset="heading" tx="demoDebugScreen:title" />

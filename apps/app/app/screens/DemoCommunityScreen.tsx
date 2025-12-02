@@ -34,15 +34,15 @@ export const DemoCommunityScreen: FC<DemoTabScreenProps<"DemoCommunity">> =
         />
         <Text
           preset="subheading"
-          tx="demoCommunityScreen:makeIgniteEvenBetterTitle"
+          tx="demoCommunityScreen:makeShipNativeEvenBetterTitle"
           style={themed($sectionTitle)}
         />
-        <Text tx="demoCommunityScreen:makeIgniteEvenBetter" style={themed($description)} />
+        <Text tx="demoCommunityScreen:makeShipNativeEvenBetter" style={themed($description)} />
         <ListItem
-          tx="demoCommunityScreen:contributeToIgniteLink"
+          tx="demoCommunityScreen:contributeToShipNativeLink"
           leftIcon="github"
           rightIcon={isRTL ? "caretLeft" : "caretRight"}
-          onPress={() => openLinkInBrowser("https://github.com/infinitered/ignite")}
+          onPress={() => openLinkInBrowser("https://github.com/shipnativeapp/shipnative")}
         />
 
         <Text

@@ -4,7 +4,7 @@
 
 ShipNative.app is a comprehensive React Native starter kit that includes authentication, payments, analytics, and everything you need to ship your mobile app quickly.
 
-**Built with Expo and modern React Native tools. Based on Ignite boilerplate foundation.**
+**Built with Expo and modern React Native tools.**
 
 ## Features
 
@@ -96,5 +96,3 @@ Follow the Maestro setup instructions in the documentation.
 ## License
 
 This is a commercial product. See [LICENSE.md](../../LICENSE.md) for details.
-
-**Attribution**: This boilerplate is built on top of the Ignite boilerplate by Infinite Red as a foundation, with significant customizations and additions.

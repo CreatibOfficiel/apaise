@@ -58,10 +58,10 @@ const ko: Translations = {
     joinUsOnSlack:
       "전 세계 React Native 엔지니어들과 함께할 수 있는 곳이 있었으면 좋겠죠? Infinite Red Community Slack 에서 대화에 참여하세요! 우리의 성장하는 커뮤니티는 질문을 던지고, 다른 사람들로부터 배우고, 네트워크를 확장할 수 있는 안전한 공간입니다. ",
     joinSlackLink: "Slack 에 참여하기",
-    makeIgniteEvenBetterTitle: "Ignite 을 향상시켜요",
-    makeIgniteEvenBetter:
-      "Ignite 을 더 좋게 만들 아이디어가 있나요? 기쁜 소식이네요. 우리는 항상 최고의 React Native 도구를 구축하는데 도움을 줄 수 있는 분들을 찾고 있습니다. GitHub 에서 Ignite 의 미래를 만들어 가는것에 함께해 주세요.",
-    contributeToIgniteLink: "Ignite 에 기여하기",
+    makeShipNativeEvenBetterTitle: "ShipNative를 더욱 향상시켜요",
+    makeShipNativeEvenBetter:
+      "ShipNative를 더 좋게 만들 아이디어가 있나요? 기쁜 소식이네요. 우리는 항상 최고의 React Native 도구를 구축하는데 도움을 줄 수 있는 분들을 찾고 있습니다. GitHub 에서 ShipNative 의 미래를 함께 만들어 주세요.",
+    contributeToShipNativeLink: "ShipNative에 기여하기",
     theLatestInReactNativeTitle: "React Native 의 최신정보",
     theLatestInReactNative: "React Native 가 제공하는 모든 최신 정보를 알려드립니다.",
     reactNativeRadioLink: "React Native 라디오",

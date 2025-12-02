@@ -40,6 +40,11 @@
     "favicon": "./assets/images/app-icon-web-favicon.png",
     "bundler": "metro"
   },
+  "splash": {
+    "image": "./assets/images/logo.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#191015"
+  },
   "_comment": "IMPORTANT: Before submitting to App Store/Play Store: (1) Add your Privacy Policy URL to App Store Connect / Google Play Console. (2) If using external payment processors outside of IAP, ensure compliance with store policies. (3) Test all features thoroughly. (4) Update app name and bundle identifier to your actual app details.",
   "plugins": [
     "expo-localization",
@@ -47,8 +52,8 @@
     [
       "expo-splash-screen",
       {
-        "image": "./assets/images/app-icon-android-adaptive-foreground.png",
-        "imageWidth": 300,
+        "image": "./assets/images/logo.png",
+        "imageWidth": 256,
         "resizeMode": "contain",
         "backgroundColor": "#191015"
       }

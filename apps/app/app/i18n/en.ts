@@ -57,10 +57,10 @@ const en = {
     joinUsOnSlack:
       "Wish there was a place to connect with React Native engineers around the world? Join the conversation in the Infinite Red Community Slack! Our growing community is a safe space to ask questions, learn from others, and grow your network.",
     joinSlackLink: "Join the Slack Community",
-    makeIgniteEvenBetterTitle: "Make Ignite even better",
-    makeIgniteEvenBetter:
-      "Have an idea to make Ignite even better? We're happy to hear that! We're always looking for others who want to help us build the best React Native tooling out there. Join us over on GitHub to join us in building the future of Ignite.",
-    contributeToIgniteLink: "Contribute to Ignite",
+    makeShipNativeEvenBetterTitle: "Help ShipNative get even better",
+    makeShipNativeEvenBetter:
+      "Have an idea to make ShipNative even better? We're happy to hear that! We're always looking for others who want to help us build the best React Native tooling out there. Join us over on GitHub to help build the future of ShipNative.",
+    contributeToShipNativeLink: "Contribute to ShipNative",
     theLatestInReactNativeTitle: "The latest in React Native",
     theLatestInReactNative: "We're here to keep you current on all React Native has to offer.",
     reactNativeRadioLink: "React Native Radio",
