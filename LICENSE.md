@@ -1,10 +1,10 @@
-# ShipNative.app Commercial License
+# Shipnative.app Commercial License
 
-Copyright (c) 2024 ShipNative.app. All rights reserved.
+Copyright (c) 2024 Shipnative.app. All rights reserved.
 
 ## Summary
 
-ShipNative.app is a **commercial product**. You are purchasing a license to use this boilerplate to create your own applications. You may NOT redistribute, resell, or share this boilerplate in any form.
+Shipnative.app is a **commercial product**. You are purchasing a license to use this boilerplate to create your own applications. You may NOT redistribute, resell, or share this boilerplate in any form.
 
 ## What You CAN Do
 
@@ -29,7 +29,7 @@ ShipNative.app is a **commercial product**. You are purchasing a license to use 
 
 ### 1. License Grant
 
-Subject to your compliance with these terms, ShipNative.app grants you a limited, non-exclusive, non-transferable, revocable license to:
+Subject to your compliance with these terms, Shipnative.app grants you a limited, non-exclusive, non-transferable, revocable license to:
 
 - Use the boilerplate code to create applications for yourself or your clients
 - Modify the boilerplate code as needed for your specific applications
@@ -47,9 +47,9 @@ You may NOT:
 
 ### 3. Ownership
 
-ShipNative.app retains all right, title, and interest in and to the boilerplate code, including all intellectual property rights. You own the applications you build using this boilerplate, but not the boilerplate itself.
+Shipnative.app retains all right, title, and interest in and to the boilerplate code, including all intellectual property rights. You own the applications you build using this boilerplate, but not the boilerplate itself.
 
-### 4. Applications Built with ShipNative
+### 4. Applications Built with Shipnative
 
 Applications you build using this boilerplate are **your property**. You may:
 
@@ -57,7 +57,7 @@ Applications you build using this boilerplate are **your property**. You may:
 - Close-source or open-source your application code
 - Monetize your applications in any way you choose
 
-However, if you open-source your application code, you must take reasonable steps to prevent others from extracting and using the ShipNative boilerplate code to create their own projects without a license.
+However, if you open-source your application code, you must take reasonable steps to prevent others from extracting and using the Shipnative boilerplate code to create their own projects without a license.
 
 ### 5. Updates and Support
 
@@ -67,7 +67,7 @@ Your license includes:
 - Access to documentation and guides
 - Community support through designated channels
 
-Updates are provided at ShipNative's discretion and do not include guaranteed support or maintenance.
+Updates are provided at Shipnative's discretion and do not include guaranteed support or maintenance.
 
 ### 6. Termination
 
@@ -107,7 +107,7 @@ You are responsible for complying with the licenses of these third-party depende
 
 **This boilerplate is built on top of the Ignite boilerplate by Infinite Red as a foundation, with significant customizations and additions.**
 
-Ignite is licensed under the MIT License. The Ignite foundation components retain their original MIT License. The ShipNative-specific additions, integrations, documentation, and customizations are proprietary and subject to this commercial license.
+Ignite is licensed under the MIT License. The Ignite foundation components retain their original MIT License. The Shipnative-specific additions, integrations, documentation, and customizations are proprietary and subject to this commercial license.
 
 ### 11. Governing Law
 
@@ -115,7 +115,7 @@ This license shall be governed by and construed in accordance with the laws of [
 
 ### 12. Entire Agreement
 
-This license constitutes the entire agreement between you and ShipNative.app regarding the use of this boilerplate and supersedes all prior agreements and understandings.
+This license constitutes the entire agreement between you and Shipnative.app regarding the use of this boilerplate and supersedes all prior agreements and understandings.
 
 ### 13. Contact
 
@@ -128,7 +128,7 @@ For questions about this license or to report violations, please contact:
 
 ## For Customers
 
-**Thank you for purchasing ShipNative.app!**
+**Thank you for purchasing Shipnative.app!**
 
 By using this boilerplate, you agree to these terms. We built this to help you ship faster, and we trust you'll respect these terms.
 

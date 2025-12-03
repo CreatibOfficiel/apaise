@@ -1,6 +1,6 @@
 # Push Notifications Guide
 
-Complete guide for implementing and using push notifications in your ShipNative app.
+Complete guide for implementing and using push notifications in your Shipnative app.
 
 ## Overview
 

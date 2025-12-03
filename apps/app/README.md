@@ -1,8 +1,8 @@
-# Welcome to ShipNative.app!
+# Welcome to Shipnative.app!
 
 > The ultimate React Native boilerplate for building production-ready mobile apps fast
 
-ShipNative.app is a comprehensive React Native starter kit that includes authentication, payments, analytics, and everything you need to ship your mobile app quickly.
+Shipnative.app is a comprehensive React Native starter kit that includes authentication, payments, analytics, and everything you need to ship your mobile app quickly.
 
 **Built with Expo and modern React Native tools.**
 
@@ -51,12 +51,12 @@ assets
 **icons**
 This is where your icon assets will live. These icons can be used for buttons, navigation elements, or any other UI components. The recommended format for icons is PNG, but other formats can be used as well.
 
-ShipNative comes with a built-in `Icon` component for easy icon usage throughout your app.
+Shipnative comes with a built-in `Icon` component for easy icon usage throughout your app.
 
 **images**
 This is where your images will live, such as background images, logos, or any other graphics. You can use various formats such as PNG, JPEG, or GIF for your images.
 
-ShipNative includes the `AutoImage` component for automatic image sizing and optimization.
+Shipnative includes the `AutoImage` component for automatic image sizing and optimization.
 
 How to use your `icon` or `image` assets:
 

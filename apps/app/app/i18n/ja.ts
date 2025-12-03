@@ -59,10 +59,10 @@ const ja: Translations = {
     joinUsOnSlack:
       "世界中のReact Nativeエンジニアと繋がりたいを思いませんか？Infinite RedのコミュニティSlackに参加しましょう！私達のコミュニティは安全に質問ができ、お互いから学び、あなたのネットワークを広げることができます。",
     joinSlackLink: "Slackコミュニティに参加する",
-    makeShipNativeEvenBetterTitle: "ShipNativeをより良くする",
-    makeShipNativeEvenBetter:
-      "ShipNativeをより良くする為のアイデアはありますか? そうであれば聞きたいです！ 私たちはいつでも最良のReact Nativeのツールを開発する為に助けを求めています。GitHubで私たちと一緒にShipNativeの未来を作りましょう。",
-    contributeToShipNativeLink: "ShipNativeにコントリビュートする",
+    makeShipnativeEvenBetterTitle: "Shipnativeをより良くする",
+    makeShipnativeEvenBetter:
+      "Shipnativeをより良くする為のアイデアはありますか? そうであれば聞きたいです！ 私たちはいつでも最良のReact Nativeのツールを開発する為に助けを求めています。GitHubで私たちと一緒にShipnativeの未来を作りましょう。",
+    contributeToShipnativeLink: "Shipnativeにコントリビュートする",
     theLatestInReactNativeTitle: "React Nativeの今",
     theLatestInReactNative: "React Nativeの現在をあなたにお届けします。",
     reactNativeRadioLink: "React Native Radio",

@@ -253,7 +253,7 @@ function DesktopSidebar({ state, navigation }: BottomTabBarProps) {
         <View style={styles.logoContainer}>
           <Ionicons name="rocket" size={28} color={theme.colors.primary} />
         </View>
-        <Animated.Text style={styles.brandText}>ShipNative</Animated.Text>
+        <Animated.Text style={styles.brandText}>Shipnative</Animated.Text>
       </View>
 
       {/* Navigation Items */}

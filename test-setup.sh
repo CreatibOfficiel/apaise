@@ -3,7 +3,7 @@
 # Test script for the setup wizard
 # This simulates user input
 
-echo "Testing ShipNative Setup Script..."
+echo "Testing Shipnative Setup Script..."
 echo ""
 
 # Create a temporary test response file

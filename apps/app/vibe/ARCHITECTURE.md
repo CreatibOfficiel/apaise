@@ -1,6 +1,6 @@
 # Architecture Documentation
 
-This document details the architectural patterns and decisions in the ShipNative boilerplate.
+This document details the architectural patterns and decisions in the Shipnative boilerplate.
 
 ## Layered Architecture
 

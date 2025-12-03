@@ -59,10 +59,10 @@ const es: Translations = {
     joinUsOnSlack:
       "¿Quieres conectar con desarrolladores de React Native de todo el mundo? Únete a la conversación en nuestra comunidad de Slack. Nuestra comunidad, que crece día a día, es un espacio seguro para hacer preguntas, aprender de los demás y ampliar tu red.",
     joinSlackLink: "Únete a la comunidad de Slack",
-    makeShipNativeEvenBetterTitle: "Haz que ShipNative sea aún mejor",
-    makeShipNativeEvenBetter:
-      "¿Tienes una idea para hacer que ShipNative sea aún mejor? ¡Nos encantaría escucharla! Estamos siempre buscando personas que quieran ayudarnos a construir las mejores herramientas para React Native. Únete a nosotros en GitHub para ayudarnos a construir el futuro de ShipNative.",
-    contributeToShipNativeLink: "Contribuir a ShipNative",
+    makeShipnativeEvenBetterTitle: "Haz que Shipnative sea aún mejor",
+    makeShipnativeEvenBetter:
+      "¿Tienes una idea para hacer que Shipnative sea aún mejor? ¡Nos encantaría escucharla! Estamos siempre buscando personas que quieran ayudarnos a construir las mejores herramientas para React Native. Únete a nosotros en GitHub para ayudarnos a construir el futuro de Shipnative.",
+    contributeToShipnativeLink: "Contribuir a Shipnative",
     theLatestInReactNativeTitle: "Lo último en el mundo de React Native",
     theLatestInReactNative:
       "Estamos aquí para mantenerte al día con todo lo que React Native tiene para ofrecer.",

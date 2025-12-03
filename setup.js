@@ -110,6 +110,13 @@ const loadEnvFile = (filePath) => {
   }, {})
 }
 
+const writeEnvFile = (filePath, values) => {
+  const content = Object.entries(values)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n")
+  fs.writeFileSync(filePath, content ? `${content}\n` : "")
+}
+
 const getMetadataDefaults = () => {
   const appJsonPath = path.join(__dirname, "apps/app/app.json")
   if (!fs.existsSync(appJsonPath)) return {}
@@ -181,7 +188,7 @@ const configureMetadata = async (config, defaults = {}) => {
   ])
 
   console.log("\nℹ️  App Display Name shows on users' home screens. Keep it short and readable.")
-  const defaultDisplayName = defaults.displayName || "My ShipNative App"
+  const defaultDisplayName = defaults.displayName || "My Shipnative App"
   config.displayName = await askQuestion(
     "What is your app's display name? (shown to users)",
     validateNotEmpty,
@@ -440,21 +447,63 @@ const runServiceMenu = async (services, defaults) => {
   return configuredCount
 }
 
+const configureMarketingPage = async (marketingEnv = {}) => {
+  printSection("🌐 MARKETING PAGE (apps/web)", [
+    "Configure the marketing site mode and email provider key used by the waitlist form.",
+    "Updates apps/web/.env so `yarn web` and deployments pick up the right values.",
+  ])
+
+  const shouldConfigure = await askYesNo("Do you want to configure the marketing page now?", true)
+  if (!shouldConfigure) return { updated: false, env: marketingEnv, requested: false }
+
+  const currentMode = marketingEnv.VITE_MODE || "waitlist"
+  const selectedMode = await askChoice(
+    "Choose marketing page mode",
+    [
+      { value: "waitlist", label: "Waitlist (collect emails before launch)" },
+      { value: "launch", label: "Launch (promote your live app)" },
+    ],
+    currentMode
+  )
+
+  const resendInput = await askQuestion(
+    "Resend API key for waitlist emails (press Enter to keep current/skip)",
+    null,
+    ""
+  )
+  const resolvedResendKey = resendInput || marketingEnv.RESEND_API_KEY || ""
+
+  const updatedEnv = { ...marketingEnv, VITE_MODE: selectedMode }
+  if (resolvedResendKey) {
+    updatedEnv.RESEND_API_KEY = resolvedResendKey
+  } else {
+    delete updatedEnv.RESEND_API_KEY
+  }
+
+  const updated =
+    selectedMode !== currentMode || resolvedResendKey !== (marketingEnv.RESEND_API_KEY || "")
+
+  return { updated, env: updatedEnv, requested: true }
+}
+
 // ========================================
 // MAIN SETUP
 // ========================================
 async function setup() {
   console.log("\n" + repeatLine("="))
-  console.log("🚀 ShipNative Setup")
+  console.log("🚀 Shipnative Setup")
   console.log(repeatLine("="))
   console.log("\nChoose how you want to configure your project.")
   console.log("You can run the full wizard, or jump straight into individual services.\n")
 
-  const envPath = path.join(__dirname, "apps/app/.env")
-  const existingEnv = loadEnvFile(envPath)
+  const appEnvPath = path.join(__dirname, "apps/app/.env")
+  const existingAppEnv = loadEnvFile(appEnvPath)
+  const marketingEnvPath = path.join(__dirname, "apps/web/.env")
+  const marketingEnvExists = fs.existsSync(marketingEnvPath)
+  const marketingEnv = loadEnvFile(marketingEnvPath)
   const metadataDefaults = getMetadataDefaults()
   const config = {}
-  const services = { ...existingEnv }
+  const services = { ...existingAppEnv }
 
   // Migrate legacy anon key input to publishable key and drop the old variable name
   if (services.EXPO_PUBLIC_SUPABASE_ANON_KEY && !services.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
@@ -497,6 +546,12 @@ async function setup() {
   } else if (mode === "metadata-only") {
     metadataConfigured = await configureMetadata(config, metadataDefaults)
   }
+
+  const {
+    env: updatedMarketingEnv,
+    updated: marketingUpdated,
+    requested: marketingRequested,
+  } = await configureMarketingPage(marketingEnv)
 
   // ========================================
   // APPLY CHANGES
@@ -546,12 +601,25 @@ async function setup() {
     const envContent = Object.entries(services)
       .map(([key, value]) => `${key}=${value}`)
       .join("\n")
-    fs.writeFileSync(envPath, envContent)
+    fs.writeFileSync(appEnvPath, envContent)
     console.log(`   ✅ .env file updated at apps/app/.env (${Object.keys(services).length} entries)`)
-  } else if (Object.keys(existingEnv).length > 0) {
+  } else if (Object.keys(existingAppEnv).length > 0) {
     console.log("\nℹ️ No service changes captured - leaving existing apps/app/.env untouched")
   } else {
     console.log("\n💡 No services configured - app will run in MOCK mode")
+  }
+
+  if (marketingRequested) {
+    if (marketingUpdated || !marketingEnvExists) {
+      writeEnvFile(marketingEnvPath, updatedMarketingEnv)
+      console.log(
+        `\n📝 Marketing page env updated at apps/web/.env (${Object.keys(updatedMarketingEnv).length} entries)`
+      )
+    } else {
+      console.log("\nℹ️ Marketing page env unchanged (already up to date)")
+    }
+  } else {
+    console.log("\nℹ️ Skipping marketing page env configuration (not selected this run)")
   }
 
   // Offer to install dependencies only when configuration was performed
@@ -582,7 +650,7 @@ async function setup() {
   const totalServices = Object.keys(serviceStatus).length
 
   const effectiveConfig = {
-    displayName: config.displayName || metadataDefaults.displayName || "My ShipNative App",
+    displayName: config.displayName || metadataDefaults.displayName || "My Shipnative App",
     bundleId: config.bundleId || metadataDefaults.bundleId || "com.shipnative.app",
     scheme: config.scheme || metadataDefaults.scheme || "shipnativeapp",
     projectName: config.projectName || metadataDefaults.projectName || "shipnative-app",
@@ -621,6 +689,15 @@ async function setup() {
   )
   if (mockServices.length) {
     console.log(`   • Mock mode: ${mockServices.join(", ")}`)
+  }
+  if (marketingRequested) {
+    console.log("\n🌐 Marketing page:")
+    console.log(`   • Mode: ${updatedMarketingEnv.VITE_MODE || "waitlist"}`)
+    console.log(
+      `   • Resend key: ${
+        updatedMarketingEnv.RESEND_API_KEY ? "saved to apps/web/.env" : "not set"
+      }`
+    )
   }
 
   console.log("\n💡 Next Steps:")

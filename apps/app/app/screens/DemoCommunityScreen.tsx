@@ -34,12 +34,12 @@ export const DemoCommunityScreen: FC<DemoTabScreenProps<"DemoCommunity">> =
         />
         <Text
           preset="subheading"
-          tx="demoCommunityScreen:makeShipNativeEvenBetterTitle"
+          tx="demoCommunityScreen:makeShipnativeEvenBetterTitle"
           style={themed($sectionTitle)}
         />
-        <Text tx="demoCommunityScreen:makeShipNativeEvenBetter" style={themed($description)} />
+        <Text tx="demoCommunityScreen:makeShipnativeEvenBetter" style={themed($description)} />
         <ListItem
-          tx="demoCommunityScreen:contributeToShipNativeLink"
+          tx="demoCommunityScreen:contributeToShipnativeLink"
           leftIcon="github"
           rightIcon={isRTL ? "caretLeft" : "caretRight"}
           onPress={() => openLinkInBrowser("https://github.com/shipnativeapp/shipnative")}

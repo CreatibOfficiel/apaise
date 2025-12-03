@@ -1,7 +1,7 @@
 -- =====================================================================
--- ShipNative Default Database Schema
+-- Shipnative Default Database Schema
 -- =====================================================================
--- This SQL file contains the default tables needed for the ShipNative
+-- This SQL file contains the default tables needed for the Shipnative
 -- boilerplate. Copy and paste this into your Supabase SQL Editor to
 -- set up your database.
 --
@@ -307,7 +307,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- =====================================================================
 -- NOTES
 -- =====================================================================
--- 1. This schema works with both real Supabase and ShipNative's mock mode
+-- 1. This schema works with both real Supabase and Shipnative's mock mode
 -- 2. All tables have Row Level Security (RLS) enabled
 -- 3. Triggers automatically create profiles when users sign up
 -- 4. The profiles table stores user preferences like dark mode and notifications

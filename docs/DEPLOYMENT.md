@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Complete guide for deploying your ShipNative app to production on iOS, Android, and Web.
+Complete guide for deploying your Shipnative app to production on iOS, Android, and Web.
 
 ## Prerequisites
 
@@ -61,7 +61,7 @@ Both Apple and Google **require a Privacy Policy URL** if your app:
 
 #### Option A: Host on Your Landing Page (Recommended)
 
-ShipNative includes a web app in `apps/web/` where you can host your privacy policy:
+Shipnative includes a web app in `apps/web/` where you can host your privacy policy:
 
 1. Create `apps/web/src/app/privacy-policy/page.tsx`:
 

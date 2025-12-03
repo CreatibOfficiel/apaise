@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Common issues and solutions when developing with ShipNative.
+Common issues and solutions when developing with Shipnative.
 
 ## Table of Contents
 

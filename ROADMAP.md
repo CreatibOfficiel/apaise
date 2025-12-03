@@ -1,6 +1,6 @@
 # Roadmap
 
-This document outlines the planned features and improvements for ShipNative.
+This document outlines the planned features and improvements for Shipnative.
 
 ## 🎯 Current Focus (December 1, 2025)
 
@@ -26,10 +26,10 @@ This document outlines the planned features and improvements for ShipNative.
 
 ## 🤝 Contributing
 
-Have an idea for ShipNative? We'd love to hear it!
+Have an idea for Shipnative? We'd love to hear it!
 
 - Open an issue on GitHub
 - Join our Discord community
 - Submit a pull request
 
-Your feedback helps shape the future of ShipNative! 🚀
+Your feedback helps shape the future of Shipnative! 🚀

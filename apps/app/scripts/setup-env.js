@@ -142,7 +142,7 @@ const askQuestion = (index) => {
 }
 
 console.log("\n" + "=".repeat(70))
-console.log("🚀 Welcome to ShipNative Starter Kit Setup!")
+console.log("🚀 Welcome to Shipnative Starter Kit Setup!")
 console.log("=".repeat(70))
 console.log("\nWe'll help you configure your app with:")
 console.log("  • Supabase (Authentication & Database)")

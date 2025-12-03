@@ -1,4 +1,4 @@
-# ShipNative Landing Page Content
+# Shipnative Landing Page Content
 
 Complete feature list, developer experience journey, and marketing copy for shipnative.app
 
@@ -367,7 +367,7 @@ eas update --branch production
 
 ---
 
-## What Makes ShipNative Different?
+## What Makes Shipnative Different?
 
 ### vs. Starting from Scratch
 - ⏱ **Save 2-3 months** of boilerplate setup
@@ -519,7 +519,7 @@ cd shipnative && yarn install && yarn setup
 
 ## Feature Comparison Table
 
-| Feature | ShipNative | Expo Template | From Scratch |
+| Feature | Shipnative | Expo Template | From Scratch |
 |---------|-----------|---------------|--------------|
 | Authentication | ✅ Supabase | ❌ | ⏱ 2 weeks |
 | Payments | ✅ RevenueCat (mobile + web billing) | ❌ | ⏱ 3 weeks |
@@ -537,4 +537,4 @@ cd shipnative && yarn install && yarn setup
 
 ---
 
-**ShipNative: The fastest way from idea to App Store.** 🚀
+**Shipnative: The fastest way from idea to App Store.** 🚀

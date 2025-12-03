@@ -1,6 +1,5 @@
 import { SEO } from './components/SEO'
-import { WaitlistMode } from './components/WaitlistMode'
-import { LaunchMode } from './components/LaunchMode'
+import { LandingPage } from './components/LandingPage'
 
 function App() {
   const mode = import.meta.env.VITE_MODE || 'waitlist'
@@ -16,10 +15,11 @@ function App() {
         url={import.meta.env.VITE_APP_URL || 'https://yourapp.com/'}
       />
 
-      {mode === 'launch' ? <LaunchMode /> : <WaitlistMode />}
+      <LandingPage mode={mode === 'launch' ? 'launch' : 'waitlist'} />
     </>
   )
 }
 
 export default App
+
 

@@ -13,11 +13,14 @@ import {
     ShieldCheck
 } from 'lucide-react'
 
-interface WaitlistModeProps {
+interface LandingPageProps {
+    mode: 'waitlist' | 'launch'
     appName?: string
     tagline?: string
     description?: string
     screenshotUrl?: string
+    iosUrl?: string
+    androidUrl?: string
 }
 
 type BentoTile = {
@@ -176,12 +179,17 @@ const bentoTiles: BentoTile[] = [
     },
 ]
 
-export function WaitlistMode({
+export function LandingPage({
+    mode,
     appName = import.meta.env.VITE_APP_NAME || 'Shipnative',
     tagline = 'Ship your mobile app in days, not months',
-    description = 'Join the waitlist to get early access and exclusive launch benefits.',
-    screenshotUrl = import.meta.env.VITE_APP_SCREENSHOT_URL || '/app-screenshot.png'
-}: WaitlistModeProps) {
+    description = mode === 'waitlist'
+        ? 'Join the waitlist to get early access and exclusive launch benefits.'
+        : 'Download now and start building your mobile app today.',
+    screenshotUrl = import.meta.env.VITE_APP_SCREENSHOT_URL || '/app-screenshot.png',
+    iosUrl = import.meta.env.VITE_IOS_APP_URL,
+    androidUrl = import.meta.env.VITE_ANDROID_APP_URL,
+}: LandingPageProps) {
     const [email, setEmail] = useState('')
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
     const [errorMessage, setErrorMessage] = useState('')
@@ -233,6 +241,8 @@ export function WaitlistMode({
         }
     }
 
+    const isWaitlist = mode === 'waitlist'
+
     return (
         <div className="min-h-screen bg-[#FAFAFA] text-slate-900 font-sans selection:bg-slate-900 selection:text-white overflow-x-hidden">
             {/* Background Gradients */}
@@ -248,8 +258,10 @@ export function WaitlistMode({
                         {/* Badge + Heading + Tagline Group */}
                         <div className="space-y-6">
                             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm mx-auto lg:mx-0">
-                                <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />
-                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">Coming Soon</span>
+                                <Sparkles className={`w-4 h-4 ${isWaitlist ? 'text-amber-500 fill-amber-500' : 'text-emerald-500 fill-emerald-500'}`} />
+                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+                                    {isWaitlist ? 'Coming Soon' : 'Now Available'}
+                                </span>
                             </div>
 
                             <div className="space-y-3">
@@ -262,77 +274,136 @@ export function WaitlistMode({
                             </div>
                         </div>
 
-                        {/* Description + Form Group */}
+                        {/* Description + CTA Group */}
                         <div className="space-y-6">
                             <p className="text-base text-slate-500 leading-relaxed max-w-lg mx-auto lg:mx-0">
                                 {description}
                             </p>
 
-                            {/* Form */}
-                            <div className="max-w-md mx-auto lg:mx-0">
-                                {status === 'success' ? (
-                                    <div className="bg-white border border-emerald-100 rounded-2xl p-6 shadow-lg shadow-emerald-500/5 ring-1 ring-emerald-500/10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                                                <Check className="w-6 h-6 text-emerald-600" />
+                            {isWaitlist ? (
+                                /* Waitlist Form */
+                                <div className="max-w-md mx-auto lg:mx-0">
+                                    {status === 'success' ? (
+                                        <div className="bg-white border border-emerald-100 rounded-2xl p-6 shadow-lg shadow-emerald-500/5 ring-1 ring-emerald-500/10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                                    <Check className="w-6 h-6 text-emerald-600" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <h3 className="text-lg font-bold text-slate-900">You're on the list!</h3>
+                                                    <p className="text-sm text-slate-600">We'll be in touch soon.</p>
+                                                </div>
                                             </div>
-                                            <div className="text-left">
-                                                <h3 className="text-lg font-bold text-slate-900">You're on the list!</h3>
-                                                <p className="text-sm text-slate-600">We'll be in touch soon.</p>
-                                            </div>
+                                            <button
+                                                onClick={() => setStatus('idle')}
+                                                className="mt-4 text-sm text-slate-500 hover:text-slate-900 underline underline-offset-4 transition-colors"
+                                            >
+                                                Register another email
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => setStatus('idle')}
-                                            className="mt-4 text-sm text-slate-500 hover:text-slate-900 underline underline-offset-4 transition-colors"
-                                        >
-                                            Register another email
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <form onSubmit={handleSubmit} className="relative group">
-                                        <div className="relative flex items-center">
-                                            <input
-                                                type="email"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="Enter your email address"
-                                                className="w-full h-16 pl-6 pr-36 bg-white border border-slate-200 rounded-2xl text-lg outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 shadow-sm group-hover:shadow-md"
-                                                disabled={status === 'loading'}
-                                            />
-                                            <div className="absolute right-2 top-2 bottom-2">
-                                                <button
-                                                    type="submit"
+                                    ) : (
+                                        <form onSubmit={handleSubmit} className="relative group">
+                                            <div className="relative flex items-center">
+                                                <input
+                                                    type="email"
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    placeholder="Enter your email address"
+                                                    className="w-full h-16 pl-6 pr-36 bg-white border border-slate-200 rounded-2xl text-lg outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all placeholder:text-slate-400 shadow-sm group-hover:shadow-md"
                                                     disabled={status === 'loading'}
-                                                    className="h-full px-6 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg shadow-slate-900/20"
-                                                >
-                                                    {status === 'loading' ? (
-                                                        <span className="animate-pulse">Joining...</span>
-                                                    ) : (
-                                                        <>
-                                                            Join
-                                                            <ArrowRight className="w-4 h-4" />
-                                                        </>
-                                                    )}
-                                                </button>
+                                                />
+                                                <div className="absolute right-2 top-2 bottom-2">
+                                                    <button
+                                                        type="submit"
+                                                        disabled={status === 'loading'}
+                                                        className="h-full px-6 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg shadow-slate-900/20"
+                                                    >
+                                                        {status === 'loading' ? (
+                                                            <span className="animate-pulse">Joining...</span>
+                                                        ) : (
+                                                            <>
+                                                                Join
+                                                                <ArrowRight className="w-4 h-4" />
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        {status === 'error' && (
-                                            <p className="absolute -bottom-8 left-6 text-sm font-medium text-red-500 animate-in fade-in slide-in-from-top-1">
-                                                {errorMessage}
-                                            </p>
+                                            {status === 'error' && (
+                                                <p className="absolute -bottom-8 left-6 text-sm font-medium text-red-500 animate-in fade-in slide-in-from-top-1">
+                                                    {errorMessage}
+                                                </p>
+                                            )}
+                                        </form>
+                                    )}
+                                    <p className="mt-4 text-xs font-medium text-slate-400 uppercase tracking-wide text-center lg:text-left">
+                                        No spam • Unsubscribe anytime
+                                    </p>
+                                </div>
+                            ) : (
+                                /* Store Buttons */
+                                <div className="space-y-4">
+                                    <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                                        {iosUrl ? (
+                                            <a
+                                                href={iosUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="transition-transform hover:scale-105 active:scale-95"
+                                            >
+                                                <img
+                                                    src="/app-store-badge.svg"
+                                                    alt="Download on the App Store"
+                                                    className="h-14"
+                                                />
+                                            </a>
+                                        ) : (
+                                            <div className="opacity-40">
+                                                <img
+                                                    src="/app-store-badge.svg"
+                                                    alt="App Store - Coming Soon"
+                                                    className="h-14"
+                                                />
+                                            </div>
                                         )}
-                                    </form>
-                                )}
-                                <p className="mt-4 text-xs font-medium text-slate-400 uppercase tracking-wide text-center lg:text-left">
-                                    No spam • Unsubscribe anytime
-                                </p>
-                            </div>
+
+                                        {androidUrl ? (
+                                            <a
+                                                href={androidUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="transition-transform hover:scale-105 active:scale-95"
+                                            >
+                                                <img
+                                                    src="/google-play-badge.svg"
+                                                    alt="Get it on Google Play"
+                                                    className="h-14"
+                                                />
+                                            </a>
+                                        ) : (
+                                            <div className="opacity-40">
+                                                <img
+                                                    src="/google-play-badge.svg"
+                                                    alt="Google Play - Coming Soon"
+                                                    className="h-14"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {(!iosUrl && !androidUrl) && (
+                                        <p className="text-xs text-slate-400 text-center lg:text-left">
+                                            Store links coming soon
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     {/* Right Column - Visual */}
                     <div className="relative lg:h-[800px] flex items-center justify-center lg:justify-end">
-                        <div className="relative w-[370px] hover:scale-[1.02] transition-transform duration-700 ease-out">
+                        <div className="relative w-[420px] hover:scale-[1.02] transition-transform duration-700 ease-out">
                             {/* Glow */}
                             <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 blur-[100px] -z-10" />
 
@@ -485,7 +556,16 @@ export function WaitlistMode({
                         © {new Date().getFullYear()} {appName}. All rights reserved.
                     </p>
                 </footer>
-            </main >
-        </div >
+            </main>
+        </div>
     )
 }
+
+// Export legacy component names for backwards compatibility
+export const WaitlistMode = (props: Omit<LandingPageProps, 'mode'>) => (
+    <LandingPage {...props} mode="waitlist" />
+)
+
+export const LaunchMode = (props: Omit<LandingPageProps, 'mode'>) => (
+    <LandingPage {...props} mode="launch" />
+)

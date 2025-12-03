@@ -47,7 +47,7 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your-key-here
 
 #### 4. Set Up Database Schema
 
-ShipNative includes a production-ready database schema. To set it up:
+Shipnative includes a production-ready database schema. To set it up:
 
 1. Go to your Supabase project dashboard
 2. Navigate to **SQL Editor**
@@ -215,7 +215,7 @@ Social login buttons are automatically shown/hidden based on feature flags:
 
 ## Setup Wizard for Social Login
 
-The ShipNative setup wizard (`yarn setup`) will guide you through setting up Google and Apple OAuth:
+The Shipnative setup wizard (`yarn setup`) will guide you through setting up Google and Apple OAuth:
 
 ### Google OAuth Setup
 

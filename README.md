@@ -1,4 +1,4 @@
-# ShipNative Starter Kit
+# Shipnative Starter Kit
 
 React Native (Expo) boilerplate with authentication, subscriptions, analytics, and UI components. Optimized for AI-assisted development. The docs site is the single source of truth for setup, configuration, and deployment—start there.
 

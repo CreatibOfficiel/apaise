@@ -58,10 +58,10 @@ const ar: Translations = {
     joinUsOnSlack:
       "هل ترغب في وجود مكان للتواصل مع مهندسي React Native حول العالم؟ الانضمام الى المحادثة في سلاك المجتمع الاحمر اللانهائي! مجتمعناالمتنامي هو مساحةآمنة لطرح الاسئلة والتعلم من الآخرين وتنمية شبكتك.",
     joinSlackLink: "انضم الي مجتمع Slack",
-    makeShipNativeEvenBetterTitle: "اجعل ShipNative افضل",
-    makeShipNativeEvenBetter:
-      "هل لديك فكرة لجعل ShipNative افضل؟ نحن سعداء لسماع ذلك! نحن نبحث دائماً عن الآخرين الذين يرغبون في مساعدتنا في بناء افضل الادوات المحلية التفاعلية المتوفرة هناك. انضم الينا عبر GitHub للانضمام الينا في بناء مستقبل ShipNative",
-    contributeToShipNativeLink: "ساهم في ShipNative",
+    makeShipnativeEvenBetterTitle: "اجعل Shipnative افضل",
+    makeShipnativeEvenBetter:
+      "هل لديك فكرة لجعل Shipnative افضل؟ نحن سعداء لسماع ذلك! نحن نبحث دائماً عن الآخرين الذين يرغبون في مساعدتنا في بناء افضل الادوات المحلية التفاعلية المتوفرة هناك. انضم الينا عبر GitHub للانضمام الينا في بناء مستقبل Shipnative",
+    contributeToShipnativeLink: "ساهم في Shipnative",
     theLatestInReactNativeTitle: "الاحدث في React Native",
     theLatestInReactNative: "نخن هنا لنبقيك محدثاً على جميع React Native التي تعرضها",
     reactNativeRadioLink: "راديو React Native",

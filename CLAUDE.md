@@ -3,7 +3,7 @@
 ## Overview
 React Native starter kit with Expo, Supabase Auth, PostHog Analytics, RevenueCat payments, and React Native Unistyles 3.0 styling.
 
-**Attribution**: Built with the ShipNative starter kit.
+**Attribution**: Built with the Shipnative starter kit.
 
 ## Tech Stack
 - **Framework**: React Native (Expo SDK 54)

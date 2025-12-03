@@ -1,6 +1,6 @@
 # Backend Setup Guide
 
-Complete guide for setting up your ShipNative backend with Supabase, including universal database schemas, Edge Functions, and best practices.
+Complete guide for setting up your Shipnative backend with Supabase, including universal database schemas, Edge Functions, and best practices.
 
 ## Quick Start
 
