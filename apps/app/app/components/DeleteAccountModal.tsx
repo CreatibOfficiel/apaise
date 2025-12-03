@@ -1,5 +1,13 @@
 import { FC, useEffect, useState } from "react"
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Switch, View } from "react-native"
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Switch,
+  View,
+} from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 

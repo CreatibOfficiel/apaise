@@ -49,9 +49,7 @@ export function runSecurityChecks(): SecurityCheckResult {
     environment: {
       isProduction,
       isDevelopment,
-      message: isProduction
-        ? "Running in production mode"
-        : "Running in development mode",
+      message: isProduction ? "Running in production mode" : "Running in development mode",
     },
     overall: {
       status: "secure",
@@ -108,5 +106,3 @@ export const securityCheck = {
   run: runSecurityChecks,
   log: logSecurityChecks,
 }
-
-

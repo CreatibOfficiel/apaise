@@ -9,8 +9,8 @@
 import { Platform } from "react-native"
 
 import { mockRevenueCat } from "./mocks/revenueCat"
-import type { PricingPackage, SubscriptionService, SubscriptionInfo } from "../types/subscription"
 import { isDevelopment } from "../config/env"
+import type { PricingPackage, SubscriptionService, SubscriptionInfo } from "../types/subscription"
 
 // API Keys
 const mobileApiKey = Platform.select({

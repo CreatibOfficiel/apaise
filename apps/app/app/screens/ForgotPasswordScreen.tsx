@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { View, TouchableOpacity } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import { StyleSheet } from "react-native-unistyles"
 
-import { useAuthStore } from "@/stores/authStore"
+import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout"
 import { Text } from "@/components/Text"
 import { TextField } from "@/components/TextField"
-import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout"
+import { useAuthStore } from "@/stores/authStore"
 import { validateEmail } from "@/utils/validation"
 
 // =============================================================================
@@ -21,21 +21,10 @@ export const ForgotPasswordScreen = () => {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
-  // Field-level errors
-  const [emailError, setEmailError] = useState("")
-
   // Touch state for validation
   const [emailTouched, setEmailTouched] = useState(false)
 
-  // Validate email on change
-  useEffect(() => {
-    if (emailTouched && email) {
-      const validation = validateEmail(email)
-      setEmailError(validation.isValid ? "" : validation.error || "")
-    } else if (emailTouched && !email) {
-      setEmailError("Email is required")
-    }
-  }, [email, emailTouched])
+  const emailValidation = emailTouched ? validateEmail(email) : { isValid: true, error: "" }
 
   const isFormValid = () => {
     const emailValidation = validateEmail(email)
@@ -123,8 +112,8 @@ export const ForgotPasswordScreen = () => {
           keyboardType="email-address"
           returnKeyType="done"
           onSubmitEditing={handleResetPassword}
-          status={emailTouched && emailError ? "error" : "default"}
-          helper={emailTouched && emailError ? emailError : undefined}
+          status={emailTouched && !emailValidation.isValid ? "error" : "default"}
+          helper={emailTouched && !emailValidation.isValid ? emailValidation.error : undefined}
         />
       </View>
 

@@ -47,7 +47,7 @@ if (useMock && __DEV__) {
   // Use logger for consistency, but this is dev-only so console is acceptable
   console.warn("⚠️  Supabase credentials not found - using mock authentication")
   console.log(
-    "💡 Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY to apps/app/.env"
+    "💡 Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY to apps/app/.env",
   )
 }
 

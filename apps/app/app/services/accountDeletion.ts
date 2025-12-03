@@ -2,8 +2,8 @@ import { useAuthStore, useSubscriptionStore } from "@/stores"
 import { GUEST_USER_KEY } from "@/stores/authStore"
 import type { Session } from "@/types/auth"
 
-import { supabase, supabaseKey, supabaseUrl, isUsingMockSupabase } from "./supabase"
 import { mockSupabaseHelpers } from "./mocks/supabase"
+import { supabase, supabaseKey, supabaseUrl, isUsingMockSupabase } from "./supabase"
 
 async function deleteSupabaseAccount(session: Session) {
   if (!supabaseUrl || !supabaseKey) {
@@ -37,8 +37,7 @@ async function deleteSupabaseAccount(session: Session) {
     let message = `Account deletion failed (${response.status})`
     try {
       const errorBody = await response.json()
-      message =
-        errorBody?.error_description || errorBody?.message || errorBody?.error || message
+      message = errorBody?.error_description || errorBody?.message || errorBody?.error || message
     } catch {
       // Ignore JSON parsing errors
     }

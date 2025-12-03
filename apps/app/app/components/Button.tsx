@@ -241,11 +241,7 @@ export function Button(props: ButtonProps) {
 
       if (allTextChildren) {
         return (
-          <Text
-            weight="semiBold"
-            {...TextProps}
-            style={[{ color: textColor }, TextProps?.style]}
-          >
+          <Text weight="semiBold" {...TextProps} style={[{ color: textColor }, TextProps?.style]}>
             {childArray.join("")}
           </Text>
         )

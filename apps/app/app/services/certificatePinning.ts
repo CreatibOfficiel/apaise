@@ -58,7 +58,7 @@ export function getCertificatePins(domain: string): string[] | null {
  */
 export async function validateCertificatePin(
   domain: string,
-  certificate: any, // Certificate object from pinning library
+  _certificate: any, // Certificate object from pinning library
 ): Promise<boolean> {
   if (!isCertificatePinningEnabled()) {
     return true // Skip validation in development
@@ -109,5 +109,3 @@ export const certificatePinning = {
   validate: validateCertificatePin,
   initialize: initializeCertificatePinning,
 }
-
-

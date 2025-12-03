@@ -86,8 +86,8 @@ export const OnboardingScreenLayout = ({
   const isLargeScreen = windowWidth > BREAKPOINT_LARGE
   const isWeb = Platform.OS === "web"
   const webViewportStyle = isWeb
-    // Force full-viewport sizing on web where parent containers can collapse.
-    ? {
+    ? // Force full-viewport sizing on web where parent containers can collapse.
+      {
         minHeight: windowHeight,
         height: windowHeight,
         width: "100%",

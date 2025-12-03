@@ -15,8 +15,6 @@
 import { Platform } from "react-native"
 import * as SecureStore from "expo-secure-store"
 
-import { webSecureStorage } from "../../utils/webStorageEncryption"
-
 import type {
   User,
   Session,
@@ -28,6 +26,7 @@ import type {
   AuthStateChangeCallback,
 } from "../../types/auth"
 import type { DatabaseResponse } from "../../types/database"
+import { webSecureStorage } from "../../utils/webStorageEncryption"
 
 // Cross-platform base64 utilities
 const base64Utils = {

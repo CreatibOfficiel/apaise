@@ -37,8 +37,8 @@ import {
   TouchableOpacity,
 } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { ScrollView } from "../ScrollView"
@@ -109,6 +109,7 @@ export const AuthScreenLayout = ({
   // Responsive layout
   const isTabletOrLarger = windowWidth >= BREAKPOINT_TABLET
   const isWeb = Platform.OS === "web"
+  const isMobile = Platform.OS !== "web"
 
   // Content wrapper - either ScrollView or View
   const ContentWrapper = scrollable ? ScrollView : View
@@ -145,12 +146,14 @@ export const AuthScreenLayout = ({
           style={[
             styles.keyboardView,
             isWeb && isTabletOrLarger && styles.keyboardViewCentered,
+            isMobile && styles.keyboardViewMobile,
           ]}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
         >
           <View
             style={[
               styles.modalCard,
-              // On mobile (non-centered), give the card flex to expand
+              // On mobile, use centered card style like Welcome screen
               !isWeb && styles.modalCardMobile,
               isWeb && isTabletOrLarger && styles.modalCardCentered,
               { paddingBottom: Math.max(insets.bottom, theme.spacing.xl) },
@@ -169,11 +172,7 @@ export const AuthScreenLayout = ({
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <View style={styles.closeButtonCircle}>
-                    <Ionicons
-                      name="close"
-                      size={24}
-                      color={theme.colors.foreground}
-                    />
+                    <Ionicons name="close" size={24} color={theme.colors.foreground} />
                   </View>
                 </TouchableOpacity>
               )}
@@ -189,11 +188,7 @@ export const AuthScreenLayout = ({
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <View style={styles.backButtonCircle}>
-                    <Ionicons
-                      name="arrow-back"
-                      size={24}
-                      color={theme.colors.foreground}
-                    />
+                    <Ionicons name="arrow-back" size={24} color={theme.colors.foreground} />
                   </View>
                 </TouchableOpacity>
               )}
@@ -252,12 +247,22 @@ const styles = StyleSheet.create((theme) => ({
   },
   keyboardView: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+    // On mobile, position card at bottom
+    ...(Platform.OS !== "web" && {
+      minHeight: 0,
+      paddingBottom: theme.spacing.xl,
+    }),
     ...(Platform.OS === "web" && {
       minHeight: "100vh" as unknown as number,
       height: "100vh" as unknown as number,
       width: "100%" as unknown as number,
     }),
+  },
+  keyboardViewMobile: {
+    // Mobile: position card at bottom
+    justifyContent: "flex-end",
+    paddingTop: theme.spacing["2xl"],
   },
   keyboardViewCentered: {
     justifyContent: "center",
@@ -274,8 +279,12 @@ const styles = StyleSheet.create((theme) => ({
     width: "100%",
   },
   modalCardMobile: {
-    // Limit height to show gradient at top
-    maxHeight: "85%",
+    // On mobile, card slides up from bottom with rounded top corners only
+    // Note: borderTopLeftRadius and borderTopRightRadius are set in modalCard base style
+    maxWidth: "100%",
+    width: "100%",
+    // Allow card to grow naturally, but prevent overflow beyond viewport
+    maxHeight: "90%",
   },
   modalCardCentered: {
     borderRadius: theme.radius["3xl"],
@@ -292,9 +301,8 @@ const styles = StyleSheet.create((theme) => ({
     width: "100%",
   },
   scrollArea: {
-    flex: 1,
     width: "100%",
-    minHeight: 0,
+    // Don't use flex: 1 when scrollable - let content determine height
   },
   scrollAreaWeb: {
     width: "100%",

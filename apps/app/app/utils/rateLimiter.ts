@@ -6,9 +6,8 @@
  * rate limiting should also be implemented.
  */
 
-import { Platform } from "react-native"
-
-import * as storage from "./storage"
+import * as storageUtils from "./storage"
+import { storage } from "./storage"
 
 interface RateLimitEntry {
   count: number
@@ -51,7 +50,7 @@ class RateLimiter {
   async isAllowed(identifier: string): Promise<boolean> {
     try {
       const key = this.getStorageKey(identifier)
-      const stored = storage.load(key) as RateLimitEntry | undefined
+      const stored = storageUtils.load(key) as RateLimitEntry | undefined
 
       const now = Date.now()
 
@@ -61,7 +60,7 @@ class RateLimiter {
           count: 1,
           resetAt: now + this.config.windowMs,
         }
-        storage.save(key, newEntry)
+        storageUtils.save(key, newEntry)
         return true
       }
 
@@ -72,7 +71,7 @@ class RateLimiter {
 
       // Increment count
       stored.count++
-      storage.save(key, stored)
+      storageUtils.save(key, stored)
       return true
     } catch (error) {
       // On error, allow the request (fail open) but log the error
@@ -87,7 +86,7 @@ class RateLimiter {
   async getRemainingAttempts(identifier: string): Promise<number> {
     try {
       const key = this.getStorageKey(identifier)
-      const stored = storage.load(key) as RateLimitEntry | undefined
+      const stored = storageUtils.load(key) as RateLimitEntry | undefined
 
       if (!stored) {
         return this.config.maxAttempts
@@ -110,7 +109,7 @@ class RateLimiter {
   async getResetTime(identifier: string): Promise<number> {
     try {
       const key = this.getStorageKey(identifier)
-      const stored = storage.load(key) as RateLimitEntry | undefined
+      const stored = storageUtils.load(key) as RateLimitEntry | undefined
 
       if (!stored) {
         return 0
@@ -129,7 +128,7 @@ class RateLimiter {
   async reset(identifier: string): Promise<void> {
     try {
       const key = this.getStorageKey(identifier)
-      storage.remove(key)
+      storageUtils.remove(key)
     } catch (error) {
       console.warn("[RateLimiter] Error resetting rate limit", error)
     }
@@ -144,7 +143,7 @@ class RateLimiter {
       const prefix = `${this.config.keyPrefix}:`
       keys.forEach((key) => {
         if (key.startsWith(prefix)) {
-          storage.remove(key)
+          storageUtils.remove(key)
         }
       })
     } catch (error) {
@@ -174,5 +173,3 @@ export const signUpRateLimiter = new RateLimiter({
 
 // Export class for custom configurations
 export { RateLimiter }
-
-

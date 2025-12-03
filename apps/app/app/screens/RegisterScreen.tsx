@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { View, TouchableOpacity, DimensionValue } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { features } from "@/config/features"
-import { useAuth } from "@/hooks/useAuth"
-import { useAuthStore } from "@/stores/authStore"
 import { Divider } from "@/components/Divider"
+import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout"
 import { Spinner } from "@/components/Spinner"
 import { Text } from "@/components/Text"
 import { TextField } from "@/components/TextField"
-import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout"
+import { features } from "@/config/features"
+import { useAuth } from "@/hooks/useAuth"
+import { useAuthStore } from "@/stores/authStore"
 import {
   validateEmail,
   validatePassword,
@@ -26,9 +26,7 @@ import {
 export const RegisterScreen = () => {
   const { theme } = useUnistyles()
   const navigation = useNavigation()
-  const { signUp } = useAuthStore((state) => ({
-    signUp: state.signUp,
-  }))
+  const signUp = useAuthStore((state) => state.signUp)
   const { signInWithGoogle, signInWithApple, loading: oauthLoading } = useAuth()
 
   const [email, setEmail] = useState("")
@@ -37,58 +35,20 @@ export const RegisterScreen = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  // Field-level errors
-  const [emailError, setEmailError] = useState("")
-  const [passwordError, setPasswordError] = useState("")
-  const [confirmPasswordError, setConfirmPasswordError] = useState("")
-
   // Touch state
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
   const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false)
 
-  // Password strength
-  const [passwordStrength, setPasswordStrength] = useState<{
-    score: number
-    label: string
-  } | null>(null)
+  const passwordStrength = password ? analyzePasswordStrength(password) : null
 
-  // Validate email on change
-  useEffect(() => {
-    if (emailTouched && email) {
-      const validation = validateEmail(email)
-      setEmailError(validation.isValid ? "" : validation.error || "")
-    } else if (emailTouched && !email) {
-      setEmailError("Email is required")
-    }
-  }, [email, emailTouched])
-
-  // Validate password and check strength
-  useEffect(() => {
-    if (password) {
-      const strength = analyzePasswordStrength(password)
-      setPasswordStrength({ score: strength.score, label: strength.label })
-    } else {
-      setPasswordStrength(null)
-    }
-
-    if (passwordTouched && password) {
-      const validation = validatePassword(password)
-      setPasswordError(validation.isValid ? "" : validation.error || "")
-    } else if (passwordTouched && !password) {
-      setPasswordError("Password is required")
-    }
-  }, [password, passwordTouched])
-
-  // Validate confirm password
-  useEffect(() => {
-    if (confirmPasswordTouched && confirmPassword) {
-      const validation = validatePasswordConfirmation(password, confirmPassword)
-      setConfirmPasswordError(validation.isValid ? "" : validation.error || "")
-    } else if (confirmPasswordTouched && !confirmPassword) {
-      setConfirmPasswordError("Please confirm your password")
-    }
-  }, [confirmPassword, confirmPasswordTouched, password])
+  const emailValidation = emailTouched ? validateEmail(email) : { isValid: true, error: "" }
+  const passwordValidation = passwordTouched
+    ? validatePassword(password)
+    : { isValid: true, error: "" }
+  const confirmValidation = confirmPasswordTouched
+    ? validatePasswordConfirmation(password, confirmPassword)
+    : { isValid: true, error: "" }
 
   const isFormValid = () => {
     const emailValidation = validateEmail(email)
@@ -184,6 +144,7 @@ export const RegisterScreen = () => {
       subtitle="Sign up to get started"
       showCloseButton
       onClose={handleClose}
+      scrollable={false}
     >
       {/* Email Input */}
       <View style={styles.inputContainer}>
@@ -198,8 +159,8 @@ export const RegisterScreen = () => {
           autoCorrect={false}
           keyboardType="email-address"
           returnKeyType="next"
-          status={emailTouched && emailError ? "error" : "default"}
-          helper={emailTouched && emailError ? emailError : undefined}
+          status={emailTouched && !emailValidation.isValid ? "error" : "default"}
+          helper={emailTouched && !emailValidation.isValid ? emailValidation.error : undefined}
         />
       </View>
 
@@ -217,8 +178,10 @@ export const RegisterScreen = () => {
           secureTextEntry
           textContentType="oneTimeCode"
           returnKeyType="next"
-          status={passwordTouched && passwordError ? "error" : "default"}
-          helper={passwordTouched && passwordError ? passwordError : undefined}
+          status={passwordTouched && !passwordValidation.isValid ? "error" : "default"}
+          helper={
+            passwordTouched && !passwordValidation.isValid ? passwordValidation.error : undefined
+          }
         />
 
         {/* Password Strength Indicator */}
@@ -257,8 +220,12 @@ export const RegisterScreen = () => {
           textContentType="oneTimeCode"
           returnKeyType="done"
           onSubmitEditing={handleRegister}
-          status={confirmPasswordTouched && confirmPasswordError ? "error" : "default"}
-          helper={confirmPasswordTouched && confirmPasswordError ? confirmPasswordError : undefined}
+          status={confirmPasswordTouched && !confirmValidation.isValid ? "error" : "default"}
+          helper={
+            confirmPasswordTouched && !confirmValidation.isValid
+              ? confirmValidation.error
+              : undefined
+          }
         />
       </View>
 

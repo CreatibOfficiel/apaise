@@ -14,8 +14,8 @@ import { persist, createJSONStorage } from "zustand/middleware"
 
 import { supabase } from "../services/supabase"
 import type { Session, User } from "../types/auth"
-import { authRateLimiter, passwordResetRateLimiter, signUpRateLimiter } from "../utils/rateLimiter"
 import { logger } from "../utils/Logger"
+import { authRateLimiter, passwordResetRateLimiter, signUpRateLimiter } from "../utils/rateLimiter"
 import * as storage from "../utils/storage"
 
 interface AuthState {
@@ -43,6 +43,9 @@ export const GUEST_USER_KEY = "guest"
 
 const getUserKey = (user?: User | null) => user?.id ?? GUEST_USER_KEY
 
+// Track auth state change subscription to prevent duplicate listeners
+let authStateSubscription: { unsubscribe: () => void } | null = null
+
 type PersistedAuthState = Pick<AuthState, "onboardingStatusByUserId">
 
 // Only persist non-sensitive onboarding progress; keep auth/session data in SecureStore via Supabase
@@ -50,7 +53,9 @@ const sanitizePersistedAuthState = (
   state: Partial<AuthState> | null | undefined,
 ): PersistedAuthState => ({
   onboardingStatusByUserId:
-    typeof state === "object" && state?.onboardingStatusByUserId && !Array.isArray(state.onboardingStatusByUserId)
+    typeof state === "object" &&
+    state?.onboardingStatusByUserId &&
+    !Array.isArray(state.onboardingStatusByUserId)
       ? {
           ...state.onboardingStatusByUserId,
           // Always consider guest onboarding complete so unauthenticated users skip onboarding
@@ -216,9 +221,7 @@ export const useAuthStore = create<AuthState>()(
       resetPassword: async (email) => {
         try {
           // Rate limiting check
-          const isAllowed = await passwordResetRateLimiter.isAllowed(
-            `reset:${email.toLowerCase()}`,
-          )
+          const isAllowed = await passwordResetRateLimiter.isAllowed(`reset:${email.toLowerCase()}`)
           if (!isAllowed) {
             const resetTime = await passwordResetRateLimiter.getResetTime(
               `reset:${email.toLowerCase()}`,
@@ -292,45 +295,50 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
           })
 
-          // Listen for auth changes
-          supabase.auth.onAuthStateChange(async (_event, session) => {
-            // Preserve local onboarding state - don't reset it
-            const onboardingStatusByUserId = get().onboardingStatusByUserId
-            const userKey = getUserKey(session?.user)
-            const currentLocalOnboarding = onboardingStatusByUserId[userKey] ?? false
-            let hasCompletedOnboarding = currentLocalOnboarding
+          // Listen for auth changes - only set up once
+          if (!authStateSubscription) {
+            const {
+              data: { subscription },
+            } = supabase.auth.onAuthStateChange(async (_event, session) => {
+              // Preserve local onboarding state - don't reset it
+              const onboardingStatusByUserId = get().onboardingStatusByUserId
+              const userKey = getUserKey(session?.user)
+              const currentLocalOnboarding = onboardingStatusByUserId[userKey] ?? false
+              let hasCompletedOnboarding = currentLocalOnboarding
 
-            if (session?.user) {
-              const { data: profile } = await supabase
-                .from("profiles")
-                .select("has_completed_onboarding")
-                .eq("id", session.user.id)
-                .single()
-
-              if (profile?.has_completed_onboarding) {
-                // Database says completed - use that
-                hasCompletedOnboarding = true
-              } else if (currentLocalOnboarding) {
-                // Local says completed but database doesn't - sync to database
-                await supabase
+              if (session?.user) {
+                const { data: profile } = await supabase
                   .from("profiles")
-                  .upsert({ id: session.user.id, has_completed_onboarding: true })
-                hasCompletedOnboarding = true
-              }
-            }
+                  .select("has_completed_onboarding")
+                  .eq("id", session.user.id)
+                  .single()
 
-            set({
-              session,
-              user: session?.user ?? null,
-              isAuthenticated: !!session,
-              hasCompletedOnboarding,
-              onboardingStatusByUserId: {
-                ...onboardingStatusByUserId,
-                [userKey]: hasCompletedOnboarding,
-              },
-              loading: false,
+                if (profile?.has_completed_onboarding) {
+                  // Database says completed - use that
+                  hasCompletedOnboarding = true
+                } else if (currentLocalOnboarding) {
+                  // Local says completed but database doesn't - sync to database
+                  await supabase
+                    .from("profiles")
+                    .upsert({ id: session.user.id, has_completed_onboarding: true })
+                  hasCompletedOnboarding = true
+                }
+              }
+
+              set({
+                session,
+                user: session?.user ?? null,
+                isAuthenticated: !!session,
+                hasCompletedOnboarding,
+                onboardingStatusByUserId: {
+                  ...onboardingStatusByUserId,
+                  [userKey]: hasCompletedOnboarding,
+                },
+                loading: false,
+              })
             })
-          })
+            authStateSubscription = subscription
+          }
         } catch (error) {
           logger.error("Auth initialization failed", {}, error as Error)
           set({ loading: false })

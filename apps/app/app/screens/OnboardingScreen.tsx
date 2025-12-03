@@ -1,14 +1,14 @@
 import { FC, useState } from "react"
 import { View, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import { useNavigation } from "@react-navigation/native"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
+import { OnboardingScreenLayout } from "@/components/layouts/OnboardingScreenLayout"
+import { Text } from "@/components/Text"
 import type { AppStackScreenProps } from "@/navigators/navigationTypes"
 import { useAuthStore } from "@/stores/authStore"
 import { useNotificationStore } from "@/stores/notificationStore"
-import { Text } from "@/components/Text"
-import { OnboardingScreenLayout } from "@/components/layouts/OnboardingScreenLayout"
 
 // =============================================================================
 // TYPES

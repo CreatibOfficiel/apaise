@@ -2,7 +2,6 @@ import { Linking } from "react-native"
 import type * as Notifications from "expo-notifications"
 
 import { logger } from "./Logger"
-import { supabase } from "../services/supabase"
 
 // Note: Navigation will be handled by React Navigation in the app
 // This file provides utility functions for parsing deep links
@@ -56,8 +55,7 @@ export function parseDeepLink(url: string): {
  * Validate UUID format (for email verification tokens)
  */
 function isValidUUID(token: string): boolean {
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
   return uuidRegex.test(token)
 }
 
@@ -89,14 +87,11 @@ function isValidJWT(token: string): boolean {
 /**
  * Validate token for sensitive deep links (reset-password, verify-email)
  * SECURITY: Validates token format to prevent basic injection attacks
- * 
+ *
  * Note: This performs format validation only. Full cryptographic validation
  * happens server-side when the token is actually used.
  */
-async function validateDeepLinkToken(
-  screen: string,
-  token?: string,
-): Promise<boolean> {
+async function validateDeepLinkToken(screen: string, token?: string): Promise<boolean> {
   if (!token || typeof token !== "string") {
     return false
   }

@@ -2,7 +2,7 @@
  * Certificate Pinning Utility
  *
  * Provides certificate pinning support for API requests to prevent MITM attacks.
- * 
+ *
  * NOTE: Full certificate pinning requires native modules. This file provides:
  * 1. A configuration structure for certificate pins
  * 2. Documentation on how to implement full pinning
@@ -24,7 +24,7 @@ export interface CertificatePinConfig {
 
 /**
  * Default certificate pins (configure for your API endpoints)
- * 
+ *
  * To get certificate hashes:
  * 1. Use openssl: openssl s_client -servername yourdomain.com -connect yourdomain.com:443 | openssl x509 -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256
  * 2. Or use online tools: https://www.ssllabs.com/ssltest/
@@ -64,19 +64,16 @@ export function getPinConfig(hostname: string): CertificatePinConfig | undefined
 
 /**
  * Validate certificate pin (placeholder - requires native implementation)
- * 
+ *
  * This function should be implemented using native modules:
  * - iOS: Use TrustKit or URLSession with certificate pinning
  * - Android: Use Network Security Config or OkHttp CertificatePinner
- * 
+ *
  * For now, this is a placeholder that logs a warning in production
  */
-export function validateCertificatePin(
-  hostname: string,
-  certificateHash: string,
-): boolean {
+export function validateCertificatePin(hostname: string, certificateHash: string): boolean {
   const pinConfig = getPinConfig(hostname)
-  
+
   if (!pinConfig) {
     // No pinning configured for this hostname
     return true
@@ -102,21 +99,19 @@ export function validateCertificatePin(
 
 /**
  * Setup instructions for implementing full certificate pinning:
- * 
+ *
  * iOS (using TrustKit):
  * 1. Install TrustKit: pod 'TrustKit'
  * 2. Configure in Info.plist or programmatically
  * 3. Use TrustKit's URLSession delegate
- * 
+ *
  * Android (using Network Security Config):
  * 1. Create res/xml/network_security_config.xml
  * 2. Add certificate pins to the config
  * 3. Reference in AndroidManifest.xml
- * 
+ *
  * React Native:
  * 1. Create native modules for iOS/Android
  * 2. Integrate with fetch/XMLHttpRequest interceptors
  * 3. Validate certificates before requests
  */
-
-

@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { View, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { features } from "@/config/features"
-import { useAuth } from "@/hooks/useAuth"
-import { useAuthStore } from "@/stores/authStore"
 import { Divider } from "@/components/Divider"
+import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout"
 import { Spinner } from "@/components/Spinner"
 import { Text } from "@/components/Text"
 import { TextField } from "@/components/TextField"
-import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout"
+import { features } from "@/config/features"
+import { useAuth } from "@/hooks/useAuth"
+import { useAuthStore } from "@/stores/authStore"
 import { validateEmail, validatePassword } from "@/utils/validation"
 
 // =============================================================================
@@ -21,9 +21,7 @@ import { validateEmail, validatePassword } from "@/utils/validation"
 export const LoginScreen = () => {
   const { theme } = useUnistyles()
   const navigation = useNavigation()
-  const { signIn } = useAuthStore((state) => ({
-    signIn: state.signIn,
-  }))
+  const signIn = useAuthStore((state) => state.signIn)
   const { signInWithGoogle, signInWithApple, loading: oauthLoading } = useAuth()
 
   const [email, setEmail] = useState("")
@@ -31,33 +29,14 @@ export const LoginScreen = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  // Field-level errors
-  const [emailError, setEmailError] = useState("")
-  const [passwordError, setPasswordError] = useState("")
-
   // Touch state for validation
   const [emailTouched, setEmailTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
 
-  // Validate email on change
-  useEffect(() => {
-    if (emailTouched && email) {
-      const validation = validateEmail(email)
-      setEmailError(validation.isValid ? "" : validation.error || "")
-    } else if (emailTouched && !email) {
-      setEmailError("Email is required")
-    }
-  }, [email, emailTouched])
-
-  // Validate password on change
-  useEffect(() => {
-    if (passwordTouched && password) {
-      const validation = validatePassword(password)
-      setPasswordError(validation.isValid ? "" : validation.error || "")
-    } else if (passwordTouched && !password) {
-      setPasswordError("Password is required")
-    }
-  }, [password, passwordTouched])
+  const emailValidation = emailTouched ? validateEmail(email) : { isValid: true, error: "" }
+  const passwordValidation = passwordTouched
+    ? validatePassword(password)
+    : { isValid: true, error: "" }
 
   const isFormValid = () => {
     const emailValidation = validateEmail(email)
@@ -127,6 +106,7 @@ export const LoginScreen = () => {
       subtitle="Sign in to continue"
       showCloseButton
       onClose={handleClose}
+      scrollable={false}
     >
       {/* Email Input */}
       <View style={styles.inputContainer}>
@@ -141,8 +121,8 @@ export const LoginScreen = () => {
           autoCorrect={false}
           keyboardType="email-address"
           returnKeyType="next"
-          status={emailTouched && emailError ? "error" : "default"}
-          helper={emailTouched && emailError ? emailError : undefined}
+          status={emailTouched && !emailValidation.isValid ? "error" : "default"}
+          helper={emailTouched && !emailValidation.isValid ? emailValidation.error : undefined}
         />
       </View>
 
@@ -160,8 +140,10 @@ export const LoginScreen = () => {
           secureTextEntry
           returnKeyType="done"
           onSubmitEditing={handleLogin}
-          status={passwordTouched && passwordError ? "error" : "default"}
-          helper={passwordTouched && passwordError ? passwordError : undefined}
+          status={passwordTouched && !passwordValidation.isValid ? "error" : "default"}
+          helper={
+            passwordTouched && !passwordValidation.isValid ? passwordValidation.error : undefined
+          }
         />
       </View>
 

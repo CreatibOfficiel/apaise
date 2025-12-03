@@ -4,9 +4,9 @@
  * Generally speaking, it will contain an auth flow (registration, login, forgot password)
  * and a "main" flow which the user will use once logged in.
  */
+import { Platform } from "react-native"
 import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
-import { Platform } from "react-native"
 
 import { Spinner } from "@/components/Spinner"
 import Config from "@/config"
@@ -72,13 +72,7 @@ const AppStack = () => {
         },
         animation: "default",
       }}
-      initialRouteName={
-        user
-          ? hasCompletedOnboarding
-            ? "Main"
-            : "Onboarding"
-          : "Welcome"
-      }
+      initialRouteName={user ? (hasCompletedOnboarding ? "Main" : "Onboarding") : "Welcome"}
     >
       {shouldShowOnboarding ? (
         // ------------------------------------------------------------------

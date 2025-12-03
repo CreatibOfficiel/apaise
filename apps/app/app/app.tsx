@@ -102,7 +102,7 @@ export function App() {
         if (__DEV__) {
           logger.debug("App initialize started")
         }
-        
+
         // Initialize security features
         certificatePinning.initialize()
         securityCheck.log()
@@ -212,14 +212,10 @@ export function App() {
       <SafeAreaProvider initialMetrics={initialWindowMetrics} style={$safeAreaProvider}>
         <QueryProvider>
           {Platform.OS === "web" ? (
-            <ThemeProvider>
-              {content}
-            </ThemeProvider>
+            <ThemeProvider>{content}</ThemeProvider>
           ) : (
             <KeyboardProvider>
-              <ThemeProvider>
-                {content}
-              </ThemeProvider>
+              <ThemeProvider>{content}</ThemeProvider>
             </KeyboardProvider>
           )}
         </QueryProvider>
