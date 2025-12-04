@@ -159,6 +159,23 @@ export const authRateLimiter = new RateLimiter({
   keyPrefix: "rate_limit_auth",
 })
 
+/**
+ * Clear all rate limits (useful for development/testing)
+ * Exposed globally in dev mode for easy access via console
+ */
+if (__DEV__) {
+  // @ts-expect-error - Adding to global for dev convenience
+  global.clearRateLimits = async () => {
+    await authRateLimiter.clearAll()
+    await passwordResetRateLimiter.clearAll()
+    await signUpRateLimiter.clearAll()
+    console.log("✅ All rate limits cleared")
+  }
+  console.log(
+    "💡 Dev tip: Use global.clearRateLimits() in console to clear all rate limits",
+  )
+}
+
 export const passwordResetRateLimiter = new RateLimiter({
   maxAttempts: 3,
   windowMs: 60 * 60 * 1000, // 1 hour

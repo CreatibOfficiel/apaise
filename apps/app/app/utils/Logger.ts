@@ -33,9 +33,9 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
 }
 
 /**
- * Sensitive data patterns to redact
+ * Sensitive data patterns for key names
  */
-const SENSITIVE_PATTERNS = [
+const SENSITIVE_KEY_PATTERNS = [
   /password/i,
   /token/i,
   /secret/i,
@@ -43,13 +43,85 @@ const SENSITIVE_PATTERNS = [
   /credit[_-]?card/i,
   /ssn/i,
   /social[_-]?security/i,
+  /email/i, // Email addresses in keys
+  /auth[_-]?token/i,
+  /access[_-]?token/i,
+  /refresh[_-]?token/i,
+  /session[_-]?id/i,
+  /authorization/i,
+  /bearer/i,
+]
+
+/**
+ * Sensitive value patterns (for value-based redaction)
+ */
+const SENSITIVE_VALUE_PATTERNS = [
+  // JWT tokens (eyJ...)
+  /^eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*$/,
+  // Email addresses
+  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  // API keys (long alphanumeric strings)
+  /^[A-Za-z0-9_-]{32,}$/,
+  // Credit card numbers (13-19 digits)
+  /^\d{13,19}$/,
+  // SSN (XXX-XX-XXXX or XXXXXXXXX)
+  /^\d{3}-?\d{2}-?\d{4}$/,
 ]
 
 /**
  * Check if a key contains sensitive data
  */
 function isSensitiveKey(key: string): boolean {
-  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(key))
+  return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key))
+}
+
+/**
+ * Check if a value contains sensitive data
+ */
+function isSensitiveValue(value: any): boolean {
+  if (typeof value !== "string") {
+    return false
+  }
+
+  // Check if value matches any sensitive pattern
+  return SENSITIVE_VALUE_PATTERNS.some((pattern) => pattern.test(value))
+}
+
+/**
+ * Redact sensitive data from a string (for message strings)
+ */
+function redactSensitiveString(str: string): string {
+  let redacted = str
+
+  // Redact JWT tokens
+  redacted = redacted.replace(
+    /eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*/g,
+    "[REDACTED_TOKEN]",
+  )
+
+  // Redact email addresses (but preserve format for debugging)
+  redacted = redacted.replace(
+    /([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+    (match, local, domain) => {
+      // Show first char and last char of local, full domain
+      const maskedLocal =
+        local.length > 2
+          ? `${local[0]}***${local[local.length - 1]}`
+          : "***"
+      return `${maskedLocal}@${domain}`
+    },
+  )
+
+  // Redact long alphanumeric strings (potential API keys)
+  redacted = redacted.replace(/\b[A-Za-z0-9_-]{32,}\b/g, "[REDACTED_KEY]")
+
+  // Redact credit card numbers
+  redacted = redacted.replace(/\b\d{13,19}\b/g, "[REDACTED_CARD]")
+
+  // Redact SSN
+  redacted = redacted.replace(/\b\d{3}-?\d{2}-?\d{4}\b/g, "[REDACTED_SSN]")
+
+  return redacted
 }
 
 /**
@@ -57,6 +129,27 @@ function isSensitiveKey(key: string): boolean {
  */
 function redactSensitiveData(data: any): any {
   if (data === null || data === undefined) {
+    return data
+  }
+
+  // Handle strings (values)
+  if (typeof data === "string") {
+    // Check if it's a sensitive value pattern
+    if (isSensitiveValue(data)) {
+      // For JWT tokens, show first few chars
+      if (/^eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*$/.test(data)) {
+        return `${data.substring(0, 10)}...[REDACTED]`
+      }
+      // For emails, mask but show domain
+      if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(data)) {
+        const [local, domain] = data.split("@")
+        const maskedLocal =
+          local.length > 2 ? `${local[0]}***${local[local.length - 1]}` : "***"
+        return `${maskedLocal}@${domain}`
+      }
+      // For other sensitive values, fully redact
+      return "[REDACTED]"
+    }
     return data
   }
 
@@ -71,7 +164,22 @@ function redactSensitiveData(data: any): any {
   const redacted: Record<string, any> = {}
   for (const [key, value] of Object.entries(data)) {
     if (isSensitiveKey(key)) {
+      // Key is sensitive - always redact
       redacted[key] = "[REDACTED]"
+    } else if (typeof value === "string" && isSensitiveValue(value)) {
+      // Value is sensitive even though key isn't - redact it
+      if (/^eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*$/.test(value)) {
+        redacted[key] = `${value.substring(0, 10)}...[REDACTED]`
+      } else if (
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)
+      ) {
+        const [local, domain] = value.split("@")
+        const maskedLocal =
+          local.length > 2 ? `${local[0]}***${local[local.length - 1]}` : "***"
+        redacted[key] = `${maskedLocal}@${domain}`
+      } else {
+        redacted[key] = "[REDACTED]"
+      }
     } else if (typeof value === "object" && value !== null) {
       redacted[key] = redactSensitiveData(value)
     } else {
@@ -147,12 +255,21 @@ class Logger {
   }
 
   /**
+   * Prepare message string for logging (redact sensitive data in messages)
+   */
+  private prepareMessage(message: string): string {
+    if (!this.config.redactSensitiveData) return message
+    return redactSensitiveString(message)
+  }
+
+  /**
    * Log to console
    */
   private logToConsole(level: LogLevel, message: string, metadata?: Record<string, any>): void {
     if (!this.config.enableConsole) return
 
-    const formattedMessage = formatLogMessage(level, message, metadata)
+    const safeMessage = this.prepareMessage(message)
+    const formattedMessage = formatLogMessage(level, safeMessage, metadata)
 
     switch (level) {
       case LogLevel.DEBUG:
@@ -223,11 +340,12 @@ class Logger {
   ): void {
     if (!this.shouldLog(level)) return
 
+    const safeMessage = this.prepareMessage(message)
     const preparedMetadata = this.prepareMetadata(metadata)
 
-    this.logToConsole(level, message, preparedMetadata)
-    this.logToAnalytics(level, message, preparedMetadata)
-    this.logToCrashReporting(level, message, preparedMetadata, error)
+    this.logToConsole(level, safeMessage, preparedMetadata)
+    this.logToAnalytics(level, safeMessage, preparedMetadata)
+    this.logToCrashReporting(level, safeMessage, preparedMetadata, error)
   }
 
   /**

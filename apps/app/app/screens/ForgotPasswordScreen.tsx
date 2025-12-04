@@ -69,6 +69,7 @@ export const ForgotPasswordScreen = () => {
         headerIcon="✉️"
         title="Check Your Email"
         subtitle={`We've sent a password reset link to ${email}`}
+        scrollable={false}
       >
         <Text color="secondary" style={styles.successSubtext}>
           Click the link in the email to reset your password. If you don&apos;t see it, check your
@@ -97,6 +98,7 @@ export const ForgotPasswordScreen = () => {
       subtitle="No worries! Enter your email and we'll send you reset instructions."
       showBackButton
       onBack={() => navigation.goBack()}
+      scrollable={false}
     >
       {/* Email Input */}
       <View style={styles.inputContainer}>

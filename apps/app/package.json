@@ -4,21 +4,21 @@
   "private": true,
   "main": "index.tsx",
   "scripts": {
-    "dev": "expo start --dev-client",
+    "dev": "EXPO_IOS_SIMULATOR_DEVICE_NAME=D44A1507-3E39-4AA2-9662-F1CC7C832D68 expo start --dev-client",
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "bundle:web": "npx expo export --platform web",
+    "bundle:web": "yarn expo export --platform web",
     "serve:web": "npx serve dist",
-    "prebuild:clean": "npx expo prebuild --clean",
+    "prebuild:clean": "yarn expo prebuild --clean",
     "compile": "tsc --noEmit -p . --pretty",
     "typecheck": "tsc --noEmit -p . --pretty",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "depcruise": "depcruise app --config .dependency-cruiser.js",
     "depcruise:graph": "depcruise app --include-only \"^app\" --config .dependency-cruiser.js --output-type dot > app-dependency-graph.dot && dot -T svg app-dependency-graph.dot -o app-dependency-graph.svg && dot -T png app-dependency-graph.dot -o app-dependency-graph.png && rm app-dependency-graph.dot",
-    "align-deps": "npx expo install --fix",
+    "align-deps": "yarn expo install --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:maestro": "maestro test -e MAESTRO_APP_ID=com.helloworld .maestro/flows",
@@ -87,6 +87,7 @@
     "react-native-unistyles": "^3.0.18",
     "react-native-url-polyfill": "^3.0.0",
     "react-native-web": "~0.21.0",
+    "@bittingz/expo-widgets": "^1.0.0",
     "react-native-worklets": "0.6.1",
     "setimmediate": "^1.0.5",
     "zod": "^4.1.12",
@@ -104,6 +105,7 @@
     "@typescript-eslint/eslint-plugin": "^8.47.0",
     "@typescript-eslint/parser": "^8.47.0",
     "babel-jest": "^29.2.1",
+    "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "dependency-cruiser": "^17.0.2",
     "eslint": "^8.57.0",
@@ -128,6 +130,7 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "packageManager": "yarn@4.9.1",
   "expo": {
     "install": {
       "exclude": [

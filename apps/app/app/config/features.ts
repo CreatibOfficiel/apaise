@@ -4,7 +4,7 @@
  * Centralized feature flag management for enabling/disabling features
  */
 
-import { env, isDevelopment } from "./env"
+import { env, isDevelopment, isServiceConfigured } from "./env"
 
 /**
  * Feature flags
@@ -30,6 +30,9 @@ export interface FeatureFlags {
   enableAnalytics: boolean
   enableCrashReporting: boolean
 
+  // Widgets
+  enableWidgets: boolean
+
   // Experimental features
   enableExperimentalFeatures: boolean
 }
@@ -45,9 +48,10 @@ function getFeatureFlags(): FeatureFlags {
     enableDebugLogging: isDevelopment,
 
     // Auth features
-    enableSocialAuth: true,
-    enableAppleAuth: true,
-    enableGoogleAuth: true,
+    // Only enable social auth if the providers are configured
+    enableSocialAuth: isServiceConfigured("google") || isServiceConfigured("apple"),
+    enableGoogleAuth: isServiceConfigured("google"),
+    enableAppleAuth: isServiceConfigured("apple"),
     enableEmailAuth: true,
 
     // Subscription features
@@ -58,6 +62,9 @@ function getFeatureFlags(): FeatureFlags {
     // Analytics - only if configured
     enableAnalytics: !!env.posthogApiKey,
     enableCrashReporting: !!env.sentryDsn,
+
+    // Widgets - can be enabled via env var EXPO_PUBLIC_ENABLE_WIDGETS=true
+    enableWidgets: process.env.EXPO_PUBLIC_ENABLE_WIDGETS === "true" || false,
 
     // Experimental - only in dev
     enableExperimentalFeatures: isDevelopment,

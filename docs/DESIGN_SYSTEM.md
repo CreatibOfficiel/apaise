@@ -106,7 +106,7 @@ export const customFontsToLoad = {
 
 1. **Install the font package**:
    ```bash
-   npx expo install @expo-google-fonts/your-font-name
+   yarn expo install @expo-google-fonts/your-font-name
    ```
 
 2. **Import and register in `typography.ts`**:

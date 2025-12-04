@@ -8,7 +8,8 @@ Complete guide for setting up your Shipnative backend with Supabase, including u
 
 ```bash
 # Install Supabase CLI
-npm install -g supabase
+yarn global add supabase
+# or: npm install -g supabase
 
 # Login to Supabase
 supabase login

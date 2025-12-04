@@ -8,7 +8,7 @@ Complete guide for deploying your Shipnative app to production on iOS, Android, 
 - Sign up at [expo.dev](https://expo.dev)
 - Install EAS CLI:
   ```bash
-  npm install -g eas-cli
+  yarn global add eas-cli
   ```
 - Login:
   ```bash
@@ -235,11 +235,11 @@ Before submitting, verify your build:
 ```bash
 # iOS
 cd apps/app
-npx expo prebuild --clean --platform ios
+yarn prebuild:clean --platform ios
 yarn compile  # Check for TypeScript errors
 
 # Android
-npx expo prebuild --clean --platform android
+yarn prebuild:clean --platform android
 yarn compile
 ```
 
@@ -516,7 +516,8 @@ Or manually:
 
 1. **Install Vercel CLI**:
    ```bash
-   npm install -g vercel
+   yarn global add vercel
+   # or: npm install -g vercel
    ```
 
 2. **Build for Web**:
@@ -545,7 +546,8 @@ Or manually:
 
 2. **Deploy via CLI**:
    ```bash
-   npm install -g netlify-cli
+   yarn global add netlify-cli
+   # or: npm install -g netlify-cli
    netlify deploy --prod --dir=dist
    ```
 
@@ -795,7 +797,7 @@ In `eas.json`:
 
 ```bash
 # Analyze bundle
-npx expo-cli export:web --analyze
+yarn expo export --platform web --analyze
 
 # Remove unused dependencies
 yarn autoclean --init

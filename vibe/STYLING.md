@@ -146,3 +146,6 @@ padding: theme.spacing.md, color: theme.colors.foreground
 - **Style Guide**: `apps/app/vibe/STYLE_GUIDE.md`
 - **AI Context**: `AI_CONTEXT.md` (technology stack overview)
 
+
+
+

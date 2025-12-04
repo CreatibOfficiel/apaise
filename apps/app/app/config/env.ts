@@ -28,6 +28,16 @@ interface EnvConfig {
   // Sentry
   sentryDsn: string
 
+  // Google OAuth
+  googleClientId: string
+  googleClientSecret: string
+
+  // Apple Sign-In
+  appleServicesId: string
+  appleTeamId: string
+  applePrivateKey: string
+  appleKeyId: string
+
   // App
   appEnv: "development" | "staging" | "production"
   appVersion: string
@@ -70,6 +80,16 @@ function getEnvConfig(): EnvConfig {
 
     // Sentry
     sentryDsn: getEnvVar("sentry_dsn") || "",
+
+    // Google OAuth
+    googleClientId: getEnvVar("google_client_id") || "",
+    googleClientSecret: getEnvVar("google_client_secret") || "",
+
+    // Apple Sign-In
+    appleServicesId: getEnvVar("apple_services_id") || "",
+    appleTeamId: getEnvVar("apple_team_id") || "",
+    applePrivateKey: getEnvVar("apple_private_key") || "",
+    appleKeyId: getEnvVar("apple_key_id") || "",
 
     // App
     appEnv: (getEnvVar("app_env") as any) || (__DEV__ ? "development" : "production"),
@@ -158,7 +178,7 @@ export const isStaging = env.appEnv === "staging"
  * Check if a service is configured
  */
 export function isServiceConfigured(
-  service: "supabase" | "revenuecat" | "posthog" | "sentry",
+  service: "supabase" | "revenuecat" | "posthog" | "sentry" | "google" | "apple",
 ): boolean {
   switch (service) {
     case "supabase":
@@ -169,6 +189,14 @@ export function isServiceConfigured(
       return !!env.posthogApiKey
     case "sentry":
       return !!env.sentryDsn
+    case "google":
+      // Google OAuth requires at least the client ID
+      // Note: For Supabase OAuth, the provider must also be enabled in Supabase dashboard
+      return !!env.googleClientId
+    case "apple":
+      // Apple Sign-In requires services ID and team ID at minimum
+      // Note: For Supabase OAuth, the provider must also be enabled in Supabase dashboard
+      return !!(env.appleServicesId && env.appleTeamId)
     default:
       return false
   }

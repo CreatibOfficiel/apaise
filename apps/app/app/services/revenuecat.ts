@@ -29,6 +29,10 @@ const useMock =
 let MobilePurchases: any = null
 let WebPurchases: any = null
 
+// Track initialization state to prevent double configuration (e.g., on hot reload)
+let isMobileConfigured = false
+let isWebConfigured = false
+
 // Load appropriate SDK based on platform
 if (Platform.OS !== "web" && !useMock) {
   try {
@@ -95,6 +99,14 @@ const revenueCatMobile: SubscriptionService = {
       return
     }
 
+    // Prevent double configuration (e.g., on hot reload)
+    if (isMobileConfigured) {
+      if (__DEV__) {
+        console.log("[RevenueCat] Already configured, skipping...")
+      }
+      return
+    }
+
     if (MobilePurchases && mobileApiKey) {
       // Set log level BEFORE configure (best practice per RevenueCat docs)
       if (__DEV__) {
@@ -123,6 +135,8 @@ const revenueCatMobile: SubscriptionService = {
           "health report",
           "configuration is not valid",
           "can't make any purchases",
+          "purchases instance already set",
+          "already configured",
         ]
 
         const isExpectedError = expectedErrorPatterns.some((pattern) =>
@@ -179,7 +193,26 @@ const revenueCatMobile: SubscriptionService = {
       })
 
       // Configure SDK with API key
-      await MobilePurchases.configure({ apiKey: mobileApiKey })
+      try {
+        await MobilePurchases.configure({ apiKey: mobileApiKey })
+        isMobileConfigured = true
+      } catch (error: any) {
+        // If already configured (e.g., on hot reload), that's okay
+        const errorMessage = error?.message || error?.toString() || ""
+        const isAlreadyConfigured =
+          errorMessage.includes("already set") ||
+          errorMessage.includes("already configured") ||
+          errorMessage.includes("Purchases instance already set")
+        
+        if (isAlreadyConfigured) {
+          isMobileConfigured = true
+          if (__DEV__) {
+            console.log("[RevenueCat] Already configured (hot reload detected)")
+          }
+        } else {
+          throw error
+        }
+      }
     }
   },
 
@@ -346,7 +379,17 @@ const revenueCatWeb: SubscriptionService = {
       return
     }
 
+    // Prevent double configuration
+    if (isWebConfigured) {
+      if (__DEV__) {
+        console.log("[RevenueCat Web] Already configured, skipping...")
+      }
+      return
+    }
+
     // Web SDK is configured per-user in logIn
+    // Mark as configured to prevent double initialization
+    isWebConfigured = true
     if (__DEV__) {
       console.log("🌐 [RevenueCat Web] Ready for configuration")
     }

@@ -70,21 +70,29 @@ export const RegisterScreen = () => {
     setLoading(false)
 
     if (signUpError) {
-      const errorMessage = signUpError.message
-      if (errorMessage.toLowerCase().includes("already registered")) {
+      const errorMessage = signUpError.message.toLowerCase()
+      if (errorMessage.includes("network") || errorMessage.includes("fetch") || errorMessage.includes("request failed")) {
+        setError("Network error. Please check your internet connection and try again.")
+      } else if (errorMessage.includes("already registered")) {
         setError("This email is already registered. Please sign in instead.")
-      } else if (errorMessage.toLowerCase().includes("email")) {
+      } else if (errorMessage.includes("email")) {
         setError("Please enter a valid email address.")
-      } else if (errorMessage.toLowerCase().includes("password")) {
+      } else if (errorMessage.includes("password")) {
         setError("Password does not meet requirements. Please try again.")
       } else {
-        setError(errorMessage)
+        setError(signUpError.message || "Sign up failed. Please try again.")
       }
     } else {
-      const isAuthenticated = useAuthStore.getState().isAuthenticated
-      if (!isAuthenticated) {
-        ;(navigation as any).replace("Login")
+      // Signup successful
+      const isEmailConfirmed = useAuthStore.getState().isEmailConfirmed
+      
+      if (!isEmailConfirmed) {
+        // Email confirmation required - navigate to verification screen
+        // AppNavigator will handle this automatically, but we can navigate explicitly
+        // to ensure smooth UX
+        navigation.navigate("EmailVerification" as never)
       }
+      // If email is confirmed, AppNavigator will automatically navigate to Main/Onboarding
     }
   }
 
@@ -108,19 +116,35 @@ export const RegisterScreen = () => {
     }
   }
 
-  const getStrengthColor = () => {
-    if (!passwordStrength) return theme.colors.border
+  const getStrengthStyle = () => {
+    if (!passwordStrength) return styles.strengthFillDefault
     switch (passwordStrength.label) {
       case "weak":
-        return theme.colors.error
+        return styles.strengthFillWeak
       case "fair":
-        return theme.colors.warning
+        return styles.strengthFillFair
       case "good":
-        return theme.colors.success
+        return styles.strengthFillGood
       case "strong":
-        return theme.colors.palette.success600
+        return styles.strengthFillStrong
       default:
-        return theme.colors.border
+        return styles.strengthFillDefault
+    }
+  }
+
+  const getStrengthTextStyle = () => {
+    if (!passwordStrength) return styles.strengthTextDefault
+    switch (passwordStrength.label) {
+      case "weak":
+        return styles.strengthTextWeak
+      case "fair":
+        return styles.strengthTextFair
+      case "good":
+        return styles.strengthTextGood
+      case "strong":
+        return styles.strengthTextStrong
+      default:
+        return styles.strengthTextDefault
     }
   }
 
@@ -190,15 +214,14 @@ export const RegisterScreen = () => {
             <View style={styles.strengthBar}>
               <View
                 style={[
-                  styles.strengthFill,
+                  getStrengthStyle(),
                   {
                     width: getStrengthWidth(),
-                    backgroundColor: getStrengthColor(),
                   },
                 ]}
               />
             </View>
-            <Text size="xs" weight="semiBold" style={{ color: getStrengthColor() }}>
+            <Text size="xs" weight="semiBold" style={getStrengthTextStyle()}>
               {passwordStrength.label.charAt(0).toUpperCase() + passwordStrength.label.slice(1)}
             </Text>
           </View>
@@ -325,6 +348,46 @@ const styles = StyleSheet.create((theme) => ({
   strengthFill: {
     height: "100%",
     borderRadius: 2,
+  },
+  strengthFillDefault: {
+    height: "100%",
+    borderRadius: 2,
+    backgroundColor: theme.colors.border,
+  },
+  strengthFillWeak: {
+    height: "100%",
+    borderRadius: 2,
+    backgroundColor: theme.colors.error,
+  },
+  strengthFillFair: {
+    height: "100%",
+    borderRadius: 2,
+    backgroundColor: theme.colors.warning,
+  },
+  strengthFillGood: {
+    height: "100%",
+    borderRadius: 2,
+    backgroundColor: theme.colors.success,
+  },
+  strengthFillStrong: {
+    height: "100%",
+    borderRadius: 2,
+    backgroundColor: theme.colors.palette.success600,
+  },
+  strengthTextDefault: {
+    color: theme.colors.border,
+  },
+  strengthTextWeak: {
+    color: theme.colors.error,
+  },
+  strengthTextFair: {
+    color: theme.colors.warning,
+  },
+  strengthTextGood: {
+    color: theme.colors.success,
+  },
+  strengthTextStrong: {
+    color: theme.colors.palette.success600,
   },
   errorContainer: {
     backgroundColor: theme.colors.errorBackground,

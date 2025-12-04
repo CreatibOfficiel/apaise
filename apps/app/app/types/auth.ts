@@ -12,6 +12,8 @@ export interface User {
   aud: string
   email?: string
   created_at: string
+  email_confirmed_at?: string | null
+  confirmed_at?: string | null
   app_metadata: Record<string, any>
   user_metadata: Record<string, any>
   [key: string]: any
@@ -122,4 +124,13 @@ export function isAuthenticated(session: Session | null): boolean {
  */
 export function getUserFromSession(session: Session | null): User | null {
   return session?.user || null
+}
+
+/**
+ * Helper to check if user's email is confirmed
+ */
+export function isEmailConfirmed(user: User | null): boolean {
+  if (!user) return false
+  // Check both email_confirmed_at and confirmed_at (Supabase uses both)
+  return !!(user.email_confirmed_at || user.confirmed_at)
 }

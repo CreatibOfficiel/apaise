@@ -119,3 +119,6 @@ const useAuthStore = create((set) => ({ ... }))
 - **Style Guide**: `apps/app/vibe/STYLE_GUIDE.md` (code patterns)
 - **AI Context**: `AI_CONTEXT.md` (technology stack overview)
 
+
+
+

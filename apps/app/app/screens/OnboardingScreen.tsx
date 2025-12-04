@@ -33,12 +33,12 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = function OnboardingSc
     if (step < 2) {
       setStep(step + 1)
     } else {
-      // Navigate to Paywall first, then mark onboarding as complete
-      // This ensures Paywall is shown before the navigator switches stacks
-      navigation.replace("Paywall")
-      // Set onboarding as complete after navigation
-      // The Paywall screen will handle navigation to Main
+      // Mark onboarding as complete BEFORE navigation
+      // This ensures the state is saved before the navigator re-evaluates routes
       await setHasCompletedOnboarding(true)
+      // Navigate to Paywall after saving onboarding status
+      // The Paywall screen will handle navigation to Main
+      navigation.replace("Paywall")
     }
   }
 

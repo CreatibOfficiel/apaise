@@ -157,9 +157,12 @@ export const HomeScreen: FC<HomeScreenProps> = function HomeScreen(_props) {
           <PressableCard style={styles.featuredCard} delay={100}>
             <View style={styles.featuredContent}>
               <Badge text="Daily Challenge" variant="info" size="sm" />
-              <Text size="2xl" weight="bold" style={styles.featuredTitle}>
-                Meditate for 10 mins
-              </Text>
+              <View style={styles.titleRow}>
+                <Text style={styles.emoji}>🧘‍♀️</Text>
+                <Text size="2xl" weight="bold" style={styles.featuredTitle}>
+                  Meditate for 10 mins
+                </Text>
+              </View>
               <Text color="secondary" style={styles.featuredSubtitle}>
                 Clear your mind and start fresh.
               </Text>
@@ -167,11 +170,8 @@ export const HomeScreen: FC<HomeScreenProps> = function HomeScreen(_props) {
                 <Text weight="semiBold" style={styles.startButtonText}>
                   Start Now
                 </Text>
-                <Ionicons name="play-circle" size={20} color={theme.colors.foreground} />
+                <Ionicons name="play-circle" size={22} color={theme.colors.card} />
               </Pressable>
-            </View>
-            <View style={styles.featuredIcon}>
-              <Text style={styles.emoji}>🧘‍♀️</Text>
             </View>
           </PressableCard>
 
@@ -318,44 +318,50 @@ const styles = StyleSheet.create((theme) => ({
   featuredCard: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius["3xl"],
-    padding: theme.spacing.xl,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    padding: theme.spacing.lg,
     marginBottom: theme.spacing.xl,
-    ...theme.shadows.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadows.xl,
   },
   featuredContent: {
-    flex: 1,
-    marginRight: theme.spacing.md,
-    gap: theme.spacing.xs,
+    gap: theme.spacing.sm,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
+  },
+  emoji: {
+    fontSize: 32,
+    lineHeight: 40,
   },
   featuredTitle: {
-    marginTop: theme.spacing.xs,
+    flex: 1,
+    lineHeight: theme.typography.lineHeights["2xl"],
+    letterSpacing: -0.5,
   },
   featuredSubtitle: {
     marginBottom: theme.spacing.sm,
-  },
-  featuredIcon: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emoji: {
-    fontSize: 64,
-    lineHeight: 72,
+    lineHeight: theme.typography.lineHeights.base,
   },
   startButton: {
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: theme.colors.secondary,
+    justifyContent: "center",
+    backgroundColor: theme.colors.foreground,
     borderRadius: theme.radius.full,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    gap: theme.spacing.xxs,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    gap: theme.spacing.xs,
+    minHeight: theme.sizes.button.md,
+    ...theme.shadows.sm,
   },
   startButtonText: {
-    color: theme.colors.foreground,
+    color: theme.colors.card,
+    fontSize: theme.typography.sizes.base,
   },
   statsRow: {
     flexDirection: "row",

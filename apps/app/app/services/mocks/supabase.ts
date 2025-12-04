@@ -27,6 +27,7 @@ import type {
 } from "../../types/auth"
 import type { DatabaseResponse } from "../../types/database"
 import { webSecureStorage } from "../../utils/webStorageEncryption"
+import { logger } from "../../utils/Logger"
 
 // Cross-platform base64 utilities
 const base64Utils = {
@@ -176,7 +177,7 @@ async function loadFromStorage<T>(key: string): Promise<T | null> {
     return value ? JSON.parse(value) : null
   } catch (error) {
     if (__DEV__) {
-      console.warn(`🔐 [MockSupabase] Failed to load ${key}:`, error)
+      logger.warn(`[MockSupabase] Failed to load ${key}`, { key }, error as Error)
     }
     return null
   }
@@ -187,7 +188,7 @@ async function saveToStorage(key: string, value: any): Promise<void> {
     await storageAdapter.setItem(key, JSON.stringify(value))
   } catch (error) {
     if (__DEV__) {
-      console.warn(`🔐 [MockSupabase] Failed to save ${key}:`, error)
+      logger.warn(`[MockSupabase] Failed to save ${key}`, { key }, error as Error)
     }
   }
 }
@@ -197,7 +198,7 @@ async function removeFromStorage(key: string): Promise<void> {
     await storageAdapter.removeItem(key)
   } catch (error) {
     if (__DEV__) {
-      console.warn(`🔐 [MockSupabase] Failed to remove ${key}:`, error)
+      logger.warn(`[MockSupabase] Failed to remove ${key}`, { key }, error as Error)
     }
   }
 }
@@ -214,13 +215,13 @@ async function initializeStorage() {
       if (savedSession.expires_at && savedSession.expires_at > Math.floor(Date.now() / 1000)) {
         currentSession = savedSession
         if (__DEV__) {
-          console.log(`🔐 [MockSupabase] Restored session for: ${savedSession.user.email}`)
+          logger.debug(`[MockSupabase] Restored session`, { email: savedSession.user.email })
         }
       } else {
         // Session expired, remove it
         await removeFromStorage(STORAGE_KEYS.SESSION)
         if (__DEV__) {
-          console.log(`🔐 [MockSupabase] Session expired, removed`)
+          logger.debug(`[MockSupabase] Session expired, removed`)
         }
       }
     }
@@ -232,7 +233,7 @@ async function initializeStorage() {
     if (savedUsers) {
       mockUsers = new Map(savedUsers)
       if (__DEV__ && mockUsers.size > 0) {
-        console.log(`🔐 [MockSupabase] Restored ${mockUsers.size} users`)
+        logger.debug(`[MockSupabase] Restored users`, { count: mockUsers.size })
       }
     }
 
@@ -247,14 +248,14 @@ async function initializeStorage() {
         mockDatabase.set(tableName, tableMap)
       })
       if (__DEV__ && mockDatabase.size > 0) {
-        console.log(`💾 [MockSupabase] Restored ${mockDatabase.size} tables`)
+        logger.debug(`[MockSupabase] Restored tables`, { count: mockDatabase.size })
       }
     }
 
     isInitialized = true
   } catch (error) {
     if (__DEV__) {
-      console.warn(`🔐 [MockSupabase] Failed to initialize storage:`, error)
+      logger.warn(`[MockSupabase] Failed to initialize storage`, {}, error as Error)
     }
     isInitialized = true // Mark as initialized even if failed
   }
@@ -396,6 +397,9 @@ function createMockUser(email: string, metadata?: Record<string, any>): User {
     aud: "authenticated",
     email,
     created_at: new Date().toISOString(),
+    // Don't set email_confirmed_at by default - simulates email confirmation required
+    email_confirmed_at: null,
+    confirmed_at: null,
     app_metadata: {},
     user_metadata: userMetadata,
   }
@@ -429,7 +433,7 @@ function notifyAuthStateChange(event: AuthChangeEvent, session: Session | null) 
     try {
       listener(event, session)
     } catch (error) {
-      console.error("Error in auth state listener:", error)
+      logger.error("Error in auth state listener", {}, error as Error)
     }
   })
 }
@@ -451,7 +455,7 @@ class MockSupabaseAuth {
     await delay()
 
     if (__DEV__) {
-      console.log(`🔐 [MockSupabase] Sign up: ${email}`)
+      logger.debug(`[MockSupabase] Sign up`, { email })
     }
 
     // Validate email format
@@ -478,16 +482,20 @@ class MockSupabaseAuth {
       }
     }
 
-    // Create new user
+    // Create new user (email not confirmed by default)
     const user = createMockUser(email, options?.data)
     mockUsers.set(email, { email, password, user })
     await persistUsers()
 
-    const session = createMockSession(user)
-    currentSession = session
-    await saveToStorage(STORAGE_KEYS.SESSION, session)
+    // In mock mode, don't create session if email confirmation is required
+    // This simulates Supabase behavior when email confirmation is enabled
+    // For development convenience, you can manually confirm by setting email_confirmed_at
+    const session = null // No session until email is confirmed
 
-    notifyAuthStateChange("SIGNED_IN", session)
+    if (__DEV__) {
+      logger.debug(`[MockSupabase] User created. Email confirmation required.`)
+      logger.debug(`[MockSupabase] To auto-confirm in dev, set email_confirmed_at in user object`)
+    }
 
     return {
       data: { user, session },
@@ -501,7 +509,7 @@ class MockSupabaseAuth {
     await delay()
 
     if (__DEV__) {
-      console.log(`🔐 [MockSupabase] Sign in: ${email}`)
+      logger.debug(`[MockSupabase] Sign in`, { email })
     }
 
     const userData = mockUsers.get(email)
@@ -517,6 +525,20 @@ class MockSupabaseAuth {
       return {
         data: { user: null, session: null },
         error: new Error("Invalid login credentials"),
+      }
+    }
+
+    // Check if email is confirmed
+    const isEmailConfirmed = !!(userData.user.email_confirmed_at || userData.user.confirmed_at)
+    if (!isEmailConfirmed) {
+      if (__DEV__) {
+        logger.debug(`[MockSupabase] Email not confirmed`, { email })
+      }
+      // Return error when email is not confirmed (matches real Supabase behavior)
+      // But include user data so EmailVerification screen can show the email
+      return {
+        data: { user: userData.user, session: null },
+        error: new Error("Email not confirmed"),
       }
     }
 
@@ -536,7 +558,7 @@ class MockSupabaseAuth {
     await delay(200)
 
     if (__DEV__) {
-      console.log("🔐 [MockSupabase] Sign out")
+      logger.debug(`[MockSupabase] Sign out`)
     }
 
     currentSession = null
@@ -552,7 +574,7 @@ class MockSupabaseAuth {
     // Check if session is still valid
     if (currentSession && !isSessionValid(currentSession)) {
       if (__DEV__) {
-        console.log("🔐 [MockSupabase] Session expired")
+        logger.debug(`[MockSupabase] Session expired`)
       }
       currentSession = null
       await removeFromStorage(STORAGE_KEYS.SESSION)
@@ -580,6 +602,95 @@ class MockSupabaseAuth {
     }
   }
 
+  async verifyOtp(options: {
+    token: string
+    type: "email" | "signup" | "email_change" | "password_recovery"
+  }): Promise<AuthResponse> {
+    await delay()
+    const { token, type } = options
+
+    if (__DEV__) {
+      logger.debug(`[MockSupabase] Verify OTP`, { type, tokenPrefix: token.substring(0, 10) })
+    }
+
+    // In mock mode, find user by checking current session or any unconfirmed user
+    let userToConfirm: User | null = null
+
+    if (currentSession?.user) {
+      // If there's a current session, confirm that user's email
+      userToConfirm = currentSession.user
+    } else {
+      // Find first unconfirmed user
+      for (const [, userData] of mockUsers) {
+        if (!userData.user.email_confirmed_at && !userData.user.confirmed_at) {
+          userToConfirm = userData.user
+          break
+        }
+      }
+    }
+
+    if (!userToConfirm) {
+      return {
+        data: { user: null, session: null },
+        error: new Error("Invalid or expired token"),
+      }
+    }
+
+    // Confirm the email
+    userToConfirm.email_confirmed_at = new Date().toISOString()
+    userToConfirm.confirmed_at = new Date().toISOString()
+
+    // Update user in storage
+    const userData = mockUsers.get(userToConfirm.email!)
+    if (userData) {
+      userData.user = userToConfirm
+      await persistUsers()
+    }
+
+    // Create session for confirmed user
+    const session = createMockSession(userToConfirm)
+    currentSession = session
+    await saveToStorage(STORAGE_KEYS.SESSION, session)
+
+    notifyAuthStateChange("SIGNED_IN", session)
+
+    if (__DEV__) {
+      logger.debug(`[MockSupabase] Email confirmed`, { email: userToConfirm.email })
+    }
+
+    return {
+      data: { user: userToConfirm, session },
+      error: null,
+    }
+  }
+
+  async resend(options: { type: "signup" | "email_change" | "password_recovery"; email: string }): Promise<{ data: any; error: Error | null }> {
+    await delay()
+
+    const { type, email } = options
+
+    if (__DEV__) {
+      logger.debug(`[MockSupabase] Resend ${type} email requested`, { type, email })
+      if (type === "signup") {
+        logger.debug(`[MockSupabase] Confirmation email (mock): verify-email/${email}`)
+        logger.debug(`[MockSupabase] In dev, you can manually confirm by setting email_confirmed_at`)
+      }
+    }
+
+    // Check if user exists
+    if (!mockUsers.has(email)) {
+      return {
+        data: null,
+        error: new Error("User not found"),
+      }
+    }
+
+    return {
+      data: {},
+      error: null,
+    }
+  }
+
   async resetPasswordForEmail(
     email: string,
     _options?: ResetPasswordOptions,
@@ -587,8 +698,8 @@ class MockSupabaseAuth {
     await delay()
 
     if (__DEV__) {
-      console.log(`🔐 [MockSupabase] Password reset requested for: ${email}`)
-      console.log(`🔐 [MockSupabase] Reset link (mock): reset-password/${email}`)
+      logger.debug(`[MockSupabase] Password reset requested`, { email })
+      logger.debug(`[MockSupabase] Reset link (mock): reset-password/${email}`)
     }
 
     return {
@@ -645,7 +756,7 @@ class MockSupabaseAuth {
     notifyAuthStateChange("USER_UPDATED", session)
 
     if (__DEV__) {
-      console.log("🔐 [MockSupabase] User updated")
+      logger.debug(`[MockSupabase] User updated`)
     }
 
     return {
@@ -665,7 +776,7 @@ class MockSupabaseAuth {
     const { provider, options: oauthOptions } = options
 
     if (__DEV__) {
-      console.log(`🔐 [MockSupabase] OAuth sign in with ${provider}`)
+      logger.debug(`[MockSupabase] OAuth sign in`, { provider })
     }
 
     // Validate provider
@@ -692,8 +803,7 @@ class MockSupabaseAuth {
     const oauthUrl = `https://mock-oauth.supabase.co/authorize?provider=${provider}&state=${state}&redirect_to=${encodeURIComponent(oauthOptions?.redirectTo || "")}`
 
     if (__DEV__) {
-      console.log(`🔐 [MockSupabase] OAuth URL generated: ${oauthUrl}`)
-      console.log(`🔐 [MockSupabase] State token: ${state}`)
+      logger.debug(`[MockSupabase] OAuth URL generated`, { oauthUrl, state })
     }
 
     // If skipBrowserRedirect is true, don't auto-complete the flow
@@ -729,7 +839,7 @@ class MockSupabaseAuth {
     // Verify state matches
     if (!pendingOAuthState || pendingOAuthState.state !== state) {
       if (__DEV__) {
-        console.error("🔐 [MockSupabase] OAuth state mismatch")
+        logger.error(`[MockSupabase] OAuth state mismatch`)
       }
       return
     }
@@ -788,7 +898,7 @@ class MockSupabaseAuth {
     pendingOAuthState = null
 
     if (__DEV__) {
-      console.log(`🔐 [MockSupabase] OAuth flow completed for: ${mockEmail}`)
+      logger.debug(`[MockSupabase] OAuth flow completed`, { email: mockEmail })
     }
 
     notifyAuthStateChange("SIGNED_IN", session)
@@ -863,7 +973,7 @@ class MockSupabaseAuth {
               authStateListeners.splice(index, 1)
             }
             if (__DEV__) {
-              console.log("🔐 [MockSupabase] Unsubscribed from auth state changes")
+              logger.debug(`[MockSupabase] Unsubscribed from auth state changes`)
             }
           },
         },
@@ -879,7 +989,7 @@ class MockSupabaseAuth {
       // Refresh if less than 5 minutes remaining
       if (timeUntilExpiry < 300 && timeUntilExpiry > 0) {
         if (__DEV__) {
-          console.log("🔐 [MockSupabase] Refreshing token")
+          logger.debug(`[MockSupabase] Refreshing token`)
         }
         const refreshedSession = createMockSession(currentSession.user)
         currentSession = refreshedSession
@@ -1119,7 +1229,7 @@ class MockDatabaseTable {
 
   select(columns?: string) {
     if (__DEV__) {
-      console.log(`💾 [MockSupabase] SELECT ${columns || "*"} FROM ${this.tableName}`)
+      logger.debug(`[MockSupabase] SELECT`, { table: this.tableName, columns: columns || "*" })
     }
     return new MockDatabaseQuery(this.tableName)
   }
@@ -1146,7 +1256,7 @@ class MockDatabaseTable {
     await persistDatabase()
 
     if (__DEV__) {
-      console.log(`💾 [MockSupabase] INSERT INTO ${this.tableName}:`, inserted.length, "rows")
+      logger.debug(`[MockSupabase] INSERT`, { table: this.tableName, rows: inserted.length })
     }
 
     return {
@@ -1157,7 +1267,7 @@ class MockDatabaseTable {
 
   update(data: any) {
     if (__DEV__) {
-      console.log(`💾 [MockSupabase] UPDATE ${this.tableName}`)
+      logger.debug(`[MockSupabase] UPDATE`, { table: this.tableName })
     }
 
     const query = new MockDatabaseQuery(this.tableName)
@@ -1178,7 +1288,7 @@ class MockDatabaseTable {
       await persistDatabase()
 
       if (__DEV__) {
-        console.log(`💾 [MockSupabase] Updated ${filtered.length} rows`)
+        logger.debug(`[MockSupabase] Updated rows`, { table: this.tableName, count: filtered.length })
       }
 
       resolve({ data: filtered, error: null })
@@ -1189,7 +1299,7 @@ class MockDatabaseTable {
 
   delete() {
     if (__DEV__) {
-      console.log(`💾 [MockSupabase] DELETE FROM ${this.tableName}`)
+      logger.debug(`[MockSupabase] DELETE`, { table: this.tableName })
     }
 
     const query = new MockDatabaseQuery(this.tableName)
@@ -1209,7 +1319,7 @@ class MockDatabaseTable {
       await persistDatabase()
 
       if (__DEV__) {
-        console.log(`💾 [MockSupabase] Deleted ${filtered.length} rows`)
+        logger.debug(`[MockSupabase] Deleted rows`, { table: this.tableName, count: filtered.length })
       }
 
       resolve({ data: filtered, error: null })
@@ -1243,7 +1353,7 @@ class MockDatabaseTable {
     await persistDatabase()
 
     if (__DEV__) {
-      console.log(`💾 [MockSupabase] UPSERT INTO ${this.tableName}:`, upserted.length, "rows")
+      logger.debug(`[MockSupabase] UPSERT`, { table: this.tableName, rows: upserted.length })
     }
 
     return {
@@ -1330,7 +1440,7 @@ class MockStorageFileApi {
     mockFileStorage.set(fullPath, file)
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Uploaded: ${fullPath} (${size} bytes)`)
+      logger.debug(`[MockStorage] Uploaded`, { path: fullPath, size })
     }
 
     return {
@@ -1361,7 +1471,7 @@ class MockStorageFileApi {
     const blob = new Blob([arrayBuffer], { type: file.mimeType })
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Downloaded: ${fullPath}`)
+      logger.debug(`[MockStorage] Downloaded`, { path: fullPath })
     }
 
     return {
@@ -1378,7 +1488,7 @@ class MockStorageFileApi {
     mockFileStorage.delete(fullPath)
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Removed: ${fullPath} (existed: ${existed})`)
+      logger.debug(`[MockStorage] Removed`, { path: fullPath, existed })
     }
 
     return {
@@ -1391,7 +1501,7 @@ class MockStorageFileApi {
     const publicUrl = `https://mock-storage.supabase.co/${this.bucket}/${this.path}`
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Public URL: ${publicUrl}`)
+      logger.debug(`[MockStorage] Public URL`, { url: publicUrl })
     }
 
     return {
@@ -1407,7 +1517,7 @@ class MockStorageFileApi {
     const signedUrl = `https://mock-storage.supabase.co/${this.bucket}/${this.path}?token=mock-signed-${Date.now()}&expires=${expiresIn}`
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Signed URL (${expiresIn}s): ${signedUrl}`)
+      logger.debug(`[MockStorage] Signed URL`, { expiresIn, url: signedUrl })
     }
 
     return {
@@ -1447,7 +1557,7 @@ class MockStorageBucket {
     })
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Removed ${removed.length} files from ${this.bucketName}`)
+      logger.debug(`[MockStorage] Removed files`, { bucket: this.bucketName, count: removed.length })
     }
 
     return Promise.resolve({
@@ -1488,7 +1598,7 @@ class MockStorageBucket {
     const result = files.slice(start, end)
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Listed ${result.length} files in ${prefix}`)
+      logger.debug(`[MockStorage] Listed files`, { prefix, count: result.length })
     }
 
     return {
@@ -1526,7 +1636,7 @@ class MockStorage {
     }))
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Listed ${buckets.length} buckets`)
+      logger.debug(`[MockStorage] Listed buckets`, { count: buckets.length })
     }
 
     return {
@@ -1551,7 +1661,7 @@ class MockStorage {
     mockBuckets.add(name)
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Created bucket: ${name} (public: ${options?.public ?? false})`)
+      logger.debug(`[MockStorage] Created bucket`, { name, public: options?.public ?? false })
     }
 
     return {
@@ -1580,7 +1690,7 @@ class MockStorage {
     mockBuckets.delete(name)
 
     if (__DEV__) {
-      console.log(`📁 [MockStorage] Deleted bucket: ${name}`)
+      logger.debug(`[MockStorage] Deleted bucket`, { name })
     }
 
     return {
@@ -1637,7 +1747,7 @@ class MockRealtimeChannel {
     })
 
     if (__DEV__) {
-      console.log(`📡 [MockRealtime] Registered listener: ${config.table}.${config.event}`)
+      logger.debug(`[MockRealtime] Registered listener`, { table: config.table, event: config.event })
     }
 
     return this
@@ -1652,7 +1762,7 @@ class MockRealtimeChannel {
     realtimeSubscriptions.set(this.channelName, this.subscriptions)
 
     if (__DEV__) {
-      console.log(`📡 [MockRealtime] Subscribed to channel: ${this.channelName}`)
+      logger.debug(`[MockRealtime] Subscribed to channel`, { channel: this.channelName })
     }
 
     // Simulate async subscription confirmation
@@ -1668,7 +1778,7 @@ class MockRealtimeChannel {
     realtimeSubscriptions.delete(this.channelName)
 
     if (__DEV__) {
-      console.log(`📡 [MockRealtime] Unsubscribed from channel: ${this.channelName}`)
+      logger.debug(`[MockRealtime] Unsubscribed from channel`, { channel: this.channelName })
     }
 
     return Promise.resolve("ok")
@@ -1689,7 +1799,7 @@ class MockRealtime {
     realtimeSubscriptions.clear()
 
     if (__DEV__) {
-      console.log(`📡 [MockRealtime] Removed all channels`)
+      logger.debug(`[MockRealtime] Removed all channels`)
     }
 
     return Promise.resolve(results)
@@ -1755,11 +1865,11 @@ class MockSupabaseClient {
     // Initialize storage on client creation
     initializeStorage().then(() => {
       if (__DEV__) {
-        console.log("🔐 [MockSupabase] Initialized mock Supabase client")
-        console.log("📁 [MockSupabase] Storage mock enabled")
-        console.log("📡 [MockSupabase] Realtime mock enabled")
+        logger.debug(`[MockSupabase] Initialized mock Supabase client`)
+        logger.debug(`[MockSupabase] Storage mock enabled`)
+        logger.debug(`[MockSupabase] Realtime mock enabled`)
         if (currentSession) {
-          console.log(`🔐 [MockSupabase] Active session found for: ${currentSession.user.email}`)
+          logger.debug(`[MockSupabase] Active session found`, { email: currentSession.user.email })
         }
       }
     })
@@ -1777,7 +1887,7 @@ class MockSupabaseClient {
     await delay(300)
 
     if (__DEV__) {
-      console.log(`💾 [MockSupabase] RPC call: ${fn}`, params)
+      logger.debug(`[MockSupabase] RPC call`, { function: fn, params })
     }
 
     // Allow custom RPC handlers
@@ -1829,7 +1939,7 @@ export const mockSupabaseHelpers = {
     await removeFromStorage(STORAGE_KEYS.DATABASE)
 
     if (__DEV__) {
-      console.log("🔐 [MockSupabase] Cleared all data and storage")
+      logger.debug(`[MockSupabase] Cleared all data and storage`)
     }
   },
 
@@ -1951,9 +2061,7 @@ export const mockSupabaseHelpers = {
     }
 
     if (__DEV__) {
-      console.log(
-        `🔐 [MockSupabase] ${error ? "Set" : "Cleared"} simulated error for ${type}.${operation}`,
-      )
+      logger.debug(`[MockSupabase] ${error ? "Set" : "Cleared"} simulated error`, { type, operation })
     }
   },
 
@@ -1963,7 +2071,7 @@ export const mockSupabaseHelpers = {
   clearSimulatedErrors() {
     simulatedErrors = {}
     if (__DEV__) {
-      console.log("🔐 [MockSupabase] Cleared all simulated errors")
+      logger.debug(`[MockSupabase] Cleared all simulated errors`)
     }
   },
 
@@ -2007,7 +2115,7 @@ export const mockSupabaseHelpers = {
   clearStorage() {
     mockFileStorage.clear()
     if (__DEV__) {
-      console.log("📁 [MockSupabase] Cleared all storage files")
+      logger.debug(`[MockSupabase] Cleared all storage files`)
     }
   },
 
@@ -2030,7 +2138,7 @@ export const mockSupabaseHelpers = {
       })
     })
     if (__DEV__) {
-      console.log(`📁 [MockSupabase] Seeded ${files.length} files`)
+      logger.debug(`[MockSupabase] Seeded files`, { count: files.length })
     }
   },
 
@@ -2051,7 +2159,7 @@ export const mockSupabaseHelpers = {
   ) {
     triggerRealtimeEvent(table, eventType, newData, oldData)
     if (__DEV__) {
-      console.log(`📡 [MockSupabase] Triggered realtime event: ${table}.${eventType}`)
+      logger.debug(`[MockSupabase] Triggered realtime event`, { table, event: eventType })
     }
   },
 
@@ -2074,7 +2182,7 @@ export const mockSupabaseHelpers = {
   clearRealtimeSubscriptions() {
     realtimeSubscriptions.clear()
     if (__DEV__) {
-      console.log("📡 [MockSupabase] Cleared all realtime subscriptions")
+      logger.debug(`[MockSupabase] Cleared all realtime subscriptions`)
     }
   },
 
@@ -2096,7 +2204,7 @@ export const mockSupabaseHelpers = {
   ) {
     mockRpcHandlers.set(functionName, handler)
     if (__DEV__) {
-      console.log(`💾 [MockSupabase] Registered RPC handler: ${functionName}`)
+      logger.debug(`[MockSupabase] Registered RPC handler`, { function: functionName })
     }
   },
 
@@ -2106,7 +2214,7 @@ export const mockSupabaseHelpers = {
   unregisterRpcHandler(functionName: string) {
     mockRpcHandlers.delete(functionName)
     if (__DEV__) {
-      console.log(`💾 [MockSupabase] Unregistered RPC handler: ${functionName}`)
+      logger.debug(`[MockSupabase] Unregistered RPC handler`, { function: functionName })
     }
   },
 
@@ -2116,7 +2224,7 @@ export const mockSupabaseHelpers = {
   clearRpcHandlers() {
     mockRpcHandlers.clear()
     if (__DEV__) {
-      console.log("💾 [MockSupabase] Cleared all RPC handlers")
+      logger.debug(`[MockSupabase] Cleared all RPC handlers`)
     }
   },
 
@@ -2144,7 +2252,7 @@ export const mockSupabaseHelpers = {
   cancelPendingOAuth() {
     pendingOAuthState = null
     if (__DEV__) {
-      console.log("🔐 [MockSupabase] Cancelled pending OAuth flow")
+      logger.debug(`[MockSupabase] Cancelled pending OAuth flow`)
     }
   },
 }

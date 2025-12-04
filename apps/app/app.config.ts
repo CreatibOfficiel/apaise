@@ -16,6 +16,34 @@ import "tsx/cjs"
  */
 module.exports = ({ config }: ConfigContext): Partial<ExpoConfig> => {
   const existingPlugins = config.plugins ?? []
+  
+  // Check if widgets are enabled via feature flag
+  const enableWidgets = process.env.EXPO_PUBLIC_ENABLE_WIDGETS === "true"
+  
+  // Conditionally add widget plugin
+  const plugins = [...existingPlugins]
+  if (enableWidgets) {
+    plugins.push([
+      "@bittingz/expo-widgets",
+      {
+        ios: {
+          src: "./app/widgets/ios",
+          mode: "production",
+          useLiveActivities: false,
+          frequentUpdates: false,
+        },
+        android: {
+          src: "./app/widgets/android",
+          widgets: [
+            {
+              name: "ExampleWidgetProvider",
+              resourceName: "@xml/example_widget_info",
+            },
+          ],
+        },
+      },
+    ])
+  }
 
   return {
     ...config,
@@ -48,6 +76,6 @@ module.exports = ({ config }: ConfigContext): Partial<ExpoConfig> => {
         ],
       },
     },
-    plugins: [...existingPlugins],
+    plugins,
   }
 }

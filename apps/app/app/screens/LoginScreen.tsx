@@ -56,13 +56,18 @@ export const LoginScreen = () => {
     setLoading(false)
 
     if (signInError) {
-      const errorMessage = signInError.message
-      if (errorMessage.toLowerCase().includes("invalid")) {
+      const errorMessage = signInError.message.toLowerCase()
+      if (errorMessage.includes("email not confirmed") || errorMessage.includes("not confirmed")) {
+        // Email not confirmed - AppNavigator will automatically navigate to EmailVerification
+        // based on state change (needsEmailVerification = true)
+        setError("")
+        // Don't manually navigate - let AppNavigator handle it via state change
+      } else if (errorMessage.includes("invalid")) {
         setError("Invalid email or password. Please try again.")
-      } else if (errorMessage.toLowerCase().includes("email")) {
+      } else if (errorMessage.includes("email")) {
         setError("Email not found. Please check your email or sign up.")
       } else {
-        setError(errorMessage)
+        setError(signInError.message)
       }
     }
   }

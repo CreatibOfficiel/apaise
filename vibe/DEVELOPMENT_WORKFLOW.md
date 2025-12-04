@@ -78,3 +78,6 @@ const data: User = fetchData()
 - **Services**: `vibe/SERVICES.md` (service architecture)
 - **AI Context**: `AI_CONTEXT.md` (technology stack overview)
 
+
+
+

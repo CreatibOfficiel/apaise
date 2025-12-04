@@ -152,6 +152,32 @@ xcrun simctl boot "iPhone 15 Pro"
 yarn app:ios
 ```
 
+#### Using a Specific iOS Simulator Version
+
+**Problem**: You want to use a specific iOS simulator version (e.g., iOS 26.0)
+
+**Solution**:
+
+Expo will automatically use the default simulator, but you can specify a specific device:
+
+```bash
+# List all available simulators with iOS versions
+xcrun simctl list devices available
+
+# Run with a specific simulator device name
+cd apps/app
+expo run:ios --simulator "iPhone 17 Pro"  # iOS 26.0
+
+# Or use the device UDID for more precision
+expo run:ios --simulator "D44A1507-3E39-4AA2-9662-F1CC7C832D68"
+
+# You can also set an environment variable for all Expo commands
+export EXPO_IOS_SIMULATOR_DEVICE_NAME="iPhone 17 Pro"
+yarn ios
+```
+
+**Note**: The simulator version depends on your Xcode installation. To use iOS 26.0, ensure you have Xcode 16+ installed with the iOS 26.0 runtime downloaded.
+
 #### "Command PhaseScriptExecution failed"
 
 **Problem**: iOS build fails during pod install phase
@@ -463,6 +489,26 @@ const MyComponent = () => {
      console.error('Purchase error:', error)
    }
    ```
+
+### StoreKit "No Active Account" Errors (iOS Simulator)
+
+**Problem**: You see errors like:
+```
+[StoreKit] Error enumerating unfinished transactions: Error Domain=ASDErrorDomain Code=509 "No active account"
+```
+
+**Solution**: **These errors are EXPECTED and HARMLESS** in the iOS simulator. They occur because:
+
+1. **No Apple ID signed in**: The simulator doesn't have an active Apple ID, so StoreKit can't enumerate transactions
+2. **Normal behavior**: This is how StoreKit behaves when there's no account - it's not a bug
+3. **Doesn't affect functionality**: RevenueCat will still work correctly. When you test purchases, you'll be prompted to sign in with a sandbox account
+
+**What to do**:
+- ✅ **Ignore these errors** - they're informational, not breaking errors
+- ✅ **Test purchases normally** - when you attempt a purchase, you'll sign in with a sandbox tester account
+- ✅ **Use a real device** if you want to avoid these logs (they won't appear on devices with an active Apple ID)
+
+**Note**: These are native iOS logs that can't be filtered by RevenueCat's log handler. They're part of StoreKit's normal operation and don't indicate any configuration issues.
 
 ---
 

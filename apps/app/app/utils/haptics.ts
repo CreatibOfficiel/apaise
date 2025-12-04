@@ -3,15 +3,67 @@
  *
  * Provides haptic feedback for interactive elements.
  * Gracefully handles platforms where haptics are not available (web).
+ * Checks device capabilities before triggering haptics to prevent errors.
  */
 
 import { Platform } from "react-native"
 import * as Haptics from "expo-haptics"
+import { checkHapticsSupport, checkHapticsSupportSync } from "./hapticsCapability"
 
 /**
  * Check if haptics are available on this platform
+ * This is a basic platform check - use checkHapticsSupport() for device capability
  */
 const isHapticsAvailable = Platform.OS === "ios" || Platform.OS === "android"
+
+/**
+ * Internal function to safely trigger haptic feedback
+ * Checks device capabilities before triggering
+ */
+async function safeHapticTrigger(hapticFunction: () => Promise<void> | void): Promise<void> {
+  if (!isHapticsAvailable) {
+    return
+  }
+
+  try {
+    // Check if device supports haptics (uses cached result if available)
+    const supportsHaptics = await checkHapticsSupport()
+    if (!supportsHaptics) {
+      return
+    }
+
+    // Trigger haptic feedback
+    await hapticFunction()
+  } catch (error) {
+    // Silently fail if haptics are not available or trigger fails
+    // This prevents console errors on devices/simulators without haptics
+    if (__DEV__) {
+      // Only log in dev mode for debugging
+      console.debug("[Haptics] Haptic feedback failed:", error)
+    }
+  }
+}
+
+/**
+ * Synchronous version for immediate haptic feedback
+ * Uses cached capability result or defaults to attempting haptics
+ */
+function safeHapticTriggerSync(hapticFunction: () => Promise<void> | void): void {
+  if (!isHapticsAvailable) {
+    return
+  }
+
+  // Use sync check (may default to true for immediate feedback)
+  const supportsHaptics = checkHapticsSupportSync()
+  if (!supportsHaptics) {
+    return
+  }
+
+  // Trigger haptic feedback asynchronously
+  hapticFunction().catch(() => {
+    // Silently fail
+  })
+}
 
 /**
  * Impact feedback styles for different interaction types
@@ -21,65 +73,35 @@ export const hapticImpact = {
    * Light impact - for small UI elements like toggles, checkboxes
    */
   light: () => {
-    if (isHapticsAvailable) {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-      } catch {
-        // Silently fail if haptics are not available
-      }
-    }
+    safeHapticTriggerSync(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light))
   },
 
   /**
    * Medium impact - for standard buttons and selections
    */
   medium: () => {
-    if (isHapticsAvailable) {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-      } catch {
-        // Silently fail if haptics are not available
-      }
-    }
+    safeHapticTriggerSync(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium))
   },
 
   /**
    * Heavy impact - for significant actions like confirming or deleting
    */
   heavy: () => {
-    if (isHapticsAvailable) {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
-      } catch {
-        // Silently fail if haptics are not available
-      }
-    }
+    safeHapticTriggerSync(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy))
   },
 
   /**
    * Soft impact - for subtle feedback
    */
   soft: () => {
-    if (isHapticsAvailable) {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
-      } catch {
-        // Silently fail if haptics are not available
-      }
-    }
+    safeHapticTriggerSync(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft))
   },
 
   /**
    * Rigid impact - for snappy feedback
    */
   rigid: () => {
-    if (isHapticsAvailable) {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
-      } catch {
-        // Silently fail if haptics are not available
-      }
-    }
+    safeHapticTriggerSync(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid))
   },
 }
 
@@ -91,39 +113,21 @@ export const hapticNotification = {
    * Success notification - for successful actions
    */
   success: () => {
-    if (isHapticsAvailable) {
-      try {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      } catch {
-        // Silently fail if haptics are not available
-      }
-    }
+    safeHapticTriggerSync(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success))
   },
 
   /**
    * Warning notification - for warnings
    */
   warning: () => {
-    if (isHapticsAvailable) {
-      try {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
-      } catch {
-        // Silently fail if haptics are not available
-      }
-    }
+    safeHapticTriggerSync(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning))
   },
 
   /**
    * Error notification - for errors
    */
   error: () => {
-    if (isHapticsAvailable) {
-      try {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
-      } catch {
-        // Silently fail if haptics are not available
-      }
-    }
+    safeHapticTriggerSync(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error))
   },
 }
 
@@ -131,13 +135,7 @@ export const hapticNotification = {
  * Selection feedback - for selection changes
  */
 export const hapticSelection = () => {
-  if (isHapticsAvailable) {
-    try {
-      Haptics.selectionAsync()
-    } catch (_error) {
-      console.warn("Haptics.selectionAsync not available:", _error)
-    }
-  }
+  safeHapticTriggerSync(() => Haptics.selectionAsync())
 }
 
 /**

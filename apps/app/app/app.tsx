@@ -20,7 +20,7 @@ import "./utils/gestureHandler"
 
 import "./styles"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactElement } from "react"
 import { Platform, ViewStyle } from "react-native"
 import { useFonts } from "expo-font"
 import * as Linking from "expo-linking"
@@ -67,14 +67,14 @@ const config = {
     Login: "login",
     Register: "register",
     ForgotPassword: "forgot-password",
-    Demo: {
-      screens: {
-        DemoShowroom: {
-          path: "showroom/:queryIndex?/:itemIndex?",
-        },
-        DemoDebug: "debug",
-        DemoPodcastList: "podcast",
-        DemoCommunity: "community",
+    EmailVerification: "verify-email",
+    // Auth callback for email confirmation and password reset
+    AuthCallback: {
+      path: "auth/callback",
+      parse: {
+        code: (code: string) => code,
+        token: (token: string) => token,
+        type: (type: string) => type,
       },
     },
   },
@@ -121,9 +121,34 @@ export function App() {
         // Initialize services
         initSentry()
         initPosthog()
-        initRevenueCat()
+        // Initialize RevenueCat BEFORE stores (subscription store depends on it)
+        await initRevenueCat()
         if (__DEV__) {
           logger.debug("services initialized")
+        }
+
+        // Handle email confirmation code from deep link
+        // Check if app was opened with a code parameter (email confirmation)
+        const initialUrl = await Linking.getInitialURL()
+        if (initialUrl) {
+          try {
+            const url = new URL(initialUrl)
+            const code = url.searchParams.get("code")
+            const type = url.searchParams.get("type")
+
+            if (code && (type === "signup" || type === "email")) {
+              // Email confirmation code detected - verify it
+              if (__DEV__) {
+                logger.debug("Email confirmation code detected, verifying...")
+              }
+              await useAuthStore.getState().verifyEmail(code)
+            }
+          } catch {
+            // Not a valid URL or not an email confirmation link - ignore
+            if (__DEV__) {
+              logger.debug("No email confirmation code in initial URL")
+            }
+          }
         }
 
         // Initialize Zustand stores
@@ -135,14 +160,17 @@ export function App() {
           logger.debug("auth store initialized")
         }
 
+        // Initialize subscription store in background (non-blocking)
+        // This allows the app to render while subscription data loads
         if (__DEV__) {
           logger.debug("initializing subscription store...")
         }
-        await useSubscriptionStore.getState().initialize()
-        if (__DEV__) {
-          logger.debug("subscription store initialized")
-        }
+        useSubscriptionStore.getState().initialize().catch((error) => {
+          logger.error("Subscription initialization failed", {}, error as Error)
+        })
 
+        // Don't wait for subscription store - it can load in background
+        // The app can render with cached/default subscription values
         setIsStoresInitialized(true)
         if (__DEV__) {
           logger.debug("App initialize completed")
@@ -166,7 +194,7 @@ export function App() {
     config,
   }
 
-  let content: JSX.Element
+  let content: ReactElement
 
   // Before we show the app, we have to wait for our state to be ready.
   // Show a loading screen with a nice animation while initializing.
