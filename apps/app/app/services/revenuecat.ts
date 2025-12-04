@@ -109,6 +109,7 @@ const revenueCatMobile: SubscriptionService = {
       let hasShownSetupMessage = false
       MobilePurchases.setLogHandler((logLevel: number, message: string) => {
         // Filter out expected errors that are normal when products aren't configured
+        // These errors occur when API keys are added but products haven't been created yet
         const expectedErrorPatterns = [
           "no products registered",
           "offerings",
@@ -116,33 +117,45 @@ const revenueCatMobile: SubscriptionService = {
           "RevenueCat SDK Configuration is not valid",
           "Your app doesn't have any products set up",
           "why-are-offerings-empty",
+          "error fetching offerings",
+          "operation couldn't be completed",
+          "offeringsmanager.error",
+          "health report",
+          "configuration is not valid",
+          "can't make any purchases",
         ]
 
         const isExpectedError = expectedErrorPatterns.some((pattern) =>
           message.toLowerCase().includes(pattern.toLowerCase()),
         )
 
-        // Show helpful message for expected errors instead of the raw error
-        if (isExpectedError && !hasShownSetupMessage) {
-          hasShownSetupMessage = true
-          try {
-            // Use console.log instead of console.error to avoid Sentry interception
-            // and show a clear, actionable message
-            console.log(
-              "\n📦 [RevenueCat] Setup Required\n" +
-                "─────────────────────────────────────────────\n" +
-                "To enable subscriptions, configure products in your RevenueCat dashboard:\n" +
-                "1. Go to https://app.revenuecat.com\n" +
-                "2. Navigate to Products → Product Catalog\n" +
-                "3. Create products and add them to an Offering\n" +
-                "4. See: https://rev.cat/how-to-configure-offerings\n" +
-                "\n" +
-                "This message will only appear once. You can safely ignore it if you're not using subscriptions yet.\n" +
-                "─────────────────────────────────────────────\n",
-            )
-          } catch (e) {
-            // Silently fail if logging causes issues
+        // Suppress ALL expected errors (they're normal during setup)
+        // Show helpful message only once for the first occurrence
+        if (isExpectedError) {
+          if (!hasShownSetupMessage) {
+            hasShownSetupMessage = true
+            try {
+              // Use console.log instead of console.error to avoid Sentry interception
+              // and show a clear, actionable message
+              console.log(
+                "\n📦 [RevenueCat] Setup Required\n" +
+                  "─────────────────────────────────────────────\n" +
+                  "To enable subscriptions, configure products in your RevenueCat dashboard:\n" +
+                  "1. Go to https://app.revenuecat.com\n" +
+                  "2. Navigate to Products → Product Catalog\n" +
+                  "3. Create products and add them to an Offering\n" +
+                  "4. See: https://rev.cat/how-to-configure-offerings\n" +
+                  "\n" +
+                  "⚠️  These errors are EXPECTED and NORMAL when API keys are added before products.\n" +
+                  "   They will disappear once you create products in the RevenueCat dashboard.\n" +
+                  "   You can safely ignore them if you're not using subscriptions yet.\n" +
+                  "─────────────────────────────────────────────\n",
+              )
+            } catch (e) {
+              // Silently fail if logging causes issues
+            }
           }
+          // Suppress this error - don't log it at all
           return
         }
 

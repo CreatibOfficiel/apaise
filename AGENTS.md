@@ -111,3 +111,39 @@ All components use Unistyles with theme support and variants:
 - Git history favors conventional prefixes (`feat:`, `fix:`, `refactor:`); write imperative, scoped summaries (avoid noise commits like `aaa`).
 - PRs should include: brief summary, linked issue/task, commands run, and screenshots/screen recordings for UI changes (light/dark, iOS/Android).
 - Update relevant docs (`vibe/CONTEXT.md`, feature-specific guides in root/docs) when behavior or config changes. Never commit secrets; rely on mock mode if keys are missing (`apps/app/scripts/setup-env.js` can scaffold env files).
+
+## Documentation System
+
+### 📁 Allowed Root-Level Files
+
+**ONLY these .md files are allowed in root (`shipnativeapp/`):**
+- `README.md`, `CHANGELOG.md`, `ROADMAP.md`, `LICENSE.md`
+- Feature docs: `SUPABASE.md`, `MONETIZATION.md`, `ANALYTICS.md`, `NOTIFICATIONS.md`, `DEPLOYMENT.md`, `TROUBLESHOOTING.md`, `DESIGN_SYSTEM.md`, `BACKEND.md`
+- AI instruction files: `AI_CONTEXT.md`, `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`
+- `LANDING_PAGE_CONTENT.md`
+
+### ❌ DO NOT Create Random Files in Root
+
+**CRITICAL**: Do NOT create any other .md files in root unless explicitly requested.
+
+- ❌ Do NOT create `SUMMARY.md`, `ANALYSIS.md`, `REVIEW.md`, `CHANGES.md`
+- ❌ Do NOT create `IMPLEMENTATION_NOTES.md`, `CODE_REVIEW.md`, `PROGRESS.md`
+- ❌ Do NOT create feature documentation in root (use `docs/` folder instead)
+
+### 📂 Where to Document Changes
+
+**Follow this system:**
+
+| Change Type | Documentation Location |
+|-------------|------------------------|
+| **New major feature** | Create `docs/[FEATURE_NAME].md` (e.g., `docs/OFFLINE.md`) |
+| **Feature changes** | Update existing `docs/[FEATURE].md` or root feature doc |
+| **App architecture** | Update `apps/app/vibe/CONTEXT.md` |
+| **Service changes** | Update `vibe/SERVICES.md` |
+| **Tech stack** | Update `apps/app/vibe/TECH_STACK.md` |
+| **Code patterns** | Update `apps/app/vibe/STYLE_GUIDE.md` |
+| **User-facing docs** | Update `mintlify_docs/docs/core-features/[feature].mdx` |
+| **Breaking changes** | Update `docs/TROUBLESHOOTING.md` |
+| **Architecture decisions** | Create `docs/ADR/[number]-[name].md` |
+
+**Key Rule**: New features → `docs/` folder, NOT root directory. Only update existing root files.

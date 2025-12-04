@@ -205,13 +205,38 @@ All components use Unistyles with theme support:
 - Consistent spacing from theme
 - Dark mode support via semantic colors
 
-## Documentation Updates
+## Documentation System
 
-**When modifying features, update:**
-- `README.md` - Features list
-- `vibe/CONTEXT.md` - Major features
-- `vibe/TECH_STACK.md` - Technology changes
-- `vibe/STYLE_GUIDE.md` - New code patterns
+### 📁 Allowed Root-Level Files
+
+**ONLY these .md files are allowed in root (`shipnativeapp/`):**
+- `README.md`, `CHANGELOG.md`, `ROADMAP.md`, `LICENSE.md`
+- Feature docs: `SUPABASE.md`, `MONETIZATION.md`, `ANALYTICS.md`, `NOTIFICATIONS.md`, `DEPLOYMENT.md`, `TROUBLESHOOTING.md`, `DESIGN_SYSTEM.md`, `BACKEND.md`
+- AI instruction files: `AI_CONTEXT.md`, `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`
+- `LANDING_PAGE_CONTENT.md`
+
+### ❌ DO NOT Create Random Files in Root
+
+**CRITICAL**: Do NOT create any other .md files in root unless explicitly requested.
+
+- ❌ Do NOT create `SUMMARY.md`, `ANALYSIS.md`, `REVIEW.md`, `CHANGES.md`
+- ❌ Do NOT create `IMPLEMENTATION_NOTES.md`, `CODE_REVIEW.md`, `PROGRESS.md`
+- ❌ Do NOT create feature documentation in root (use `docs/` folder instead)
+
+### 📂 Where to Document Changes
+
+| Change Type | Location |
+|-------------|----------|
+| **New major feature** | Create `docs/[FEATURE_NAME].md` (e.g., `docs/OFFLINE.md`) |
+| **Feature changes** | Update existing `docs/[FEATURE].md` or root feature doc |
+| **App architecture** | Update `apps/app/vibe/CONTEXT.md` |
+| **Service changes** | Update `vibe/SERVICES.md` |
+| **Tech stack** | Update `apps/app/vibe/TECH_STACK.md` |
+| **Code patterns** | Update `apps/app/vibe/STYLE_GUIDE.md` |
+| **User-facing docs** | Update `mintlify_docs/docs/core-features/[feature].mdx` |
+| **Breaking changes** | Update `docs/TROUBLESHOOTING.md` |
+
+**Key Rule**: New features → `docs/` folder, NOT root directory. Only update existing root files.
 
 ## Common Mistakes
 

@@ -39,19 +39,23 @@ You'll see console logs indicating mock mode:
    - **iOS**: Add your App Store Connect app
    - **Android**: Add your Google Play app
    - **Web**: Add your web payment provider (RevenueCat Billing)
-4. Create products and entitlements:
-   - Create a "pro" entitlement
-   - Link your App Store/Play Store/Web products
-5. Get your API keys:
+4. Get your API keys:
    - Go to Project Settings → API Keys
    - Copy the Public SDK keys: **iOS**, **Android**, and **Web** (web has its own Public SDK key)
-
-6. Add to `.env`:
+5. Add to `.env`:
 ```bash
 EXPO_PUBLIC_REVENUECAT_IOS_KEY=your_ios_key_here
 EXPO_PUBLIC_REVENUECAT_ANDROID_KEY=your_android_key_here
 EXPO_PUBLIC_REVENUECAT_WEB_KEY=your_web_key_here
 ```
+
+> **⚠️ Important:** After adding API keys, you **must** create products in RevenueCat. If you see errors about "no products registered" or "offerings", this is **expected and normal** - it means your API keys are working but products haven't been created yet. These errors will disappear once you create products (see step 6).
+
+6. Create products and entitlements:
+   - Create a "pro" entitlement
+   - Create subscription products (e.g., "monthly_pro", "annual_pro")
+   - Link your App Store/Play Store/Web products to the entitlement
+   - Add products to an Offering (typically named "default") so they can be fetched by the app
 
 ## Architecture
 

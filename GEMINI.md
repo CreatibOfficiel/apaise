@@ -107,11 +107,26 @@ Follow established patterns (see `AI_CONTEXT.md` for details):
 
 ### Step 4: Update Documentation
 
-**Always update docs when adding features:**
-- Update `apps/app/vibe/CONTEXT.md` for major features
-- Update relevant feature docs (`SUPABASE.md`, `MONETIZATION.md`, etc.)
-- Update Mintlify docs in `mintlify_docs/docs/`
-- Update landing page if showcasing feature
+### 📁 Documentation System
+
+**Allowed root files**: Only existing feature docs (`SUPABASE.md`, `MONETIZATION.md`, etc.), AI instruction files, and standard files (`README.md`, `CHANGELOG.md`, etc.)
+
+**❌ DO NOT create random .md files in root** (no `SUMMARY.md`, `ANALYSIS.md`, `REVIEW.md`, etc.)
+
+### 📂 Where to Document Changes
+
+| Change Type | Location |
+|-------------|----------|
+| **New major feature** | Create `docs/[FEATURE_NAME].md` (NOT root) |
+| **Feature changes** | Update existing `docs/[FEATURE].md` or root feature doc |
+| **App architecture** | Update `apps/app/vibe/CONTEXT.md` |
+| **Service changes** | Update `vibe/SERVICES.md` |
+| **Tech stack** | Update `apps/app/vibe/TECH_STACK.md` |
+| **Code patterns** | Update `apps/app/vibe/STYLE_GUIDE.md` |
+| **User-facing docs** | Update `mintlify_docs/docs/core-features/[feature].mdx` |
+| **Breaking changes** | Update `docs/TROUBLESHOOTING.md` |
+
+**Key Rule**: New features → `docs/` folder, NOT root directory.
 
 ### Step 5: Commit in Each Repo
 

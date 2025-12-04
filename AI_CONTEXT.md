@@ -3,7 +3,24 @@
 > **⚠️ IMPORTANT**: This is the SINGLE SOURCE OF TRUTH for all AI assistants working on this project. All AI instruction files (CLAUDE.md, GEMINI.md, .cursorrules) should reference this file.
 
 **Last Updated**: 2025-01-XX  
-**Version**: 2.0.0
+**Version**: 3.0.0 (Modular Structure)
+
+---
+
+## 📖 Modular Documentation Structure
+
+This file contains **critical information only**. For detailed guides, see:
+
+- **Styling Patterns**: `vibe/STYLING.md` - Unistyles patterns, theme values, examples
+- **Architecture Patterns**: `vibe/ARCHITECTURE.md` - Component structure, state management, screen templates
+- **Development Workflow**: `vibe/DEVELOPMENT_WORKFLOW.md` - Workflow, mock mode, common mistakes
+- **App Context**: `apps/app/vibe/CONTEXT.md` - App features & architecture
+- **Tech Stack**: `apps/app/vibe/TECH_STACK.md` - Technology decisions
+- **Style Guide**: `apps/app/vibe/STYLE_GUIDE.md` - Code patterns
+- **Services**: `vibe/SERVICES.md` - Service architecture
+- **Mock Services**: `vibe/MOCK_SERVICES.md` - Mock mode guide
+
+**Read this file first for critical decisions, then reference specific files as needed.**
 
 ---
 
@@ -103,207 +120,45 @@ PROJECT_shipnativeapp/
 
 ---
 
-## 🎨 Styling Patterns (Unistyles 3.0)
+## 🎨 Styling Quick Reference
 
-### Basic Pattern
+**CRITICAL**: Always use Unistyles 3.0 with theme function. Never hardcode values.
 
 ```typescript
-import { StyleSheet, useUnistyles } from 'react-native-unistyles'
-
-const MyComponent = () => {
-  const { theme } = useUnistyles()
-  
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Hello</Text>
-    </View>
-  )
-}
-
+// ✅ DO THIS
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
     padding: theme.spacing.md,
   },
-  title: {
-    fontSize: theme.typography.sizes['2xl'],
-    fontFamily: theme.typography.fonts.bold,
-    color: theme.colors.foreground,
-  },
 }))
 ```
 
-### Variants Pattern
-
-```typescript
-const styles = StyleSheet.create((theme) => ({
-  button: {
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    borderRadius: theme.radius.lg,
-    variants: {
-      variant: {
-        filled: { backgroundColor: theme.colors.primary },
-        outlined: { borderWidth: 1, borderColor: theme.colors.border },
-      },
-      size: {
-        sm: { height: 36 },
-        md: { height: 44 },
-        lg: { height: 56 },
-      },
-    },
-  },
-}))
-
-// Usage
-styles.useVariants({ variant: 'filled', size: 'md' })
-```
-
-### Theme Values Reference
-
-```typescript
-// Colors (semantic)
-theme.colors.primary          // Primary action
-theme.colors.background       // Main background
-theme.colors.foreground       // Main text
-theme.colors.card             // Card backgrounds
-theme.colors.border           // Borders
-theme.colors.error            // Error states
-
-// Spacing (8px grid)
-theme.spacing.xs              // 8px
-theme.spacing.sm              // 12px
-theme.spacing.md              // 16px
-theme.spacing.lg              // 24px
-theme.spacing.xl              // 32px
-
-// Typography
-theme.typography.fonts.regular
-theme.typography.fonts.bold
-theme.typography.sizes.base   // 16px
-theme.typography.sizes['2xl'] // 24px
-
-// Border Radius
-theme.radius.sm               // 8px
-theme.radius.md               // 12px
-theme.radius.lg               // 16px
-theme.radius.full             // 9999px
-
-// Shadows
-theme.shadows.sm
-theme.shadows.md
-theme.shadows.lg
-```
-
-**Complete theme**: `app/theme/unistyles.ts` (relative to `apps/app/`)
+**For detailed styling patterns, theme values, and examples**: See `vibe/STYLING.md`
 
 ---
 
-## 🏗️ Architecture Patterns
+## 🏗️ Architecture Quick Reference
 
-### Component Structure
+**Component Structure**: Imports → Types → Component (Hooks → State → Handlers → Render) → Styles
 
-```typescript
-// 1. Imports (React → Third-party → Stores/Hooks → Components → Utils/Types)
-// 2. Types/Interfaces
-// 3. Component function
-//    - Hooks (theme, stores, queries, state)
-//    - Derived state
-//    - Event handlers
-//    - Effects
-//    - Early returns
-//    - Render
-// 4. Styles (StyleSheet.create at bottom)
-```
+**State Management**:
+- Global state → Zustand
+- Server state → React Query
+- Local state → useState
 
-### State Management
-
-```typescript
-// Global state - Zustand
-const user = useAuthStore((state) => state.user)
-const signOut = useAuthStore((state) => state.signOut)
-
-// Server state - React Query
-const { data, isLoading, error } = useQuery({
-  queryKey: ['user', userId],
-  queryFn: () => fetchUser(userId),
-})
-```
-
-### Screen Templates
-
-**Always use screen layout templates for consistency:**
-
-```typescript
-// Auth screens (Login, Register, etc.)
-// Both patterns work - codebase uses direct import for clarity
-import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout"
-// Alternative: Also works via index.ts export
-// import { AuthScreenLayout } from "@/components"
-
-export const LoginScreen = () => (
-  <AuthScreenLayout
-    title="Welcome Back"
-    subtitle="Sign in to continue"
-    showCloseButton
-    onClose={() => navigation.goBack()}
-  >
-    {/* Form content */}
-  </AuthScreenLayout>
-)
-
-// Onboarding screens
-// Both patterns work - codebase uses direct import for clarity
-import { OnboardingScreenLayout } from "@/components/layouts/OnboardingScreenLayout"
-// Alternative: Also works via index.ts export
-// import { OnboardingScreenLayout } from "@/components"
-
-export const OnboardingScreen = () => (
-  <OnboardingScreenLayout
-    currentStep={0}
-    totalSteps={3}
-    headerIcon="👋"
-    title="Welcome!"
-  >
-    {/* Content */}
-  </OnboardingScreenLayout>
-)
-```
+**For detailed architecture patterns and screen templates**: See `vibe/ARCHITECTURE.md`
 
 ---
 
-## 🔄 Development Workflow
+## 🔄 Development Workflow Quick Reference
 
-### Before Writing Code
+**Before coding**: Read context files, check existing code, follow patterns.
 
-1. **Read context files**:
-   - `apps/app/vibe/CONTEXT.md` - App structure and features
-   - `apps/app/vibe/TECH_STACK.md` - Technology decisions
-   - `apps/app/vibe/STYLE_GUIDE.md` - Code patterns
-   - `vibe/SERVICES.md` - Service architecture
-   - `vibe/MOCK_SERVICES.md` - Mock mode guide
+**Mock Mode**: All services work without API keys automatically.
 
-2. **Check existing code**:
-   - Browse `app/components` or `@/components` for reusable UI
-   - Look at `app/screens` or `@/screens` for screen patterns
-   - Check `app/stores` or `@/stores` for state patterns
-
-3. **Follow patterns**:
-   - Use Unistyles with theme (never hardcode)
-   - Use screen templates for auth/onboarding
-   - Use Zustand for global state
-   - Use React Query for data fetching
-
-### Mock Mode
-
-All services have mock implementations that activate automatically when API keys are missing:
-- ✅ Supabase (auth, database, storage, realtime)
-- ✅ RevenueCat (purchases, subscriptions)
-- ✅ PostHog (analytics, feature flags)
-- ✅ Sentry (error tracking)
-
-**No API keys needed for development!**
+**For detailed workflow and common mistakes**: See `vibe/DEVELOPMENT_WORKFLOW.md`
 
 ---
 
@@ -317,6 +172,11 @@ All services have mock implementations that activate automatically when API keys
 - `vibe/SERVICES.md` - Service architecture
 - `vibe/MOCK_SERVICES.md` - Mock mode guide
 
+### Detailed Guides (Reference as Needed)
+- `vibe/STYLING.md` - Detailed styling patterns and theme values
+- `vibe/ARCHITECTURE.md` - Component structure and state management patterns
+- `vibe/DEVELOPMENT_WORKFLOW.md` - Development workflow and common mistakes
+
 ### Documentation
 - `README.md` - Main overview
 - `SUPABASE.md` - Auth & database guide
@@ -327,66 +187,156 @@ All services have mock implementations that activate automatically when API keys
 
 ---
 
-## 🚨 Common Mistakes to Avoid
+## 🔄 Documentation System
 
-```typescript
-// ❌ DON'T: Use NativeWind
-<View className="flex-1 bg-white">
+### 📁 Allowed Root-Level Documentation Files
 
-// ✅ DO: Use Unistyles with theme
-const styles = StyleSheet.create((theme) => ({
-  container: { flex: 1, backgroundColor: theme.colors.background }
-}))
+**ONLY these .md files are allowed in the root directory (`shipnativeapp/`):**
 
-// ❌ DON'T: Hardcode values
-padding: 16, color: '#000000'
+| File | Purpose | When to Update |
+|------|---------|----------------|
+| `README.md` | Main overview, quick start, features list | Feature additions, setup changes |
+| `CHANGELOG.md` | Version history and user-facing changes | Every release, major changes |
+| `ROADMAP.md` | Future features and plans | When roadmap items change |
+| `LICENSE.md` | License information | Only if license changes |
+| `SUPABASE.md` | Supabase/auth feature guide | Auth/database changes |
+| `MONETIZATION.md` | Payment/subscription guide | Payment changes |
+| `ANALYTICS.md` | Analytics guide | Analytics changes |
+| `NOTIFICATIONS.md` | Push notifications guide | Notification changes |
+| `DEPLOYMENT.md` | Deployment guide | Deployment changes |
+| `TROUBLESHOOTING.md` | Common issues and solutions | New issues discovered |
+| `DESIGN_SYSTEM.md` | Design tokens and patterns | Design system changes |
+| `BACKEND.md` | Backend setup and schemas | Backend changes |
+| `AI_CONTEXT.md` | AI instruction file (single source of truth) | Tech stack/patterns change |
+| `CLAUDE.md` | Claude-specific AI instructions | AI workflow changes |
+| `GEMINI.md` | Gemini-specific AI instructions | AI workflow changes |
+| `AGENTS.md` | Agent guidelines | Agent workflow changes |
+| `LANDING_PAGE_CONTENT.md` | Landing page content reference | Landing page content changes |
 
-// ✅ DO: Use theme values
-padding: theme.spacing.md, color: theme.colors.foreground
+### ❌ DO NOT Create Random Files in Root
 
-// ❌ DON'T: Use Expo Router
-import { useRouter } from 'expo-router'
+**CRITICAL**: Do NOT create any other .md files in the root directory unless explicitly requested.
 
-// ✅ DO: Use React Navigation
-import { useNavigation } from '@react-navigation/native'
+- ❌ Do NOT create `SUMMARY.md`, `ANALYSIS.md`, `REVIEW.md`, `CHANGES.md`
+- ❌ Do NOT create `IMPLEMENTATION_NOTES.md`, `CODE_REVIEW.md`, `PROGRESS.md`
+- ❌ Do NOT create any temporary or summary documentation files
+- ❌ Do NOT create feature documentation in root (use `docs/` folder instead)
 
-// ❌ DON'T: Use useEffect for data fetching
-useEffect(() => { fetch('/api/data') }, [])
+### 📂 Documentation Location System
 
-// ✅ DO: Use React Query
-const { data } = useQuery({ queryKey: ['data'], queryFn: fetchData })
+**Where to document different types of changes:**
+
+#### 1. Feature Documentation → `docs/` folder
+
+**New features get documented in `docs/` folder, NOT root:**
+
+| Feature Type | Documentation Location |
+|--------------|----------------------|
+| Authentication | `docs/SUPABASE.md` (already exists) |
+| Payments | `docs/MONETIZATION.md` (already exists) |
+| Analytics | `docs/ANALYTICS.md` (already exists) |
+| Notifications | `docs/NOTIFICATIONS.md` (already exists) |
+| Deployment | `docs/DEPLOYMENT.md` (already exists) |
+| **New major feature** | Create `docs/[FEATURE_NAME].md` (e.g., `docs/OFFLINE.md`) |
+| Architecture decisions | `docs/ADR/[number]-[name].md` (Architecture Decision Records) |
+
+#### 2. AI Context Documentation → `vibe/` folders
+
+| Context Type | Location |
+|--------------|----------|
+| App features & architecture | `apps/app/vibe/CONTEXT.md` |
+| Technology decisions | `apps/app/vibe/TECH_STACK.md` |
+| Code patterns | `apps/app/vibe/STYLE_GUIDE.md` |
+| Screen templates | `apps/app/vibe/SCREEN_TEMPLATES.md` |
+| App architecture | `apps/app/vibe/ARCHITECTURE.md` |
+| Service architecture | `vibe/SERVICES.md` |
+| Mock services | `vibe/MOCK_SERVICES.md` |
+
+#### 3. User-Facing Documentation → `mintlify_docs/docs/`
+
+| Documentation Type | Location |
+|-------------------|----------|
+| Feature guides | `mintlify_docs/docs/core-features/[feature].mdx` |
+| Getting started | `mintlify_docs/docs/getting-started/*.mdx` |
+| Development guides | `mintlify_docs/docs/development/*.mdx` |
+| Architecture docs | `mintlify_docs/docs/architecture/*.mdx` |
+| Troubleshooting | `mintlify_docs/docs/troubleshooting.mdx` |
+
+### 📋 Documentation Decision Tree
+
+**When adding/modifying features, follow this system:**
+
+```
+New Feature Added?
+├─ Is it a major new feature?
+│  ├─ YES → Create `docs/[FEATURE_NAME].md` (e.g., `docs/OFFLINE.md`)
+│  └─ NO → Update existing feature doc in `docs/` folder
+│
+├─ Does it change app architecture?
+│  └─ YES → Update `apps/app/vibe/CONTEXT.md`
+│
+├─ Does it change services?
+│  └─ YES → Update `vibe/SERVICES.md`
+│
+├─ Does it change tech stack?
+│  └─ YES → Update `apps/app/vibe/TECH_STACK.md`
+│
+├─ Does it change code patterns?
+│  └─ YES → Update `apps/app/vibe/STYLE_GUIDE.md`
+│
+├─ Should users know about it?
+│  └─ YES → Update `mintlify_docs/docs/core-features/[feature].mdx`
+│
+└─ Should it be showcased?
+   └─ YES → Update `landing_page/src/components/landing/BentoGrid.tsx`
 ```
 
----
+### ✅ Documentation Update Rules
 
-## 🔄 Documentation Sync
-
-When modifying features, update:
-- `apps/app/vibe/CONTEXT.md` - Major app changes
-- `vibe/SERVICES.md` - Service changes
-- Relevant feature docs (`SUPABASE.md`, `MONETIZATION.md`, etc.)
-- `mintlify_docs/docs/` - User-facing docs
-- `apps/web/` - Marketing site (if showcasing)
+1. **New major feature** → Create `docs/[FEATURE_NAME].md` (NOT in root)
+2. **Feature changes** → Update existing `docs/[FEATURE].md` file
+3. **App changes** → Update `apps/app/vibe/CONTEXT.md`
+4. **Service changes** → Update `vibe/SERVICES.md`
+5. **Tech changes** → Update `apps/app/vibe/TECH_STACK.md`
+6. **Pattern changes** → Update `apps/app/vibe/STYLE_GUIDE.md`
+7. **User-facing changes** → Update `mintlify_docs/docs/`
+8. **Breaking changes** → Update `docs/TROUBLESHOOTING.md`
+9. **Root-level files** → Only update existing allowed files (see table above)
+10. **Never create** → Random .md files in root directory
 
 ---
 
 ## 📝 Version History
 
+- **v3.0.0** (2025-01-XX): Modular structure - split detailed guides into separate files
 - **v2.0.0** (2025-01-XX): Consolidated from multiple AI instruction files
 - **v1.0.0**: Initial version
 
 ---
 
-## 🔗 Related Files
+## 🔗 Quick Reference Map
 
-For detailed information, see:
-- **Tech Stack Details**: `apps/app/vibe/TECH_STACK.md`
-- **Style Guide**: `apps/app/vibe/STYLE_GUIDE.md`
-- **App Context**: `apps/app/vibe/CONTEXT.md`
-- **Services**: `vibe/SERVICES.md`
-- **Mock Services**: `vibe/MOCK_SERVICES.md`
+**Critical Info** (this file):
+- Technology stack (ALWAYS USE / NEVER USE)
+- Platform support
+- Documentation system
+
+**Detailed Guides** (reference as needed):
+- `vibe/STYLING.md` - Styling patterns, theme values, examples
+- `vibe/ARCHITECTURE.md` - Component structure, state management, templates
+- `vibe/DEVELOPMENT_WORKFLOW.md` - Workflow, mock mode, mistakes
+
+**App Context**:
+- `apps/app/vibe/CONTEXT.md` - App features & architecture
+- `apps/app/vibe/TECH_STACK.md` - Technology decisions
+- `apps/app/vibe/STYLE_GUIDE.md` - Code patterns
+- `apps/app/vibe/SCREEN_TEMPLATES.md` - Screen templates
+
+**Services**:
+- `vibe/SERVICES.md` - Service architecture
+- `vibe/MOCK_SERVICES.md` - Mock mode guide
 
 ---
 
-**This file is the single source of truth. All AI instruction files should reference this file and defer to it for any conflicts.**
+**This file is the single source of truth. All AI instruction files should reference this file and defer to it for any conflicts. Read this file first, then reference specific guides as needed.**
 
