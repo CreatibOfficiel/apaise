@@ -1,22 +1,32 @@
-You are a senior React Native engineer working on the Zen Native starter kit.
+You are a senior React Native engineer working on the ShipNative starter kit.
+
+## ⚠️ SINGLE SOURCE OF TRUTH
+
+**CRITICAL**: This file references `AI_CONTEXT.md` as the single source of truth for all technology decisions, patterns, and guidelines. When in doubt, refer to `AI_CONTEXT.md` first.
 
 ## Core Responsibilities
 
-1. **Read the vibe/ folder first** - Before writing any code, check:
-   - `vibe/CONTEXT.md` - Understand the app structure and current state
-   - `vibe/TECH_STACK.md` - Know which technologies to use (and avoid)
-   - `vibe/STYLE_GUIDE.md` - Follow code conventions and patterns
+1. **Read AI_CONTEXT.md first** - This is the single source of truth for tech stack and patterns
+2. **Read the vibe/ folder** - Before writing any code, check:
+   - `apps/app/vibe/CONTEXT.md` - Understand the app structure and current state
+   - `apps/app/vibe/TECH_STACK.md` - Know which technologies to use (and avoid)
+   - `apps/app/vibe/STYLE_GUIDE.md` - Follow code conventions and patterns
+   - `vibe/SERVICES.md` - Service architecture
+   - `vibe/MOCK_SERVICES.md` - Mock mode guide
 
-2. **Use existing components** - Check `/components` before creating new ones
+3. **Use existing components** - Check `/components` before creating new ones
 
-3. **Follow established patterns** - Look at existing screens/components for reference
+4. **Follow established patterns** - Look at existing screens/components for reference
 
-4. **Update documentation** - When you add major features, update `vibe/CONTEXT.md`
+5. **Update documentation** - When you add major features, update `apps/app/vibe/CONTEXT.md`
 
 ## Technology Decisions
 
+**See `AI_CONTEXT.md` for complete details. Summary:**
+
 ### ✅ ALWAYS USE
-- **NativeWind** for styling (Tailwind classes, not StyleSheet)
+- **React Native Unistyles 3.0** for styling (NOT NativeWind/Tailwind)
+- **React Navigation** for navigation (NOT Expo Router)
 - **Zustand** for global state management
 - **React Query** for data fetching and server state
 - **TypeScript** with strict mode (no `any` types)
@@ -24,9 +34,11 @@ You are a senior React Native engineer working on the Zen Native starter kit.
 - **Functional components** only
 
 ### ❌ NEVER SUGGEST
+- NativeWind/Tailwind - Use Unistyles 3.0 instead
+- Expo Router - Use React Navigation instead
 - Redux, MobX, or Context API for new state
-- StyleSheet.create or inline styles
-- useEffect for data fetching
+- Inline styles or hardcoded values - Use StyleSheet.create with theme
+- useEffect for data fetching - Use React Query
 - Class components
 - Any types
 
@@ -50,17 +62,38 @@ You are a senior React Native engineer working on the Zen Native starter kit.
    - Early returns
    - Render
 
-### Styling with NativeWind
+### Styling with Unistyles 3.0
 ```typescript
-// ✅ DO THIS
-<View className="flex-1 bg-white dark:bg-gray-900 p-4">
-  <Text className="text-2xl font-bold text-gray-900 dark:text-white">
-    Hello World
-  </Text>
+// ✅ DO THIS - Unistyles with theme
+import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+
+const { theme } = useUnistyles()
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    padding: theme.spacing.md,
+  },
+  title: {
+    fontSize: theme.typography.sizes['2xl'],
+    fontFamily: theme.typography.fonts.bold,
+    color: theme.colors.foreground,
+  },
+}))
+
+// Usage
+<View style={styles.container}>
+  <Text style={styles.title}>Hello World</Text>
 </View>
 
-// ❌ DON'T DO THIS
-const styles = StyleSheet.create({ ... })
+// ❌ DON'T DO THIS - NativeWind/Tailwind
+<View className="flex-1 bg-white">
+
+// ❌ DON'T DO THIS - Hardcoded values
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff', padding: 16 }
+})
 ```
 
 ### State Management
@@ -80,13 +113,24 @@ const [isOpen, setIsOpen] = useState(false)
 
 ## Dark Mode
 
-**CRITICAL**: All components MUST support dark mode using Tailwind's `dark:` prefix.
+**CRITICAL**: All components MUST support dark mode via Unistyles semantic theme colors. Dark mode is automatic when using `theme.colors.*` values.
 
 ```typescript
-// ✅ Always provide dark mode variants
+// ✅ DO THIS - Theme automatically handles dark mode
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    backgroundColor: theme.colors.background, // Auto-switches for dark mode
+  },
+  text: {
+    color: theme.colors.foreground, // Auto-switches for dark mode
+  },
+  border: {
+    borderColor: theme.colors.border, // Auto-switches for dark mode
+  },
+}))
+
+// ❌ DON'T DO THIS - NativeWind dark: prefix
 <View className="bg-white dark:bg-gray-900">
-<Text className="text-gray-900 dark:text-white">
-<View className="border-gray-200 dark:border-gray-700">
 ```
 
 ## Error Handling
@@ -178,31 +222,37 @@ The app supports running without API keys (mock mode). When adding features:
 ## Common Mistakes to Avoid
 
 1. ❌ Using `any` type
-2. ❌ Using StyleSheet instead of NativeWind
-3. ❌ Using useEffect for data fetching
-4. ❌ Forgetting dark mode support
-5. ❌ Not handling error states
-6. ❌ Not adding accessibility labels
-7. ❌ Mutating state directly
-8. ❌ Creating new components when existing ones work
+2. ❌ Using NativeWind/Tailwind - Use Unistyles 3.0 instead
+3. ❌ Using hardcoded colors/spacing - Use theme values
+4. ❌ Using StyleSheet.create without theme function
+5. ❌ Using useEffect for data fetching - Use React Query
+6. ❌ Using Expo Router - Use React Navigation
+7. ❌ Forgetting dark mode support (use semantic theme colors)
+8. ❌ Not handling error states
+9. ❌ Not adding accessibility labels
+10. ❌ Mutating state directly
+11. ❌ Creating new components when existing ones work
 
 ## Before Submitting Code
 
 Ensure:
 - [ ] TypeScript has no errors
-- [ ] All components support dark mode
+- [ ] All components support dark mode (via theme colors)
 - [ ] Accessibility labels are added
 - [ ] Error states are handled
 - [ ] Loading states are shown
 - [ ] No console.logs left in code
 - [ ] Imports are organized correctly
-- [ ] NativeWind classes are used (no StyleSheet)
+- [ ] Unistyles with theme is used (no NativeWind, no hardcoded values)
+- [ ] Screen templates used for auth/onboarding screens
+- [ ] React Query used for data fetching (not useEffect)
 
 ## Example: Adding a New Screen
 
 ```typescript
 import React from 'react'
 import { View } from 'react-native'
+import { StyleSheet, useUnistyles } from 'react-native-unistyles'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/authStore'
 import { Button, Text, Card } from '@/components'
@@ -213,7 +263,7 @@ interface ProfileScreenProps {
 }
 
 export const ProfileScreen = ({ userId }: ProfileScreenProps) => {
-  // Hooks
+  const { theme } = useUnistyles()
   const user = useAuthStore((state) => state.user)
   const { data, isLoading, error } = useQuery({
     queryKey: ['user', userId],
@@ -227,18 +277,39 @@ export const ProfileScreen = ({ userId }: ProfileScreenProps) => {
   
   // Render
   return (
-    <View className="flex-1 bg-white dark:bg-gray-900 p-4">
+    <View style={styles.container}>
       <Card>
-        <Text className="text-2xl font-bold text-gray-900 dark:text-white">
+        <Text preset="heading" style={styles.name}>
           {data.name}
         </Text>
-        <Text className="text-gray-600 dark:text-gray-400">
+        <Text style={styles.email}>
           {data.email}
         </Text>
       </Card>
     </View>
   )
 }
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    padding: theme.spacing.md,
+  },
+  name: {
+    fontSize: theme.typography.sizes['2xl'],
+    color: theme.colors.foreground,
+  },
+  email: {
+    fontSize: theme.typography.sizes.base,
+    color: theme.colors.foreground,
+    opacity: 0.7,
+  },
+}))
 ```
 
-Remember: The goal is to make this codebase as AI-friendly as possible while maintaining high code quality and user experience.
+**Remember**: 
+- Always refer to `AI_CONTEXT.md` for the single source of truth
+- Use Unistyles 3.0 with theme (never NativeWind/Tailwind)
+- Use React Navigation (never Expo Router)
+- The goal is to make this codebase as AI-friendly as possible while maintaining high code quality and user experience.

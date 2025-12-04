@@ -96,6 +96,76 @@ const revenueCatMobile: SubscriptionService = {
     }
 
     if (MobilePurchases && mobileApiKey) {
+      // Set log level BEFORE configure (best practice per RevenueCat docs)
+      if (__DEV__) {
+        MobilePurchases.setLogLevel(MobilePurchases.LOG_LEVEL.DEBUG)
+      } else {
+        MobilePurchases.setLogLevel(MobilePurchases.LOG_LEVEL.INFO)
+      }
+
+      // Set custom log handler to filter out expected errors and show helpful messages
+      // This prevents "no products configured" errors from causing stack traces
+      // when intercepted by Sentry's console instrumentation
+      let hasShownSetupMessage = false
+      MobilePurchases.setLogHandler((logLevel: number, message: string) => {
+        // Filter out expected errors that are normal when products aren't configured
+        const expectedErrorPatterns = [
+          "no products registered",
+          "offerings",
+          "There are no products",
+          "RevenueCat SDK Configuration is not valid",
+          "Your app doesn't have any products set up",
+          "why-are-offerings-empty",
+        ]
+
+        const isExpectedError = expectedErrorPatterns.some((pattern) =>
+          message.toLowerCase().includes(pattern.toLowerCase()),
+        )
+
+        // Show helpful message for expected errors instead of the raw error
+        if (isExpectedError && !hasShownSetupMessage) {
+          hasShownSetupMessage = true
+          try {
+            // Use console.log instead of console.error to avoid Sentry interception
+            // and show a clear, actionable message
+            console.log(
+              "\n📦 [RevenueCat] Setup Required\n" +
+                "─────────────────────────────────────────────\n" +
+                "To enable subscriptions, configure products in your RevenueCat dashboard:\n" +
+                "1. Go to https://app.revenuecat.com\n" +
+                "2. Navigate to Products → Product Catalog\n" +
+                "3. Create products and add them to an Offering\n" +
+                "4. See: https://rev.cat/how-to-configure-offerings\n" +
+                "\n" +
+                "This message will only appear once. You can safely ignore it if you're not using subscriptions yet.\n" +
+                "─────────────────────────────────────────────\n",
+            )
+          } catch (e) {
+            // Silently fail if logging causes issues
+          }
+          return
+        }
+
+        // Log unexpected errors and other messages
+        // Use try-catch to prevent any issues with console methods
+        try {
+          if (logLevel === MobilePurchases.LOG_LEVEL.ERROR) {
+            // Only log unexpected errors
+            console.error(`[RevenueCat] ${message}`)
+          } else if (logLevel === MobilePurchases.LOG_LEVEL.WARN) {
+            console.warn(`[RevenueCat] ${message}`)
+          } else if (logLevel === MobilePurchases.LOG_LEVEL.DEBUG && __DEV__) {
+            console.log(`[RevenueCat] ${message}`)
+          } else if (logLevel === MobilePurchases.LOG_LEVEL.INFO) {
+            console.log(`[RevenueCat] ${message}`)
+          }
+        } catch (e) {
+          // Silently fail if logging causes issues
+          // This prevents infinite loops or stack traces
+        }
+      })
+
+      // Configure SDK with API key
       await MobilePurchases.configure({ apiKey: mobileApiKey })
     }
   },
@@ -116,8 +186,33 @@ const revenueCatMobile: SubscriptionService = {
       return { subscriptionInfo: toSubscriptionInfo(result.customerInfo, "revenuecat") }
     }
 
-    const customerInfo = await MobilePurchases.logOut()
-    return { subscriptionInfo: toSubscriptionInfo(customerInfo, "revenuecat") }
+    try {
+      // Check if user is anonymous before attempting logout
+      // RevenueCat throws an error if you try to log out an anonymous user
+      const isAnonymous = await MobilePurchases.isAnonymous()
+      if (isAnonymous) {
+        // User is already anonymous, just get current info
+        const customerInfo = await MobilePurchases.getCustomerInfo()
+        return { subscriptionInfo: toSubscriptionInfo(customerInfo, "revenuecat") }
+      }
+
+      // User is authenticated, safe to log out
+      const customerInfo = await MobilePurchases.logOut()
+      return { subscriptionInfo: toSubscriptionInfo(customerInfo, "revenuecat") }
+    } catch (error: any) {
+      // If logout fails (e.g., user is anonymous), just get current info
+      if (error?.message?.includes("anonymous") || error?.code === "22") {
+        try {
+          const customerInfo = await MobilePurchases.getCustomerInfo()
+          return { subscriptionInfo: toSubscriptionInfo(customerInfo, "revenuecat") }
+        } catch {
+          // If getting info also fails, return empty state
+          return { subscriptionInfo: toSubscriptionInfo(null, "revenuecat") }
+        }
+      }
+      // Re-throw other errors
+      throw error
+    }
   },
 
   getSubscriptionInfo: async () => {
@@ -151,7 +246,23 @@ const revenueCatMobile: SubscriptionService = {
         platform: "revenuecat" as const,
         platformData: pkg,
       }))
-    } catch (error) {
+    } catch (error: any) {
+      // Handle "no products configured" error gracefully
+      // This is expected when RevenueCat dashboard isn't set up yet
+      if (
+        error?.message?.includes("no products registered") ||
+        error?.message?.includes("offerings") ||
+        error?.code === "23" ||
+        error?.code === "1"
+      ) {
+        if (__DEV__) {
+          console.log(
+            "ℹ️ [RevenueCat] No products configured yet. This is normal if you haven't set up products in the RevenueCat dashboard.",
+          )
+        }
+        return []
+      }
+      // Log other errors
       console.error("Error fetching packages:", error)
       return []
     }
@@ -319,7 +430,23 @@ const revenueCatWeb: SubscriptionService = {
         platform: "revenuecat-web" as const,
         platformData: pkg,
       }))
-    } catch (error) {
+    } catch (error: any) {
+      // Handle "no products configured" error gracefully
+      // This is expected when RevenueCat dashboard isn't set up yet
+      if (
+        error?.message?.includes("no products registered") ||
+        error?.message?.includes("offerings") ||
+        error?.code === "23" ||
+        error?.code === "1"
+      ) {
+        if (__DEV__) {
+          console.log(
+            "ℹ️ [RevenueCat Web] No products configured yet. This is normal if you haven't set up products in the RevenueCat dashboard.",
+          )
+        }
+        return []
+      }
+      // Log other errors
       console.error("Error fetching web packages:", error)
       return []
     }

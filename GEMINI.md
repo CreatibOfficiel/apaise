@@ -1,35 +1,145 @@
-# Project Instructions
+# ShipNative Project - Gemini Instructions
 
-## Overview
-React Native starter kit with Expo, Supabase Auth, PostHog Analytics, RevenueCat payments, and React Native Unistyles 3.0 styling.
+> **⚠️ IMPORTANT**: This file references `AI_CONTEXT.md` (in this same directory) as the **single source of truth** for all technology decisions, patterns, and guidelines. When in doubt, refer to `AI_CONTEXT.md` first.
 
-**Attribution**: Built with the Shipnative starter kit.
+## 🏗️ Project Overview
 
-## Tech Stack
-- **Framework**: React Native (Expo SDK 54)
-- **Navigation**: React Navigation
-- **State**: Zustand + React Query
-- **Auth**: Supabase
-- **Analytics**: PostHog
-- **Payments**: RevenueCat + Lemon Squeezy
-- **Push Notifications**: expo-notifications
-- **Styling**: React Native Unistyles 3.0
+This is **ShipNative**, a monorepo containing three interconnected git repositories that work together to provide a complete React Native starter kit with documentation and marketing.
 
-## Commands
-```bash
-yarn dev              # Start development server
-yarn app:ios          # Run iOS
-yarn app:android      # Run Android
-yarn test             # Run tests
-node apps/app/scripts/setup-env.js  # Generate .env
+### Repository Structure
+
+```
+PROJECT_shipnativeapp/
+│
+├── shipnativeapp/              # Main boilerplate repository
+│   ├── apps/app/               # React Native application (Expo)
+│   ├── vibe/                   # AI context files for vibecoding
+│   ├── *.md                    # Feature documentation
+│   └── AI_CONTEXT.md           # ⭐ SINGLE SOURCE OF TRUTH
+│
+├── mintlify_docs/              # Documentation site repository
+│   └── docs/                   # Mintlify documentation files (.mdx)
+│
+└── landing_page/               # Landing page repository
+    └── src/                    # Next.js landing page
 ```
 
-## Styling with Unistyles 3.0
+**Each directory is a separate git repository** - changes must be committed separately.
 
-**CRITICAL: Always use theme values from Unistyles**
+## 🎯 Project Philosophy: "Vibecoding"
 
-### Basic Usage
+**"Vibecoding"** = Build production-ready apps by describing what you want to AI, not by manually wiring boilerplate.
+
+This project is optimized for AI-assisted development:
+- Comprehensive context files (`vibe/` folder)
+- Clear patterns and conventions
+- Extensive documentation
+- Mock mode for development without API keys
+
+## ⚠️ SINGLE SOURCE OF TRUTH
+
+**CRITICAL**: All technology decisions, styling patterns, and code conventions are defined in `AI_CONTEXT.md` (in this directory). This file provides a summary - refer to `AI_CONTEXT.md` for complete details.
+
+## 🎨 Technology Stack
+
+**See `AI_CONTEXT.md` for complete details. Summary:**
+
+### Core Framework
+- **React Native** (Expo SDK 54)
+- **React Native Unistyles 3.0** - Styling system (NOT NativeWind/Tailwind)
+- **React Navigation** - Navigation (NOT Expo Router)
+- **TypeScript** (strict mode)
+
+### State & Data
+- **Zustand** - Global state management
+- **React Query** - Server state and data fetching
+- **React Hook Form + Zod** - Forms and validation
+
+### Backend Services
+- **Supabase** - Authentication & database
+- **RevenueCat** - iOS & Android subscriptions (also Web)
+- **PostHog** - Analytics & feature flags
+- **Sentry** - Error tracking
+
+### Platform Support
+- ✅ **iOS** - Fully supported
+- ✅ **Android** - Fully supported
+- ✅ **Web** - Fully supported via Expo Web
+
+**Web Support Details**:
+- React Native app: Run `cd apps/app && yarn web` or `yarn app:web` (from root)
+- Build: `cd apps/app && yarn bundle:web` or `yarn app:web:build` (from root)
+- All features work on web (auth, payments, analytics, etc.)
+- Unistyles 3.0 fully supports web
+
+**Important**: The React Native app uses **Unistyles 3.0** for styling, NOT NativeWind or Tailwind. The separate marketing page (`apps/web`) uses Tailwind CSS.
+
+## 🧠 AI Development Workflow
+
+### Step 1: Read Context Files
+
+Before writing any code, read:
+1. **`AI_CONTEXT.md`** - ⭐ SINGLE SOURCE OF TRUTH (this directory)
+2. `apps/app/vibe/CONTEXT.md` - App structure and features
+3. `apps/app/vibe/TECH_STACK.md` - Technology decisions
+4. `apps/app/vibe/STYLE_GUIDE.md` - Code patterns
+5. `vibe/SERVICES.md` - Service architecture
+6. `vibe/MOCK_SERVICES.md` - Mock mode guide
+
+### Step 2: Check Existing Code
+
+- Browse `apps/app/app/components/` for reusable components
+- Look at `apps/app/app/screens/` for screen patterns
+- Check `apps/app/app/stores/` for state management patterns
+- Review `apps/app/app/services/` for service patterns
+
+### Step 3: Implement Feature
+
+Follow established patterns (see `AI_CONTEXT.md` for details):
+- Use **Unistyles 3.0** with theme (NOT NativeWind/Tailwind)
+- Use **React Navigation** (NOT Expo Router)
+- Use Zustand for global state
+- Use React Query for data fetching
+- Support dark mode via semantic theme colors
+- Add accessibility labels
+- Handle errors gracefully
+- Use screen templates for auth/onboarding screens
+
+### Step 4: Update Documentation
+
+**Always update docs when adding features:**
+- Update `apps/app/vibe/CONTEXT.md` for major features
+- Update relevant feature docs (`SUPABASE.md`, `MONETIZATION.md`, etc.)
+- Update Mintlify docs in `mintlify_docs/docs/`
+- Update landing page if showcasing feature
+
+### Step 5: Commit in Each Repo
+
+```bash
+# Boilerplate changes
+cd shipnativeapp
+git add -A
+git commit -m "feat: Add [feature name]"
+
+# Documentation changes
+cd mintlify_docs
+git add -A
+git commit -m "docs: Update [feature] documentation"
+
+# Landing page changes
+cd ../landing_page
+git add -A
+git commit -m "docs: Add [feature] to landing page"
+```
+
+## 🎨 Code Style
+
+**See `AI_CONTEXT.md` for complete styling patterns. Summary:**
+
+### Styling: Unistyles 3.0 Only
+
 ```typescript
+// ✅ DO THIS - Unistyles with theme
 import { StyleSheet, useUnistyles } from 'react-native-unistyles'
 
 const { theme } = useUnistyles()
@@ -44,179 +154,116 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: theme.typography.sizes['2xl'],
     fontFamily: theme.typography.fonts.bold,
     color: theme.colors.foreground,
-  }
-}))
-```
-
-### Variants
-```typescript
-const styles = StyleSheet.create((theme) => ({
-  button: {
-    variants: {
-      variant: {
-        filled: { backgroundColor: theme.colors.primary },
-        outlined: { borderWidth: 1, borderColor: theme.colors.border },
-      },
-      size: {
-        sm: { height: 36 },
-        md: { height: 44 },
-        lg: { height: 56 },
-      },
-    },
   },
 }))
 
-styles.useVariants({ variant: 'filled', size: 'md' })
+// Usage
+<View style={styles.container}>
+  <Text style={styles.title}>Hello World</Text>
+</View>
+
+// ❌ DON'T DO THIS - NativeWind/Tailwind
+<View className="flex-1 bg-white">
+
+// ❌ DON'T DO THIS - Hardcoded values
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff', padding: 16 }
+})
 ```
 
-### Theme Values
+### Dark Mode
+
+Dark mode is automatic via Unistyles semantic theme colors:
 ```typescript
-// Colors (semantic)
-theme.colors.primary       // Primary action
-theme.colors.background    // Main background
-theme.colors.foreground    // Main text
-theme.colors.card          // Card backgrounds
-theme.colors.error         // Error states
-
-// Spacing (8px grid)
-theme.spacing.md           // 16px
-theme.spacing.lg           // 24px
-
-// Typography
-theme.typography.sizes.base       // 16px
-theme.typography.fonts.bold       // Bold font
-
-// Radius
-theme.radius.lg            // 16px
-
-// Shadows
-theme.shadows.md           // Medium elevation
-```
-
-**Complete theme**: `/app/theme/unistyles.ts`
-
-## Code Style
-
-- Functional components only
-- TypeScript strict mode
-- `StyleSheet.create()` with theme function
-- Always use theme values (never hardcode)
-- `SafeAreaView` from react-native-safe-area-context
-- `LinearGradient` for screen backgrounds
-
-### Screen Template
-```typescript
-import { View, ScrollView } from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { LinearGradient } from "expo-linear-gradient"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
-
-export const MyScreen = () => {
-  const { theme } = useUnistyles()
-  const insets = useSafeAreaInsets()
-
-  return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[
-          theme.colors.gradientStart,
-          theme.colors.gradientMiddle,
-          theme.colors.gradientEnd,
-        ]}
-        style={styles.gradient}
-      >
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingTop: insets.top + theme.spacing.lg },
-          ]}
-        >
-          {/* Content */}
-        </ScrollView>
-      </LinearGradient>
-    </View>
-  )
-}
-
+// ✅ DO THIS - Theme automatically handles dark mode
 const styles = StyleSheet.create((theme) => ({
-  container: { flex: 1 },
-  gradient: { flex: 1 },
-  scrollContent: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: 100,
+  container: {
+    backgroundColor: theme.colors.background, // Auto-switches
+  },
+  text: {
+    color: theme.colors.foreground, // Auto-switches
   },
 }))
 ```
 
-## Architecture
-- **Screens**: `apps/app/app/screens`
-- **Components**: `apps/app/app/components`
-- **Services**: `apps/app/app/services`
-- **Stores**: `apps/app/app/stores` (Zustand)
-- **Navigation**: `apps/app/app/navigators`
-- **Theme**: `apps/app/app/theme/unistyles.ts`
+## 🔄 CRITICAL: Repository Synchronization
 
-## Core Components
+**When you modify the boilerplate (`shipnativeapp/`), you MUST update documentation and landing page to stay in sync.**
 
-All components use Unistyles with theme support:
+### Sync Checklist
 
-- **Text** - Typography with presets (heading, subheading, caption)
-- **Button** - Variants: filled, outlined, ghost, secondary, danger
-- **TextField** - Input with label, helper, status states
-- **Card** - Content container with presets
-- **Avatar** - User images with fallback initials
-- **Badge** - Status indicators and labels
-- **Divider** - Content separator
-- **Spinner** - Loading indicators
-- **IconButton** - Icon-only buttons
-- **Container** - Screen wrapper with safe areas
+**When adding/modifying features:**
 
-## AI Guidelines
+```
+[ ] Implement feature in apps/app/
+[ ] Update apps/app/vibe/CONTEXT.md
+[ ] Update README.md (if features list changes)
+[ ] Update relevant *.md file (SUPABASE.md, MONETIZATION.md, etc.)
+[ ] Update mintlify_docs/docs/features/[feature].mdx
+[ ] Update mintlify_docs/docs/index.mdx (if adding to features)
+[ ] Update landing_page/src/components/landing/BentoGrid.tsx (if showcasing)
+[ ] Update landing_page/src/app/comparison/page.tsx (if comparison changes)
+[ ] Update landing_page/CHANGELOG.md
+[ ] Update landing_page/ROADMAP.md (if applicable)
+[ ] Commit changes in each repository separately
+```
 
-### Before Writing Code
-1. Check `/app/theme/unistyles.ts` for theme values
-2. Use theme values - never hardcode
-3. Use existing screens as templates
-4. Use existing components from `/components`
+## 🚨 Common Mistakes
 
-### Adding a Screen
-1. Use screen template above
-2. Import theme via `useUnistyles()`
-3. Use `StyleSheet.create((theme) => ...)`
-4. Add to AppNavigator.tsx and navigationTypes.ts
+1. ❌ **Using NativeWind/Tailwind** - Use Unistyles 3.0 instead
+2. ❌ **Using Expo Router** - Use React Navigation instead
+3. ❌ **Hardcoding colors/spacing** - Use theme values
+4. ❌ **Adding feature but not updating docs** - Docs become outdated
+5. ❌ **Forgetting to commit in all repos** - Repos get out of sync
 
-### Adding a Component
-1. Define props interface with variants
-2. Use `StyleSheet.create((theme) => ...)`
-3. Use `variants` for component states
-4. Call `styles.useVariants()` in component
-5. Export from `/components/index.ts`
+## ✅ Quality Checklist
 
-### Design Rules
-- Clean, modern UI
-- Gradient backgrounds for screens
-- Rounded cards (theme.radius.xl)
-- Primary color buttons (theme.colors.primary)
-- Consistent spacing from theme
-- Dark mode support via semantic colors
+**Before committing boilerplate changes:**
+- [ ] Code works and is tested
+- [ ] Uses Unistyles 3.0 with theme (not NativeWind)
+- [ ] Uses React Navigation (not Expo Router)
+- [ ] Supports dark mode via semantic theme colors
+- [ ] Has accessibility labels
+- [ ] Handles errors gracefully
+- [ ] Updated `apps/app/vibe/CONTEXT.md` if major feature
+- [ ] Updated relevant `*.md` files
+- [ ] Updated Mintlify docs
+- [ ] Updated landing page if showcasing
+- [ ] Updated CHANGELOG.md
 
-## Documentation Updates
+## 🧪 Mock Services
 
-**When modifying features, update:**
-- `README.md` - Features list
-- `vibe/CONTEXT.md` - Major features
-- `vibe/TECH_STACK.md` - Technology changes
-- `vibe/STYLE_GUIDE.md` - New code patterns
+Mock services simulate the entire backend when API keys are missing. This enables **frontend-first development**.
 
-## Common Mistakes
+### What's Mocked
+- **Supabase**: Auth, Database, Storage, Realtime, OAuth
+- **RevenueCat**: Purchases, subscriptions, entitlements
+- **PostHog**: Events, screens, feature flags
+- **Sentry**: Error tracking, breadcrumbs
 
-❌ `color: "#000000"` → ✅ `color: theme.colors.foreground`
-❌ `marginTop: 24` → ✅ `marginTop: theme.spacing.lg`
-❌ `style={{ flex: 1, padding: 16 }}` → ✅ `style={styles.container}`
-❌ `StyleSheet.create({ ... })` → ✅ `StyleSheet.create((theme) => ({ ... }))`
+**See `vibe/MOCK_SERVICES.md` for complete details.**
 
-## Resources
-- Theme: `apps/app/app/theme/unistyles.ts`
-- Components: `apps/app/app/components/`
-- Screens: `apps/app/app/screens/`
-- Unistyles Docs: https://unistyl.es
+## 📖 Key Files Reference
+
+**Context Files** (read first):
+- **`AI_CONTEXT.md`** - ⭐ SINGLE SOURCE OF TRUTH (this directory)
+- `apps/app/vibe/CONTEXT.md` - App features & architecture
+- `apps/app/vibe/TECH_STACK.md` - Technology decisions
+- `apps/app/vibe/STYLE_GUIDE.md` - Code patterns
+
+**Documentation**:
+- `README.md` - Main overview
+- `mintlify_docs/docs/` - User-facing docs
+- `landing_page/CHANGELOG.md` - Version history
+- `landing_page/ROADMAP.md` - Future plans
+
+## 💡 Remember
+
+- **Single source of truth** - Always refer to `AI_CONTEXT.md` first
+- **Three repos, one project** - Keep documentation synced
+- **Vibecoding** - Make it easy for AI to understand and extend
+- **Documentation is part of the product** - Update it with code
+- **Mock services enable frontend-first** - Build without API keys
+- **Landing page must be accurate** - Reflects current capabilities
+
+When in doubt, ask: "If I add this feature, what docs need updating?" Then check `AI_CONTEXT.md` for the definitive answer.

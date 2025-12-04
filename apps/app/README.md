@@ -86,7 +86,7 @@ Follow the Maestro setup instructions in the documentation.
 
 - **Framework**: React Native (Expo SDK 54)
 - **Styling**: Unistyles 3.0
-- **Navigation**: Expo Router
+- **Navigation**: React Navigation
 - **State**: Zustand + React Query
 - **Auth**: Supabase
 - **Payments**: RevenueCat

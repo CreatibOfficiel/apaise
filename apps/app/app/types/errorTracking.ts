@@ -54,6 +54,21 @@ export interface ErrorTrackingConfig {
   enableInDevelopment?: boolean
   tracesSampleRate?: number
   beforeSend?: (event: any) => any | null
+
+  // Performance monitoring (Sentry best practices)
+  enableAutoPerformanceTracing?: boolean
+  enableAppStartTracking?: boolean
+  enableNativeFramesTracking?: boolean
+  enableStallTracking?: boolean
+
+  // Error attachments
+  attachScreenshot?: boolean
+  attachViewHierarchy?: boolean
+
+  // Native configuration
+  enableNative?: boolean
+  enableNativeCrashHandling?: boolean
+  enableNdk?: boolean
 }
 
 export interface ErrorTrackingService {

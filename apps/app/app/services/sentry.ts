@@ -77,13 +77,28 @@ class SentryService implements ErrorTrackingService {
         enableInExpoDevelopment: config.enableInDevelopment ?? false,
         tracesSampleRate: config.tracesSampleRate ?? 1.0,
         beforeSend: config.beforeSend,
+
+        // Performance monitoring (per Sentry best practices)
+        enableAutoPerformanceTracing: config.enableAutoPerformanceTracing ?? true,
+        enableAppStartTracking: config.enableAppStartTracking ?? true,
+        enableNativeFramesTracking: config.enableNativeFramesTracking ?? true,
+        enableStallTracking: config.enableStallTracking ?? true,
+
+        // Error attachments
+        attachScreenshot: config.attachScreenshot ?? true,
+        attachViewHierarchy: config.attachViewHierarchy ?? false, // Can be expensive
+
+        // Native configuration
+        enableNative: config.enableNative ?? true,
+        enableNativeCrashHandling: config.enableNativeCrashHandling ?? true,
+        enableNdk: config.enableNdk ?? true,
       })
 
       this.Sentry = SentryRN
       this.initialized = true
 
       if (__DEV__) {
-        console.log("🐛 [Sentry] Initialized for mobile")
+        console.log("🐛 [Sentry] Initialized for mobile with performance monitoring")
       }
     } catch (error) {
       console.error("Failed to initialize Sentry:", error)

@@ -24,9 +24,26 @@ let PostHogJS: any = null // Web
 // Load appropriate SDK based on platform
 if (Platform.OS === "web") {
   try {
-    PostHogJS = require("posthog-js")
+    // posthog-js can be imported in different ways depending on the build
+    const posthogModule = require("posthog-js")
+    // Try different export patterns
+    if (posthogModule.default) {
+      // ES module default export
+      PostHogJS = posthogModule.default
+    } else if (typeof posthogModule.init === "function") {
+      // CommonJS export with init method
+      PostHogJS = posthogModule
+    } else if (posthogModule.posthog) {
+      // Sometimes wrapped in a posthog property
+      PostHogJS = posthogModule.posthog
+    } else {
+      // Fallback: use the module itself
+      PostHogJS = posthogModule
+    }
   } catch (e) {
-    console.warn("Failed to load posthog-js", e)
+    if (__DEV__) {
+      console.warn("Failed to load posthog-js. Make sure posthog-js is installed:", e)
+    }
   }
 } else {
   try {
@@ -62,18 +79,46 @@ class PostHogService implements AnalyticsService {
     try {
       if (Platform.OS === "web" && PostHogJS) {
         // Initialize PostHog for web
-        PostHogJS.init(key, {
-          api_host: apiHost,
-          autocapture: config?.captureClicks ?? true,
-          capture_pageview: config?.captureScreens ?? true,
-          loaded: (posthog: any) => {
-            this.client = posthog
+        // Check if init method exists
+        if (typeof PostHogJS.init === "function") {
+          // posthog-js init method - returns void, client is accessed via PostHogJS
+          PostHogJS.init(key, {
+            api_host: apiHost,
+            autocapture: config?.captureClicks ?? true,
+            capture_pageview: config?.captureScreens ?? true,
+            loaded: (posthog: any) => {
+              this.client = posthog
+              this.initialized = true
+              if (__DEV__) {
+                console.log("📊 [PostHog] Initialized for web")
+              }
+            },
+          })
+          // Set client to PostHogJS instance if callback hasn't fired yet
+          // posthog-js exposes itself as the client after init
+          if (!this.client && PostHogJS) {
+            this.client = PostHogJS
             this.initialized = true
             if (__DEV__) {
               console.log("📊 [PostHog] Initialized for web")
             }
-          },
-        })
+          }
+        } else {
+          // PostHogJS loaded but init method not found
+          // This might happen if the module structure is different
+          console.error(
+            "PostHogJS.init is not a function. PostHogJS structure:",
+            Object.keys(PostHogJS || {}),
+          )
+          // Try to use PostHogJS directly as the client if it has capture method
+          if (PostHogJS && typeof PostHogJS.capture === "function") {
+            this.client = PostHogJS
+            this.initialized = true
+            if (__DEV__) {
+              console.warn("📊 [PostHog] Using PostHogJS directly (init method not found)")
+            }
+          }
+        }
       } else if (PostHogRN) {
         // Initialize PostHog for React Native
         this.client = new PostHogRN(key, { host: apiHost })

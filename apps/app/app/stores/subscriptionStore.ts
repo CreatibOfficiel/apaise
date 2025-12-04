@@ -111,8 +111,17 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           const service = get().getActiveService()
           const packages = await service.getPackages()
           set({ packages })
-        } catch (error) {
-          console.error("Failed to fetch packages:", error)
+        } catch (error: any) {
+          // getPackages already handles "no products" errors gracefully
+          // Only log unexpected errors here
+          if (
+            !error?.message?.includes("no products registered") &&
+            !error?.message?.includes("offerings") &&
+            error?.code !== "23" &&
+            error?.code !== "1"
+          ) {
+            console.error("Failed to fetch packages:", error)
+          }
         }
       },
 
@@ -198,19 +207,36 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
             get().checkProStatus()
           } else {
-            // Logout from RevenueCat
-            const result = await service.logOut()
+            // When no user, just get subscription info for anonymous user
+            // Don't call logOut() as it fails if user is already anonymous
+            try {
+              const subscriptionInfo = await service.getSubscriptionInfo()
 
-            if (platform === "revenuecat-web") {
-              set({
-                webSubscriptionInfo: result.subscriptionInfo,
-                isPro: false,
-              })
-            } else {
-              set({
-                customerInfo: result.subscriptionInfo as any,
-                isPro: false,
-              })
+              if (platform === "revenuecat-web") {
+                set({
+                  webSubscriptionInfo: subscriptionInfo,
+                  isPro: false,
+                })
+              } else {
+                set({
+                  customerInfo: subscriptionInfo as any,
+                  isPro: false,
+                })
+              }
+            } catch (error) {
+              // If getting info fails, just set empty state
+              // This can happen if RevenueCat isn't fully initialized yet
+              if (platform === "revenuecat-web") {
+                set({
+                  webSubscriptionInfo: null,
+                  isPro: false,
+                })
+              } else {
+                set({
+                  customerInfo: null,
+                  isPro: false,
+                })
+              }
             }
           }
 

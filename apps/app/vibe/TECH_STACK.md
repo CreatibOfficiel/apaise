@@ -5,7 +5,7 @@
 ### React Native + Expo
 - **Why**: Best developer experience for cross-platform mobile apps
 - **Version**: Expo SDK 54, React Native 0.81
-- **Platforms**: iOS, Android (Web coming soon)
+- **Platforms**: iOS, Android, Web (fully supported via Expo Web)
 
 ## State Management
 

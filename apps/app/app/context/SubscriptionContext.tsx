@@ -28,9 +28,17 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
         setSubscriptionInfo(info)
         setIsPro(info.isActive)
       } else {
-        const { subscriptionInfo: info } = await revenueCat.logOut()
-        setSubscriptionInfo(info)
-        setIsPro(false)
+        // When no user, get subscription info instead of calling logOut
+        // logOut() fails if user is already anonymous
+        try {
+          const info = await revenueCat.getSubscriptionInfo()
+          setSubscriptionInfo(info)
+          setIsPro(false)
+        } catch (error) {
+          // If getting info fails, just set empty state
+          setSubscriptionInfo(null)
+          setIsPro(false)
+        }
       }
     }
 

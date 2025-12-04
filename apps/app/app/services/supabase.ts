@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 import "react-native-url-polyfill/auto"
 
 import { createMockSupabaseClient } from "./mocks/supabase"
+import { webSecureStorage } from "../utils/webStorageEncryption"
 
 const secureStoreOptions: SecureStore.SecureStoreOptions =
   Platform.OS === "ios"
@@ -13,15 +14,64 @@ const secureStoreOptions: SecureStore.SecureStoreOptions =
       }
     : { keychainService: "shipnativeapp.supabase" }
 
-const ExpoSecureStoreAdapter = {
-  getItem: (key: string) => {
-    return SecureStore.getItemAsync(key, secureStoreOptions)
+// Platform-aware storage adapter for Supabase
+// Uses SecureStore on mobile, webSecureStorage on web
+const PlatformStorageAdapter = {
+  getItem: async (key: string): Promise<string | null> => {
+    if (Platform.OS === "web") {
+      // Use encrypted storage for sensitive auth keys on web
+      if (key.includes("auth") || key.includes("token") || key.includes("session")) {
+        return webSecureStorage.getItem(key)
+      }
+      // Use regular localStorage for non-sensitive data
+      return typeof localStorage !== "undefined" ? localStorage.getItem(key) : null
+    }
+    // Use SecureStore on mobile platforms
+    try {
+      return await SecureStore.getItemAsync(key, secureStoreOptions)
+    } catch {
+      return null
+    }
   },
-  setItem: (key: string, value: string) => {
-    SecureStore.setItemAsync(key, value, secureStoreOptions)
+  setItem: async (key: string, value: string): Promise<void> => {
+    if (Platform.OS === "web") {
+      // Use encrypted storage for sensitive auth keys on web
+      if (key.includes("auth") || key.includes("token") || key.includes("session")) {
+        webSecureStorage.setItem(key, value)
+        return
+      }
+      // Use regular localStorage for non-sensitive data
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem(key, value)
+      }
+      return
+    }
+    // Use SecureStore on mobile platforms
+    try {
+      await SecureStore.setItemAsync(key, value, secureStoreOptions)
+    } catch {
+      // Ignore errors
+    }
   },
-  removeItem: (key: string) => {
-    SecureStore.deleteItemAsync(key, secureStoreOptions)
+  removeItem: async (key: string): Promise<void> => {
+    if (Platform.OS === "web") {
+      // Remove from encrypted storage if it was stored there
+      if (key.includes("auth") || key.includes("token") || key.includes("session")) {
+        webSecureStorage.removeItem(key)
+        return
+      }
+      // Remove from regular localStorage
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem(key)
+      }
+      return
+    }
+    // Use SecureStore on mobile platforms
+    try {
+      await SecureStore.deleteItemAsync(key, secureStoreOptions)
+    } catch {
+      // Ignore errors
+    }
   },
 }
 
@@ -36,10 +86,11 @@ export const supabase = useMock
   ? createMockSupabaseClient()
   : createClient(supabaseUrl, supabaseKey, {
       auth: {
-        storage: ExpoSecureStoreAdapter as any,
+        storage: PlatformStorageAdapter as any,
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: false,
+        detectSessionInUrl: Platform.OS === "web", // Enable for web, disable for mobile
+        flowType: "pkce", // PKCE flow for enhanced OAuth security (prevents authorization code interception)
       },
     })
 

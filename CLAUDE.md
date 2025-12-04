@@ -1,17 +1,22 @@
 # Project Instructions
 
+> **⚠️ IMPORTANT**: This file references `AI_CONTEXT.md` (in this same directory) as the **single source of truth** for all technology decisions, patterns, and guidelines. When in doubt, refer to `AI_CONTEXT.md` first.
+
 ## Overview
 React Native starter kit with Expo, Supabase Auth, PostHog Analytics, RevenueCat payments, and React Native Unistyles 3.0 styling.
 
 **Attribution**: Built with the Shipnative starter kit.
 
 ## Tech Stack
+
+**See `AI_CONTEXT.md` for complete details. Summary:**
+
 - **Framework**: React Native (Expo SDK 54)
 - **Navigation**: React Navigation
 - **State**: Zustand + React Query
 - **Auth**: Supabase
 - **Analytics**: PostHog
-- **Payments**: RevenueCat + Lemon Squeezy
+- **Payments**: RevenueCat (iOS, Android, Web)
 - **Push Notifications**: expo-notifications
 - **Styling**: React Native Unistyles 3.0
 

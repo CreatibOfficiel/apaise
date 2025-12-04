@@ -19,10 +19,14 @@ module.exports = ({ config }: ConfigContext): Partial<ExpoConfig> => {
 
   return {
     ...config,
+    // Ensure icon is preserved from app.json
+    icon: config.icon || "./assets/images/app-icon-all.png",
     ios: {
       ...config.ios,
       // Ensure bundleIdentifier is preserved
       bundleIdentifier: config.ios?.bundleIdentifier || "com.reactnativestarterkit",
+      // Ensure iOS icon is preserved from app.json
+      icon: config.ios?.icon || "./assets/images/app-icon-ios.png",
       // Status bar appearance configuration for react-native-screens
       // This must be set to YES to allow view controllers to control status bar appearance
       infoPlist: {
