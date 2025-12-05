@@ -2,6 +2,7 @@ import { useState } from "react"
 import { View, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { Divider } from "@/components/Divider"
@@ -10,6 +11,8 @@ import { Spinner } from "@/components/Spinner"
 import { Text } from "@/components/Text"
 import { TextField } from "@/components/TextField"
 import { features } from "@/config/features"
+import { translate } from "@/i18n"
+import { AppStackParamList } from "@/navigators/navigationTypes"
 import { useAuth } from "@/hooks/useAuth"
 import { useAuthStore } from "@/stores/auth"
 import { formatAuthError } from "@/utils/formatAuthError"
@@ -21,7 +24,7 @@ import { validateEmail, validatePassword } from "@/utils/validation"
 
 export const LoginScreen = () => {
   const { theme } = useUnistyles()
-  const navigation = useNavigation()
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>()
   const signIn = useAuthStore((state) => state.signIn)
   const { signInWithGoogle, signInWithApple, loading: oauthLoading } = useAuth()
 
@@ -72,10 +75,10 @@ export const LoginScreen = () => {
       setError("")
       const { error } = await signInWithApple()
       if (error) {
-        setError(error.message || "Failed to sign in with Apple")
+        setError(error.message || translate("loginScreen:appleSignInFailed"))
       }
     } catch {
-      setError("Failed to sign in with Apple")
+      setError(translate("loginScreen:appleSignInFailed"))
     }
   }
 
@@ -84,10 +87,10 @@ export const LoginScreen = () => {
       setError("")
       const { error } = await signInWithGoogle()
       if (error) {
-        setError(error.message || "Failed to sign in with Google")
+        setError(error.message || translate("loginScreen:googleSignInFailed"))
       }
     } catch {
-      setError("Failed to sign in with Google")
+      setError(translate("loginScreen:googleSignInFailed"))
     }
   }
 
@@ -97,13 +100,13 @@ export const LoginScreen = () => {
       return
     }
 
-    navigation.navigate("Welcome" as never)
+    navigation.navigate("Welcome")
   }
 
   return (
     <AuthScreenLayout
-      title="Welcome Back"
-      subtitle="Sign in to continue"
+      titleTx="loginScreen:title"
+      subtitleTx="loginScreen:subtitle"
       showCloseButton
       onClose={handleClose}
       scrollable={false}
@@ -111,11 +114,11 @@ export const LoginScreen = () => {
       {/* Email Input */}
       <View style={styles.inputContainer}>
         <TextField
-          label="Email"
+          labelTx="loginScreen:emailLabel"
           value={email}
           onChangeText={setEmail}
           onBlur={() => setEmailTouched(true)}
-          placeholder="Enter your email"
+          placeholderTx="loginScreen:emailPlaceholder"
           autoCapitalize="none"
           autoComplete="email"
           autoCorrect={false}
@@ -129,11 +132,11 @@ export const LoginScreen = () => {
       {/* Password Input */}
       <View style={styles.inputContainer}>
         <TextField
-          label="Password"
+          labelTx="loginScreen:passwordLabel"
           value={password}
           onChangeText={setPassword}
           onBlur={() => setPasswordTouched(true)}
-          placeholder="Enter your password"
+          placeholderTx="loginScreen:passwordPlaceholder"
           autoCapitalize="none"
           autoComplete="password"
           autoCorrect={false}
@@ -166,7 +169,7 @@ export const LoginScreen = () => {
         {loading ? (
           <Spinner size="sm" color="white" />
         ) : (
-          <Text weight="semiBold" style={styles.primaryButtonText}>
+          <Text weight="semiBold" style={styles.primaryButtonText} tx="loginScreen:signIn">
             Sign In
           </Text>
         )}
@@ -174,7 +177,7 @@ export const LoginScreen = () => {
 
       {/* Forgot Password Link */}
       <TouchableOpacity
-        onPress={() => navigation.navigate("ForgotPassword" as never)}
+        onPress={() => navigation.navigate("ForgotPassword")}
         style={styles.forgotButton}
         activeOpacity={0.6}
       >
@@ -186,7 +189,7 @@ export const LoginScreen = () => {
       {/* Social Login Section */}
       {(features.enableGoogleAuth || features.enableAppleAuth) && (
         <>
-          <Divider label="or continue with" style={styles.divider} />
+          <Divider label={translate("loginScreen:orContinueWith")} style={styles.divider} />
 
           <View style={styles.socialRow}>
             {features.enableAppleAuth && (
@@ -197,7 +200,7 @@ export const LoginScreen = () => {
                 disabled={oauthLoading}
               >
                 <Ionicons name="logo-apple" size={24} color={theme.colors.foreground} />
-                <Text weight="semiBold">Apple</Text>
+                <Text weight="semiBold" tx="loginScreen:apple">Apple</Text>
               </TouchableOpacity>
             )}
 
@@ -209,7 +212,7 @@ export const LoginScreen = () => {
                 disabled={oauthLoading}
               >
                 <Ionicons name="logo-google" size={24} color={theme.colors.foreground} />
-                <Text weight="semiBold">Google</Text>
+                <Text weight="semiBold" tx="loginScreen:google">Google</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -218,12 +221,12 @@ export const LoginScreen = () => {
 
       {/* Sign Up Link */}
       <TouchableOpacity
-        onPress={() => navigation.navigate("Register" as never)}
+        onPress={() => navigation.navigate("Register")}
         style={styles.linkButton}
         activeOpacity={0.6}
       >
         <Text color="secondary">
-          Don&apos;t have an account? <Text weight="semiBold">Sign Up</Text>
+          <Text tx="loginScreen:noAccount" /> <Text weight="semiBold" tx="loginScreen:signUp" />
         </Text>
       </TouchableOpacity>
     </AuthScreenLayout>

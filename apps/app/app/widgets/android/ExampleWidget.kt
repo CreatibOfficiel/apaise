@@ -181,3 +181,4 @@ sealed class Result<out T> {
     data class Error(val error: String) : Result<Nothing>()
 }
 
+

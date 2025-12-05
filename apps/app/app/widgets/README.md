@@ -84,3 +84,4 @@ See `SECURITY.md` for security best practices, including:
 - **Data not loading**: Verify Supabase config and RLS policies
 - **Build errors**: Check App Group identifier (iOS) or package name (Android)
 
+

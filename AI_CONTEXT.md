@@ -1,9 +1,9 @@
 # AI Context - Single Source of Truth
 
-> **⚠️ IMPORTANT**: This is the SINGLE SOURCE OF TRUTH for all AI assistants working on this project. All AI instruction files (CLAUDE.md, GEMINI.md, .cursorrules) should reference this file.
+> **⚠️ IMPORTANT**: This is the SINGLE SOURCE OF TRUTH for all AI assistants working on this project. All AI instruction files (CLAUDE.md, GEMINI.md, AGENTS.md, .cursorrules) reference this file.
 
-**Last Updated**: 2025-01-XX  
-**Version**: 3.0.0 (Modular Structure)
+**Last Updated**: 2025-12-05
+**Version**: 3.1.0
 
 ---
 
@@ -11,12 +11,11 @@
 
 This file contains **critical information only**. For detailed guides, see:
 
-- **Styling Patterns**: `vibe/STYLING.md` - Unistyles patterns, theme values, examples
-- **Architecture Patterns**: `vibe/ARCHITECTURE.md` - Component structure, state management, screen templates
-- **Development Workflow**: `vibe/DEVELOPMENT_WORKFLOW.md` - Workflow, mock mode, common mistakes
-- **App Context**: `apps/app/vibe/CONTEXT.md` - App features & architecture
-- **Tech Stack**: `apps/app/vibe/TECH_STACK.md` - Technology decisions
-- **Style Guide**: `apps/app/vibe/STYLE_GUIDE.md` - Code patterns
+- **Styling Patterns**: `apps/app/vibe/STYLE_GUIDE.md` - Unistyles patterns, theme values
+- **Architecture**: `apps/app/vibe/ARCHITECTURE.md` - Component structure, logic flow
+- **App Features**: `apps/app/vibe/CONTEXT.md` - App functional requirements
+- **Tech Stack Details**: `apps/app/vibe/TECH_STACK.md` - Library specifics
+- **Development Workflow**: `vibe/DEVELOPMENT_WORKFLOW.md` - Workflow, mock mode
 - **Services**: `vibe/SERVICES.md` - Service architecture
 - **Mock Services**: `vibe/MOCK_SERVICES.md` - Mock mode guide
 
@@ -135,7 +134,7 @@ const styles = StyleSheet.create((theme) => ({
 }))
 ```
 
-**For detailed styling patterns, theme values, and examples**: See `vibe/STYLING.md`
+**For detailed styling patterns, theme values, and examples**: See `apps/app/vibe/STYLE_GUIDE.md`
 
 ---
 
@@ -148,7 +147,7 @@ const styles = StyleSheet.create((theme) => ({
 - Server state → React Query
 - Local state → useState
 
-**For detailed architecture patterns and screen templates**: See `vibe/ARCHITECTURE.md`
+**For detailed architecture patterns**: See `apps/app/vibe/ARCHITECTURE.md`
 
 ---
 
@@ -165,17 +164,17 @@ const styles = StyleSheet.create((theme) => ({
 ## 📚 Key Files Reference
 
 ### Context Files (Read First)
-- `apps/app/vibe/CONTEXT.md` - App features & architecture
-- `apps/app/vibe/TECH_STACK.md` - Technology decisions
+- `apps/app/vibe/CONTEXT.md` - App features (screens, flows)
+- `apps/app/vibe/TECH_STACK.md` - Technology specific decisions
 - `apps/app/vibe/STYLE_GUIDE.md` - Code patterns
 - `apps/app/vibe/SCREEN_TEMPLATES.md` - Screen layout templates
 - `vibe/SERVICES.md` - Service architecture
 - `vibe/MOCK_SERVICES.md` - Mock mode guide
 
 ### Detailed Guides (Reference as Needed)
-- `vibe/STYLING.md` - Detailed styling patterns and theme values
-- `vibe/ARCHITECTURE.md` - Component structure and state management patterns
-- `vibe/DEVELOPMENT_WORKFLOW.md` - Development workflow and common mistakes
+- `apps/app/vibe/STYLE_GUIDE.md` - Detailed styling patterns
+- `apps/app/vibe/ARCHITECTURE.md` - Component structure and flow
+- `vibe/DEVELOPMENT_WORKFLOW.md` - Development workflow
 
 ### Documentation
 - `README.md` - Main overview
@@ -193,124 +192,47 @@ const styles = StyleSheet.create((theme) => ({
 
 **ONLY these .md files are allowed in the root directory (`shipnativeapp/`):**
 
-| File | Purpose | When to Update |
-|------|---------|----------------|
-| `README.md` | Main overview, quick start, features list | Feature additions, setup changes |
-| `CHANGELOG.md` | Version history and user-facing changes | Every release, major changes |
-| `ROADMAP.md` | Future features and plans | When roadmap items change |
-| `LICENSE.md` | License information | Only if license changes |
-| `SUPABASE.md` | Supabase/auth feature guide | Auth/database changes |
-| `MONETIZATION.md` | Payment/subscription guide | Payment changes |
-| `ANALYTICS.md` | Analytics guide | Analytics changes |
-| `NOTIFICATIONS.md` | Push notifications guide | Notification changes |
-| `DEPLOYMENT.md` | Deployment guide | Deployment changes |
-| `TROUBLESHOOTING.md` | Common issues and solutions | New issues discovered |
-| `DESIGN_SYSTEM.md` | Design tokens and patterns | Design system changes |
-| `BACKEND.md` | Backend setup and schemas | Backend changes |
-| `AI_CONTEXT.md` | AI instruction file (single source of truth) | Tech stack/patterns change |
-| `CLAUDE.md` | Claude-specific AI instructions | AI workflow changes |
-| `GEMINI.md` | Gemini-specific AI instructions | AI workflow changes |
-| `AGENTS.md` | Agent guidelines | Agent workflow changes |
-| `LANDING_PAGE_CONTENT.md` | Landing page content reference | Landing page content changes |
+| File | Purpose |
+|------|---------|
+| `README.md` | Main overview, quick start, features list |
+| `CHANGELOG.md` | Version history and user-facing changes |
+| `ROADMAP.md` | Future features and plans |
+| `LICENSE.md` | License information |
+| `SUPABASE.md`, `MONETIZATION.md`, etc. | Core feature guides |
+| `AI_CONTEXT.md` | AI instruction file (single source of truth) |
+| `CLAUDE.md`, `GEMINI.md`, `AGENTS.md` | Agent instructions (pointer to AI_CONTEXT) |
+| `LANDING_PAGE_CONTENT.md` | Landing page content reference |
 
 ### ❌ DO NOT Create Random Files in Root
 
-**CRITICAL**: Do NOT create any other .md files in the root directory unless explicitly requested.
-
-- ❌ Do NOT create `SUMMARY.md`, `ANALYSIS.md`, `REVIEW.md`, `CHANGES.md`
-- ❌ Do NOT create `IMPLEMENTATION_NOTES.md`, `CODE_REVIEW.md`, `PROGRESS.md`
-- ❌ Do NOT create any temporary or summary documentation files
-- ❌ Do NOT create feature documentation in root (use `docs/` folder instead)
+**CRITICAL**: Do NOT create any other .md files in the root directory.
+Feature docs go in `docs/` folder (e.g. `docs/OFFLINE.md`).
 
 ### 📂 Documentation Location System
 
 **Where to document different types of changes:**
 
-#### 1. Feature Documentation → `docs/` folder
-
-**New features get documented in `docs/` folder, NOT root:**
-
-| Feature Type | Documentation Location |
-|--------------|----------------------|
-| Authentication | `docs/SUPABASE.md` (already exists) |
-| Payments | `docs/MONETIZATION.md` (already exists) |
-| Analytics | `docs/ANALYTICS.md` (already exists) |
-| Notifications | `docs/NOTIFICATIONS.md` (already exists) |
-| Deployment | `docs/DEPLOYMENT.md` (already exists) |
-| **New major feature** | Create `docs/[FEATURE_NAME].md` (e.g., `docs/OFFLINE.md`) |
-| Architecture decisions | `docs/ADR/[number]-[name].md` (Architecture Decision Records) |
-
-#### 2. AI Context Documentation → `vibe/` folders
-
-| Context Type | Location |
-|--------------|----------|
-| App features & architecture | `apps/app/vibe/CONTEXT.md` |
-| Technology decisions | `apps/app/vibe/TECH_STACK.md` |
-| Code patterns | `apps/app/vibe/STYLE_GUIDE.md` |
-| Screen templates | `apps/app/vibe/SCREEN_TEMPLATES.md` |
-| App architecture | `apps/app/vibe/ARCHITECTURE.md` |
-| Service architecture | `vibe/SERVICES.md` |
-| Mock services | `vibe/MOCK_SERVICES.md` |
-
-#### 3. User-Facing Documentation → `mintlify_docs/docs/`
-
-| Documentation Type | Location |
-|-------------------|----------|
-| Feature guides | `mintlify_docs/docs/core-features/[feature].mdx` |
-| Getting started | `mintlify_docs/docs/getting-started/*.mdx` |
-| Development guides | `mintlify_docs/docs/development/*.mdx` |
-| Architecture docs | `mintlify_docs/docs/architecture/*.mdx` |
-| Troubleshooting | `mintlify_docs/docs/troubleshooting.mdx` |
-
-### 📋 Documentation Decision Tree
-
-**When adding/modifying features, follow this system:**
-
-```
-New Feature Added?
-├─ Is it a major new feature?
-│  ├─ YES → Create `docs/[FEATURE_NAME].md` (e.g., `docs/OFFLINE.md`)
-│  └─ NO → Update existing feature doc in `docs/` folder
-│
-├─ Does it change app architecture?
-│  └─ YES → Update `apps/app/vibe/CONTEXT.md`
-│
-├─ Does it change services?
-│  └─ YES → Update `vibe/SERVICES.md`
-│
-├─ Does it change tech stack?
-│  └─ YES → Update `apps/app/vibe/TECH_STACK.md`
-│
-├─ Does it change code patterns?
-│  └─ YES → Update `apps/app/vibe/STYLE_GUIDE.md`
-│
-├─ Should users know about it?
-│  └─ YES → Update `mintlify_docs/docs/core-features/[feature].mdx`
-│
-└─ Should it be showcased?
-   └─ YES → Update `landing_page/src/components/landing/BentoGrid.tsx`
-```
+| Change Type | Location |
+|-------------|----------|
+| **New major feature** | Create `docs/[FEATURE_NAME].md` (NOT root) |
+| **Feature changes** | Update existing `docs/[FEATURE].md` or root feature doc |
+| **App architecture** | Update `apps/app/vibe/CONTEXT.md` |
+| **Service changes** | Update `vibe/SERVICES.md` |
+| **Tech stack** | Update `apps/app/vibe/TECH_STACK.md` |
+| **Code patterns** | Update `apps/app/vibe/STYLE_GUIDE.md` |
+| **User-facing docs** | Update `mintlify_docs/docs/core-features/[feature].mdx` |
 
 ### ✅ Documentation Update Rules
 
-1. **New major feature** → Create `docs/[FEATURE_NAME].md` (NOT in root)
+1. **New major feature** → Create `docs/[FEATURE_NAME].md`
 2. **Feature changes** → Update existing `docs/[FEATURE].md` file
-3. **App changes** → Update `apps/app/vibe/CONTEXT.md`
+3. **App Structure** → Update `apps/app/vibe/CONTEXT.md`
 4. **Service changes** → Update `vibe/SERVICES.md`
 5. **Tech changes** → Update `apps/app/vibe/TECH_STACK.md`
 6. **Pattern changes** → Update `apps/app/vibe/STYLE_GUIDE.md`
 7. **User-facing changes** → Update `mintlify_docs/docs/`
 8. **Breaking changes** → Update `docs/TROUBLESHOOTING.md`
-9. **Root-level files** → Only update existing allowed files (see table above)
-10. **Never create** → Random .md files in root directory
-
----
-
-## 📝 Version History
-
-- **v3.0.0** (2025-01-XX): Modular structure - split detailed guides into separate files
-- **v2.0.0** (2025-01-XX): Consolidated from multiple AI instruction files
-- **v1.0.0**: Initial version
+9. **Update `README.md`** if feature highlights change.
 
 ---
 
@@ -321,16 +243,11 @@ New Feature Added?
 - Platform support
 - Documentation system
 
-**Detailed Guides** (reference as needed):
-- `vibe/STYLING.md` - Styling patterns, theme values, examples
-- `vibe/ARCHITECTURE.md` - Component structure, state management, templates
-- `vibe/DEVELOPMENT_WORKFLOW.md` - Workflow, mock mode, mistakes
-
-**App Context**:
-- `apps/app/vibe/CONTEXT.md` - App features & architecture
-- `apps/app/vibe/TECH_STACK.md` - Technology decisions
-- `apps/app/vibe/STYLE_GUIDE.md` - Code patterns
-- `apps/app/vibe/SCREEN_TEMPLATES.md` - Screen templates
+**Detailed Apps Structure**:
+- `apps/app/vibe/CONTEXT.md` - Features & Structure
+- `apps/app/vibe/STYLE_GUIDE.md` - Styling & Patterns
+- `apps/app/vibe/ARCHITECTURE.md` - Logic Flow
+- `apps/app/vibe/TECH_STACK.md` - Tech Details
 
 **Services**:
 - `vibe/SERVICES.md` - Service architecture
@@ -338,5 +255,5 @@ New Feature Added?
 
 ---
 
-**This file is the single source of truth. All AI instruction files should reference this file and defer to it for any conflicts. Read this file first, then reference specific guides as needed.**
+**This file is the single source of truth. All AI instruction files reference this file. Read this file first.**
 

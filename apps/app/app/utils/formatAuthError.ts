@@ -96,3 +96,4 @@ export function formatAuthError(error: Error): string {
   return error.message || "Something went wrong. Please try again."
 }
 
+

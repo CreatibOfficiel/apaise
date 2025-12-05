@@ -187,3 +187,4 @@ If you discover a security vulnerability, please report it responsibly:
 3. Provide detailed information about the vulnerability
 4. Allow time for a fix before disclosure
 
+
