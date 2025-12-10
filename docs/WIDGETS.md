@@ -6,10 +6,12 @@ This guide explains how to use native iOS and Android widgets in your ShipNative
 
 ### Enable Widgets
 
-Widgets are disabled by default. To enable them, add to your `.env` file:
+Widgets are disabled by default. To enable them, add to your `.env` file (or run `yarn setup` and choose Widgets):
 
 ```bash
 EXPO_PUBLIC_ENABLE_WIDGETS=true
+# Optional: set your App Group for iOS widgets (yarn setup will ask)
+APP_GROUP_IDENTIFIER=group.com.yourcompany.yourapp
 ```
 
 ### Install and Build
@@ -116,11 +118,12 @@ Widgets need access to Supabase session tokens to fetch authenticated data. The 
 
 ### Setting Up App Groups (iOS)
 
-1. In Xcode, select your app target
-2. Go to "Signing & Capabilities"
-3. Add "App Groups" capability
-4. Create a new group: `group.com.yourcompany.yourapp`
-5. Update `ExampleWidget.swift` with your App Group identifier
+1. Run `yarn setup` → enable Widgets → enter your App Group when prompted (saved as `APP_GROUP_IDENTIFIER` in `.env`)
+2. In Xcode, select your app target
+3. Go to "Signing & Capabilities"
+4. Add "App Groups" capability
+5. Ensure the group matches `APP_GROUP_IDENTIFIER` (default: `group.<bundleId>`)
+6. The widget code derives the App Group automatically from the bundle ID if no override is set
 
 ### Data Fetching in Widgets
 

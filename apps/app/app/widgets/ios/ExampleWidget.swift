@@ -42,9 +42,28 @@ struct ExampleWidgetEntry: TimelineEntry {
 // MARK: - Timeline Provider
 
 struct ExampleWidgetProvider: TimelineProvider {
-    // App Group identifier for sharing data between app and widget
-    // Update this to match your app's App Group identifier
-    private let appGroupIdentifier = "group.com.reactnativestarterkit"
+    // App Group identifier for sharing data between app and widget.
+    // Defaults to group.<base bundle id> (drops the extension suffix).
+    private let appGroupIdentifier: String = {
+        // Prefer explicit Info.plist override if present
+        if let explicit = Bundle.main.object(forInfoDictionaryKey: "APP_GROUP_IDENTIFIER") as? String, !explicit.isEmpty {
+            return explicit
+        }
+
+        // Derive from the extension bundle identifier by dropping the last component
+        if let bundleId = Bundle.main.bundleIdentifier {
+            let parts = bundleId.split(separator: ".")
+            if parts.count > 2 {
+                let baseId = parts.dropLast().joined(separator: ".")
+                return "group.\(baseId)"
+            } else {
+                return "group.\(bundleId)"
+            }
+        }
+
+        // Fallback to template value
+        return "group.com.reactnativestarterkit"
+    }()
     
     // Supabase configuration keys stored in UserDefaults
     private let supabaseUrlKey = "supabase_url"
@@ -134,25 +153,67 @@ struct ExampleWidgetProvider: TimelineProvider {
         token: String?,
         completion: @escaping (Result<[String: Any], Error>) -> Void
     ) {
-        // Example: Fetch user profile data
-        // In a real implementation, you would:
-        // 1. Create URLRequest to Supabase REST API
-        // 2. Add Authorization header if token is available
-        // 3. Make the request
-        // 4. Parse JSON response
-        
-        // For this example, we'll return mock data
-        // Replace this with actual Supabase API call
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) {
-            let mockData: [String: Any] = [
-                "title": "Example Widget",
-                "subtitle": "Data from Supabase",
-                "count": 42,
-                "status": "active"
-            ]
-            completion(.success(mockData))
+        // Build a REST request to Supabase. This expects a table named `widget_entries`
+        // with columns: title (text), subtitle (text), count (int), updated_at (timestamp).
+        guard let endpoint = URL(string: "\(url)/rest/v1/widget_entries?select=title,subtitle,count&order=updated_at.desc&limit=1") else {
+            completion(.failure(URLError(.badURL)))
+            return
         }
+
+        var request = URLRequest(url: endpoint, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+        request.httpMethod = "GET"
+        request.setValue(key, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        if let token = token, !token.isEmpty {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data else {
+                completion(.failure(URLError(.badServerResponse)))
+                return
+            }
+
+            do {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                let entries = try decoder.decode([SupabaseWidgetEntry].self, from: data)
+                guard let first = entries.first else {
+                    completion(.failure(URLError(.dataNotAllowed)))
+                    return
+                }
+
+                var payload: [String: Any] = [
+                    "title": first.title ?? "Widget",
+                    "subtitle": first.subtitle ?? "",
+                ]
+
+                if let count = first.count {
+                    payload["count"] = count
+                }
+
+                completion(.success(payload))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+
+        task.resume()
     }
+}
+
+// MARK: - Supabase Models
+
+private struct SupabaseWidgetEntry: Decodable {
+    let title: String?
+    let subtitle: String?
+    let count: Int?
 }
 
 // MARK: - Widget View

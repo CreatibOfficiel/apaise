@@ -890,6 +890,16 @@ const configureWidgets = async (services, defaults = {}, options = {}) => {
   }
 
   services.EXPO_PUBLIC_ENABLE_WIDGETS = "true"
+
+  console.log(chalk.cyan("\n🧩 App Group (iOS)"))
+  console.log(chalk.dim("   Used for sharing data between the app and the widget extension."))
+  console.log(chalk.dim("   Format: group.com.yourcompany.yourapp"))
+  services.APP_GROUP_IDENTIFIER = await askQuestion(
+    "Enter your iOS App Group identifier",
+    (id) => id.startsWith("group.") && id.split(".").length >= 3,
+    defaults.APP_GROUP_IDENTIFIER || process.env.APP_GROUP_IDENTIFIER || "group.com.reactnativestarterkit"
+  )
+
   console.log("\n✅ Widgets enabled!")
   console.log("   💡 After setup, run 'yarn prebuild:clean' to generate native code")
   console.log("   📖 See docs/WIDGETS.md for widget development guide")

@@ -1,4 +1,5 @@
 import { ExpoConfig, ConfigContext } from "@expo/config"
+import withWidgetAppGroup from "./plugins/withWidgetAppGroup"
 
 /**
  * Use tsx/cjs here so we can use TypeScript for our Config Plugins
@@ -19,6 +20,9 @@ module.exports = ({ config }: ConfigContext): Partial<ExpoConfig> => {
 
   // Check if widgets are enabled via feature flag
   const enableWidgets = process.env.EXPO_PUBLIC_ENABLE_WIDGETS === "true"
+  const bundleIdentifier =
+    config.ios?.bundleIdentifier || config.bundleIdentifier || "com.kaspar59.reactnativestarterkit"
+  const appGroupIdentifier = process.env.APP_GROUP_IDENTIFIER || `group.${bundleIdentifier}`
 
   // Conditionally add widget plugin
   const plugins = [...existingPlugins]
@@ -43,6 +47,13 @@ module.exports = ({ config }: ConfigContext): Partial<ExpoConfig> => {
         },
       },
     ])
+
+    plugins.push([
+      withWidgetAppGroup,
+      {
+        appGroupIdentifier,
+      },
+    ])
   }
 
   return {
@@ -52,7 +63,7 @@ module.exports = ({ config }: ConfigContext): Partial<ExpoConfig> => {
     ios: {
       ...config.ios,
       // Ensure bundleIdentifier is preserved
-      bundleIdentifier: config.ios?.bundleIdentifier || "com.reactnativestarterkit",
+      bundleIdentifier,
       // Ensure iOS icon is preserved from app.json
       icon: config.ios?.icon || "./assets/images/app-icon-ios.png",
       // Status bar appearance configuration for react-native-screens
