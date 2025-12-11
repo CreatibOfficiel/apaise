@@ -53,3 +53,4 @@ describe("formatAuthError", () => {
     expect(result).toContain("unexpected error")
   })
 })
+

@@ -79,3 +79,4 @@ describe("analyzePasswordStrength", () => {
     expect(result.feedback.length).toBeGreaterThan(0)
   })
 })
+

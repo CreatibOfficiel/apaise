@@ -45,3 +45,4 @@ export function extractSupabaseError(error: unknown): SupabaseError | null {
 
   return null
 }
+
