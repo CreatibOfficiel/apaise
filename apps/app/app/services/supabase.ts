@@ -1,11 +1,14 @@
 import { AppState, Platform } from "react-native"
 import * as SecureStore from "expo-secure-store"
+import type { SupportedStorage } from "@supabase/auth-js"
 import { createClient } from "@supabase/supabase-js"
 import "react-native-url-polyfill/auto"
 
+import { env } from "../config/env"
+import type { SupabaseDatabase } from "../types/supabase"
 import { logger } from "../utils/Logger"
-import { createMockSupabaseClient } from "./mocks/supabase"
 import { webSecureStorage } from "../utils/webStorageEncryption"
+import { createMockSupabaseClient } from "./mocks/supabase"
 
 const secureStoreOptions: SecureStore.SecureStoreOptions =
   Platform.OS === "ios"
@@ -17,7 +20,9 @@ const secureStoreOptions: SecureStore.SecureStoreOptions =
 
 // Platform-aware storage adapter for Supabase
 // Uses SecureStore on mobile, webSecureStorage on web
-const PlatformStorageAdapter = {
+type SupabaseAuthStorage = SupportedStorage
+
+const PlatformStorageAdapter: SupabaseAuthStorage = {
   getItem: async (key: string): Promise<string | null> => {
     if (Platform.OS === "web") {
       // Use encrypted storage for sensitive auth keys on web
@@ -76,18 +81,20 @@ const PlatformStorageAdapter = {
   },
 }
 
-export const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || ""
-export const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""
+export const supabaseUrl = env.supabaseUrl ?? ""
+export const supabaseKey = env.supabasePublishableKey ?? ""
 
 // Use mock Supabase if credentials are missing in development
 const useMock = __DEV__ && (!supabaseUrl || !supabaseKey)
 export const isUsingMockSupabase = useMock
 
-export const supabase = useMock
-  ? createMockSupabaseClient()
-  : createClient(supabaseUrl, supabaseKey, {
+type SupabaseClient = ReturnType<typeof createClient<SupabaseDatabase>>
+
+export const supabase: SupabaseClient = useMock
+  ? (createMockSupabaseClient() as unknown as SupabaseClient)
+  : createClient<SupabaseDatabase>(supabaseUrl, supabaseKey, {
       auth: {
-        storage: PlatformStorageAdapter as any,
+        storage: PlatformStorageAdapter,
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: Platform.OS === "web", // Enable for web, disable for mobile

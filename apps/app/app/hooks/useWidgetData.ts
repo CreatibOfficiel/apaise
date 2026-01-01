@@ -62,7 +62,7 @@ export interface UseWidgetDataReturn<T> {
  * }
  * ```
  */
-export function useWidgetData<T = any>(options: UseWidgetDataOptions): UseWidgetDataReturn<T> {
+export function useWidgetData<T = unknown>(options: UseWidgetDataOptions): UseWidgetDataReturn<T> {
   const {
     table,
     select,

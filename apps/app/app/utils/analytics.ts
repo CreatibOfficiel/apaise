@@ -6,7 +6,12 @@
 
 import { posthog } from "../services/posthog"
 import { sentry } from "../services/sentry"
-import type { EventProperties, UserProperties, ScreenProperties } from "../types/analytics"
+import type {
+  EventProperties,
+  UserProperties,
+  ScreenProperties,
+  FeatureFlagValue,
+} from "../types/analytics"
 import { AnalyticsEvents, AnalyticsScreens } from "../types/analytics"
 import type { ErrorContext, Breadcrumb } from "../types/errorTracking"
 import { BreadcrumbCategories } from "../types/errorTracking"
@@ -96,7 +101,7 @@ export function isFeatureEnabled(flag: string): boolean {
 /**
  * Get a feature flag value
  */
-export function getFeatureFlag(flag: string): any {
+export function getFeatureFlag(flag: string): FeatureFlagValue | undefined {
   return posthog.getFeatureFlag(flag)
 }
 

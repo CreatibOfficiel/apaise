@@ -4,10 +4,12 @@
  * Helper functions for authentication operations
  */
 
+import { env } from "../../config/env"
 import { supabase, isUsingMockSupabase } from "../../services/supabase"
-import type { User } from "../../types/auth"
+import type { User, Session } from "../../types/auth"
 import { isEmailConfirmed } from "../../types/auth"
-import { isSupabaseError } from "../../types/supabaseErrors"
+import type { SupabaseDatabase } from "../../types/supabase"
+import { extractSupabaseError } from "../../types/supabaseErrors"
 import { logger } from "../../utils/Logger"
 
 // Track if we've shown the Supabase setup message
@@ -23,12 +25,18 @@ export async function syncOnboardingToDatabase(userId: string, completed: boolea
   }
 
   try {
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({ id: userId, has_completed_onboarding: completed })
+    const profilesTable = supabase.from("profiles") as unknown as {
+      upsert: (
+        values: SupabaseDatabase["public"]["Tables"]["profiles"]["Insert"],
+      ) => Promise<{ error: Error | null }>
+    }
+    const { error } = await profilesTable.upsert({
+      id: userId,
+      has_completed_onboarding: completed,
+    })
 
     if (error) {
-      const supabaseErr = isSupabaseError(error) ? (error as any) : null
+      const supabaseErr = extractSupabaseError(error)
       const errorDetails = supabaseErr
         ? {
             message: supabaseErr.message,
@@ -109,7 +117,7 @@ export async function fetchOnboardingFromDatabase(userId: string): Promise<boole
 
     if (profileError) {
       // Check if this is a "table not found" error (expected during setup)
-      const supabaseErr = isSupabaseError(profileError) ? (profileError as any) : null
+      const supabaseErr = extractSupabaseError(profileError)
       const isTableNotFoundError =
         supabaseErr?.code === "PGRST205" ||
         (supabaseErr?.message &&
@@ -144,7 +152,8 @@ export async function fetchOnboardingFromDatabase(userId: string): Promise<boole
       return null
     }
 
-    return profile?.has_completed_onboarding ?? null
+    const profileData = profile as { has_completed_onboarding?: boolean } | null
+    return profileData?.has_completed_onboarding ?? null
   } catch (error) {
     // Network error or database unavailable
     logger.error("Failed to fetch profile from database", { userId }, error as Error)
@@ -185,12 +194,12 @@ export async function syncOnboardingStatus(userId: string, localStatus: boolean)
  * Determines if user is authenticated based on session existence and email confirmation status.
  *
  * @param {User | null} user - The user object, or null if not authenticated
- * @param {any} session - The session object, or null if not authenticated
+ * @param {Session | null} session - The session object, or null if not authenticated
  * @returns {Object} An object containing user, session, isEmailConfirmed, and isAuthenticated flags
  * @example
  * const state = updateUserState(user, session)
  */
-export function updateUserState(user: User | null, session: any) {
+export function updateUserState(user: User | null, session: Session | null) {
   const emailConfirmed = isEmailConfirmed(user)
   return {
     user,
@@ -212,7 +221,7 @@ export function updateUserState(user: User | null, session: any) {
  */
 export function getEmailRedirectUrl(): string | undefined {
   // Check if custom redirect URL is configured
-  const customRedirectUrl = process.env.EXPO_PUBLIC_EMAIL_REDIRECT_URL
+  const customRedirectUrl = env.emailRedirectUrl
 
   if (customRedirectUrl) {
     return customRedirectUrl
@@ -224,5 +233,20 @@ export function getEmailRedirectUrl(): string | undefined {
   }
 
   // For mobile, don't set redirect URL - Supabase shows its built-in success page
+  return undefined
+}
+
+/**
+ * Gets the redirect URL for password reset links.
+ */
+export function getPasswordResetRedirectUrl(): string | undefined {
+  if (env.passwordResetRedirectUrl) {
+    return env.passwordResetRedirectUrl
+  }
+
+  if (typeof window !== "undefined" && window.location) {
+    return `${window.location.origin}/reset-password`
+  }
+
   return undefined
 }

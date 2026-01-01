@@ -9,8 +9,13 @@
 import { RATE_LIMIT } from "@/config/constants"
 
 import { logger } from "./Logger"
-import * as storageUtils from "./storage"
 import { storage } from "./storage"
+import * as storageUtils from "./storage"
+
+declare global {
+  // eslint-disable-next-line no-var
+  var clearRateLimits: (() => Promise<void>) | undefined
+}
 
 interface RateLimitEntry {
   count: number
@@ -177,7 +182,6 @@ export const authRateLimiter = new RateLimiter({
  * Exposed globally in dev mode for easy access via console
  */
 if (__DEV__) {
-  // @ts-expect-error - Adding to global for dev convenience
   global.clearRateLimits = async () => {
     await authRateLimiter.clearAll()
     await passwordResetRateLimiter.clearAll()

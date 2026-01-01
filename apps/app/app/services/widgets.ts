@@ -36,7 +36,7 @@ const WIDGET_CONFIG = {
 /**
  * In-memory cache for widget data
  */
-const widgetCache = new Map<string, WidgetCache<any>>()
+const widgetCache = new Map<string, WidgetCache<unknown>>()
 
 /**
  * Last update timestamps for rate limiting
@@ -91,7 +91,7 @@ function getCachedData<T>(key: string): T | null {
     return null
   }
 
-  return cached.data
+  return cached.data as T
 }
 
 /**
@@ -120,10 +120,10 @@ function setCachedData<T>(key: string, data: T): void {
  * Fetch data from Supabase for widgets
  * Supports both authenticated and public queries
  */
-export async function fetchWidgetData<T = any>(options: {
+export async function fetchWidgetData<T = unknown>(options: {
   table: string
   select?: string
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
   limit?: number
   orderBy?: { column: string; ascending?: boolean }
   requireAuth?: boolean

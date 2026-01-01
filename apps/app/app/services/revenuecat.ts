@@ -8,17 +8,100 @@
 
 import { Platform } from "react-native"
 
+import { env, isDevelopment } from "../config/env"
+import type { PricingPackage, SubscriptionService, SubscriptionInfo } from "../types/subscription"
 import { logger } from "../utils/Logger"
 import { mockRevenueCat } from "./mocks/revenueCat"
-import { isDevelopment } from "../config/env"
-import type { PricingPackage, SubscriptionService, SubscriptionInfo } from "../types/subscription"
+
+type RevenueCatEntitlement = {
+  expirationDate?: string | null
+  isActive?: boolean
+  productIdentifier?: string | null
+  willRenew?: boolean
+  periodType?: "TRIAL" | "INTRO" | "NORMAL" | "trial" | "intro" | "normal"
+}
+
+type RevenueCatCustomerInfo = {
+  entitlements?: {
+    active?: Record<string, RevenueCatEntitlement>
+  }
+  latestExpirationDate?: string | null
+  managementURL?: string | null
+}
+
+type RevenueCatMobileSdk = {
+  LOG_LEVEL: { DEBUG: number; INFO: number; WARN: number; ERROR: number }
+  setLogLevel: (level: number) => void
+  setLogHandler: (handler: (logLevel: number, message: string) => void) => void
+  configure: (config: { apiKey: string }) => Promise<void> | void
+  logIn: (userId: string) => Promise<{ customerInfo: RevenueCatCustomerInfo }>
+  logOut: () => Promise<RevenueCatCustomerInfo>
+  isAnonymous: () => Promise<boolean>
+  getCustomerInfo: () => Promise<RevenueCatCustomerInfo>
+  getOfferings: () => Promise<RevenueCatOfferings>
+  purchasePackage: (pkg: unknown) => Promise<{ customerInfo?: RevenueCatCustomerInfo }>
+  restorePurchases: () => Promise<RevenueCatCustomerInfo>
+  addCustomerInfoUpdateListener: (listener: (info: RevenueCatCustomerInfo) => void) => void
+  removeCustomerInfoUpdateListener: (listener: (info: RevenueCatCustomerInfo) => void) => void
+}
+
+type RevenueCatOfferings = {
+  current?: {
+    availablePackages: RevenueCatPackage[]
+  }
+}
+
+type RevenueCatPackage = {
+  identifier: string
+  packageType?: string
+  product: {
+    title: string
+    description: string
+    price: number
+    priceString: string
+    currencyCode: string
+    subscriptionPeriod?: {
+      unit: "DAY" | "WEEK" | "MONTH" | "YEAR"
+      value: number
+    }
+  }
+}
+
+type RevenueCatWebPackage = {
+  identifier: string
+  packageType?: string
+  rcBillingProduct?: {
+    displayName?: string
+    description?: string
+    currentPrice?: {
+      amountMicros?: number
+      formattedPrice?: string
+      currency?: string
+    }
+  }
+}
+
+type RevenueCatWebSdk = {
+  Purchases: {
+    configure: (config: { apiKey: string; appUserId?: string }) => RevenueCatWebInstance
+  }
+}
+
+type RevenueCatWebInstance = {
+  getCustomerInfo: () => Promise<RevenueCatCustomerInfo>
+  getOfferings: () => Promise<RevenueCatOfferings>
+  purchase: (params: { rcPackage: unknown }) => Promise<{ customerInfo: RevenueCatCustomerInfo }>
+  logIn?: (userId: string) => Promise<{ customerInfo: RevenueCatCustomerInfo }>
+  logOut?: () => Promise<{ customerInfo: RevenueCatCustomerInfo }>
+  restorePurchases?: () => Promise<{ customerInfo: RevenueCatCustomerInfo }>
+}
 
 // API Keys
 const mobileApiKey = Platform.select({
-  ios: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY,
-  android: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY,
+  ios: env.revenueCatIosKey,
+  android: env.revenueCatAndroidKey,
 })
-const webApiKey = process.env.EXPO_PUBLIC_REVENUECAT_WEB_KEY
+const webApiKey = env.revenueCatWebKey
 
 // Determine if we should use mock
 const isDevEnv = __DEV__ || isDevelopment
@@ -27,9 +110,16 @@ const useMock =
   (isDevEnv && !webApiKey && Platform.OS === "web")
 
 // SDK instances
-let MobilePurchases: any = null
-let WebPurchases: any = null
-let loadWebPurchasesPromise: Promise<any | null> | null = null
+let MobilePurchases: RevenueCatMobileSdk | null = null
+let WebPurchases: RevenueCatWebSdk | null = null
+let loadWebPurchasesPromise: Promise<RevenueCatWebSdk | null> | null = null
+
+const getMobilePurchases = (): RevenueCatMobileSdk => {
+  if (!MobilePurchases) {
+    throw new Error("RevenueCat SDK is not available")
+  }
+  return MobilePurchases
+}
 
 // Track initialization state to prevent double configuration (e.g., on hot reload)
 let isMobileConfigured = false
@@ -38,20 +128,20 @@ let isWebConfigured = false
 // Load appropriate SDK based on platform
 if (Platform.OS !== "web" && !useMock) {
   try {
-    MobilePurchases = require("react-native-purchases").default
+    MobilePurchases = require("react-native-purchases").default as RevenueCatMobileSdk
   } catch {
     // Failed to load react-native-purchases - will use mock
   }
 }
 
 // Lazy-load RevenueCat web SDK to keep initial web bundle smaller
-async function loadWebPurchasesSdk(): Promise<any | null> {
+async function loadWebPurchasesSdk(): Promise<RevenueCatWebSdk | null> {
   if (WebPurchases) return WebPurchases
   if (loadWebPurchasesPromise) return loadWebPurchasesPromise
 
   loadWebPurchasesPromise = import("@revenuecat/purchases-js")
     .then((mod) => {
-      WebPurchases = mod
+      WebPurchases = mod as unknown as RevenueCatWebSdk
       return WebPurchases
     })
     .catch((error) => {
@@ -65,13 +155,13 @@ async function loadWebPurchasesSdk(): Promise<any | null> {
 }
 
 // Web SDK instance (singleton)
-let webPurchasesInstance: any = null
+let webPurchasesInstance: RevenueCatWebInstance | null = null
 
 /**
  * Convert RevenueCat customer info to unified SubscriptionInfo
  */
 function toSubscriptionInfo(
-  customerInfo: any,
+  customerInfo: RevenueCatCustomerInfo | null,
   platform: "revenuecat" | "revenuecat-web",
 ): SubscriptionInfo {
   if (!customerInfo) {
@@ -107,7 +197,7 @@ function toSubscriptionInfo(
 const revenueCatMobile: SubscriptionService = {
   platform: "revenuecat",
 
-  configure: async () => {
+  configure: async (_config?: Record<string, unknown>) => {
     if (useMock) {
       await mockRevenueCat.configure("mock-api-key")
       return
@@ -210,9 +300,9 @@ const revenueCatMobile: SubscriptionService = {
       try {
         await MobilePurchases.configure({ apiKey: mobileApiKey })
         isMobileConfigured = true
-      } catch (error: any) {
+      } catch (error) {
         // If already configured (e.g., on hot reload), that's okay
-        const errorMessage = error?.message || error?.toString() || ""
+        const errorMessage = error instanceof Error ? error.message : error ? String(error) : ""
         const isAlreadyConfigured =
           errorMessage.includes("already set") ||
           errorMessage.includes("already configured") ||
@@ -236,7 +326,8 @@ const revenueCatMobile: SubscriptionService = {
       return { subscriptionInfo: toSubscriptionInfo(result.customerInfo, "revenuecat") }
     }
 
-    const result = await MobilePurchases.logIn(userId)
+    const mobilePurchases = getMobilePurchases()
+    const result = await mobilePurchases.logIn(userId)
     return { subscriptionInfo: toSubscriptionInfo(result.customerInfo, "revenuecat") }
   },
 
@@ -247,23 +338,27 @@ const revenueCatMobile: SubscriptionService = {
     }
 
     try {
+      const mobilePurchases = getMobilePurchases()
       // Check if user is anonymous before attempting logout
       // RevenueCat throws an error if you try to log out an anonymous user
-      const isAnonymous = await MobilePurchases.isAnonymous()
+      const isAnonymous = await mobilePurchases.isAnonymous()
       if (isAnonymous) {
         // User is already anonymous, just get current info
-        const customerInfo = await MobilePurchases.getCustomerInfo()
+        const customerInfo = await mobilePurchases.getCustomerInfo()
         return { subscriptionInfo: toSubscriptionInfo(customerInfo, "revenuecat") }
       }
 
       // User is authenticated, safe to log out
-      const customerInfo = await MobilePurchases.logOut()
+      const customerInfo = await mobilePurchases.logOut()
       return { subscriptionInfo: toSubscriptionInfo(customerInfo, "revenuecat") }
-    } catch (error: any) {
+    } catch (error) {
       // If logout fails (e.g., user is anonymous), just get current info
-      if (error?.message?.includes("anonymous") || error?.code === "22") {
+      if (
+        error instanceof Error &&
+        (error.message.includes("anonymous") || (error as { code?: string }).code === "22")
+      ) {
         try {
-          const customerInfo = await MobilePurchases.getCustomerInfo()
+          const customerInfo = await getMobilePurchases().getCustomerInfo()
           return { subscriptionInfo: toSubscriptionInfo(customerInfo, "revenuecat") }
         } catch {
           // If getting info also fails, return empty state
@@ -281,7 +376,7 @@ const revenueCatMobile: SubscriptionService = {
       return toSubscriptionInfo(info, "revenuecat")
     }
 
-    const info = await MobilePurchases.getCustomerInfo()
+    const info = await getMobilePurchases().getCustomerInfo()
     return toSubscriptionInfo(info, "revenuecat")
   },
 
@@ -291,10 +386,10 @@ const revenueCatMobile: SubscriptionService = {
         return await mockRevenueCat.getPackages()
       }
 
-      const offerings = await MobilePurchases.getOfferings()
+      const offerings = await getMobilePurchases().getOfferings()
       if (!offerings.current || !offerings.current.availablePackages) return []
 
-      return offerings.current.availablePackages.map((pkg: any) => ({
+      return offerings.current.availablePackages.map((pkg: RevenueCatPackage) => ({
         id: pkg.identifier,
         identifier: pkg.identifier,
         title: pkg.product.title,
@@ -306,14 +401,15 @@ const revenueCatMobile: SubscriptionService = {
         platform: "revenuecat" as const,
         platformData: pkg,
       }))
-    } catch (error: any) {
+    } catch (error) {
       // Handle "no products configured" error gracefully
       // This is expected when RevenueCat dashboard isn't set up yet
       if (
-        error?.message?.includes("no products registered") ||
-        error?.message?.includes("offerings") ||
-        error?.code === "23" ||
-        error?.code === "1"
+        error instanceof Error &&
+        (error.message.includes("no products registered") ||
+          error.message.includes("offerings") ||
+          (error as { code?: string }).code === "23" ||
+          (error as { code?: string }).code === "1")
       ) {
         if (__DEV__) {
           logger.info(
@@ -323,7 +419,11 @@ const revenueCatMobile: SubscriptionService = {
         return []
       }
       // Log other errors
-      logger.error("Error fetching packages", {}, error as Error)
+      logger.error(
+        "Error fetching packages",
+        {},
+        error instanceof Error ? error : new Error(String(error)),
+      )
       return []
     }
   },
@@ -335,12 +435,14 @@ const revenueCatMobile: SubscriptionService = {
         return { subscriptionInfo: toSubscriptionInfo(result.customerInfo, "revenuecat") }
       }
 
-      const result = await MobilePurchases.purchasePackage(pkg.platformData)
-      return { subscriptionInfo: toSubscriptionInfo(result.customerInfo, "revenuecat") }
-    } catch (error: any) {
+      const result = await getMobilePurchases().purchasePackage(pkg.platformData)
+      return {
+        subscriptionInfo: toSubscriptionInfo(result.customerInfo ?? null, "revenuecat"),
+      }
+    } catch (error) {
       return {
         subscriptionInfo: await revenueCatMobile.getSubscriptionInfo(),
-        error,
+        error: error instanceof Error ? error : new Error(String(error)),
       }
     }
   },
@@ -352,24 +454,24 @@ const revenueCatMobile: SubscriptionService = {
         return { subscriptionInfo: toSubscriptionInfo(info, "revenuecat") }
       }
 
-      const info = await MobilePurchases.restorePurchases()
+      const info = await getMobilePurchases().restorePurchases()
       return { subscriptionInfo: toSubscriptionInfo(info, "revenuecat") }
-    } catch (error: any) {
+    } catch (error) {
       return {
         subscriptionInfo: await revenueCatMobile.getSubscriptionInfo(),
-        error,
+        error: error instanceof Error ? error : new Error(String(error)),
       }
     }
   },
 
   addSubscriptionUpdateListener: (listener) => {
     if (useMock) {
-      return mockRevenueCat.addCustomerInfoUpdateListener((info: any) => {
+      return mockRevenueCat.addCustomerInfoUpdateListener((info: RevenueCatCustomerInfo) => {
         listener(toSubscriptionInfo(info, "revenuecat"))
       })
     }
 
-    const nativeListener = (customerInfo: any) => {
+    const nativeListener = (customerInfo: RevenueCatCustomerInfo) => {
       listener(toSubscriptionInfo(customerInfo, "revenuecat"))
     }
 
@@ -387,7 +489,7 @@ const revenueCatMobile: SubscriptionService = {
 const revenueCatWeb: SubscriptionService = {
   platform: "revenuecat-web",
 
-  configure: async () => {
+  configure: async (_config?: Record<string, unknown>) => {
     if (useMock) {
       await mockRevenueCat.configure("mock-api-key")
       return
@@ -439,7 +541,11 @@ const revenueCatWeb: SubscriptionService = {
       const customerInfo = await webPurchasesInstance.getCustomerInfo()
       return { subscriptionInfo: toSubscriptionInfo(customerInfo, "revenuecat-web") }
     } catch (error) {
-      console.error("RevenueCat Web login failed:", error)
+      logger.error(
+        "RevenueCat Web login failed",
+        { error },
+        error instanceof Error ? error : new Error(String(error)),
+      )
       return { subscriptionInfo: toSubscriptionInfo(null, "revenuecat-web") }
     }
   },
@@ -473,7 +579,11 @@ const revenueCatWeb: SubscriptionService = {
       const customerInfo = await webPurchasesInstance.getCustomerInfo()
       return toSubscriptionInfo(customerInfo, "revenuecat-web")
     } catch (error) {
-      logger.error("Failed to get web customer info", {}, error as Error)
+      logger.error(
+        "Failed to get web customer info",
+        {},
+        error instanceof Error ? error : new Error(String(error)),
+      )
       return toSubscriptionInfo(null, "revenuecat-web")
     }
   },
@@ -482,7 +592,7 @@ const revenueCatWeb: SubscriptionService = {
     try {
       if (useMock) {
         const packages = await mockRevenueCat.getPackages()
-        return packages.map((pkg: any) => ({ ...pkg, platform: "revenuecat-web" as const }))
+        return packages.map((pkg) => ({ ...pkg, platform: "revenuecat-web" as const }))
       }
 
       if (!webPurchasesInstance) {
@@ -493,26 +603,29 @@ const revenueCatWeb: SubscriptionService = {
       const offerings = await webPurchasesInstance.getOfferings()
       if (!offerings.current || !offerings.current.availablePackages) return []
 
-      return offerings.current.availablePackages.map((pkg: any) => ({
+      return offerings.current.availablePackages.map((pkg: RevenueCatWebPackage) => ({
         id: pkg.identifier,
         identifier: pkg.identifier,
         title: pkg.rcBillingProduct?.displayName || pkg.identifier,
         description: pkg.rcBillingProduct?.description || "",
-        price: pkg.rcBillingProduct?.currentPrice?.amountMicros / 1_000_000 || 0,
+        price: pkg.rcBillingProduct?.currentPrice?.amountMicros
+          ? pkg.rcBillingProduct.currentPrice.amountMicros / 1_000_000
+          : 0,
         priceString: pkg.rcBillingProduct?.currentPrice?.formattedPrice || "",
         currencyCode: pkg.rcBillingProduct?.currentPrice?.currency || "USD",
         billingPeriod: pkg.packageType === "ANNUAL" ? "annual" : "monthly",
         platform: "revenuecat-web" as const,
         platformData: pkg,
       }))
-    } catch (error: any) {
+    } catch (error) {
       // Handle "no products configured" error gracefully
       // This is expected when RevenueCat dashboard isn't set up yet
       if (
-        error?.message?.includes("no products registered") ||
-        error?.message?.includes("offerings") ||
-        error?.code === "23" ||
-        error?.code === "1"
+        error instanceof Error &&
+        (error.message.includes("no products registered") ||
+          error.message.includes("offerings") ||
+          (error as { code?: string }).code === "23" ||
+          (error as { code?: string }).code === "1")
       ) {
         if (__DEV__) {
           logger.info(
@@ -522,7 +635,11 @@ const revenueCatWeb: SubscriptionService = {
         return []
       }
       // Log other errors
-      logger.error("Error fetching web packages", {}, error as Error)
+      logger.error(
+        "Error fetching web packages",
+        {},
+        error instanceof Error ? error : new Error(String(error)),
+      )
       return []
     }
   },
@@ -546,11 +663,15 @@ const revenueCatWeb: SubscriptionService = {
       }
 
       return { subscriptionInfo: toSubscriptionInfo(customerInfo, "revenuecat-web") }
-    } catch (error: any) {
-      logger.error("Web purchase failed", {}, error as Error)
+    } catch (error) {
+      logger.error(
+        "Web purchase failed",
+        {},
+        error instanceof Error ? error : new Error(String(error)),
+      )
       return {
         subscriptionInfo: await revenueCatWeb.getSubscriptionInfo(),
-        error,
+        error: error instanceof Error ? error : new Error(String(error)),
       }
     }
   },

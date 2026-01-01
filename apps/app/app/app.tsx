@@ -46,7 +46,9 @@ import { logger } from "./utils/Logger"
 import { securityCheck } from "./utils/securityCheck"
 import * as storage from "./utils/storage"
 
-let KeyboardProvider: React.ComponentType<any> = ({ children }: any) => <>{children}</>
+type KeyboardProviderProps = { children?: React.ReactNode }
+
+let KeyboardProvider: React.ComponentType<KeyboardProviderProps> = ({ children }) => <>{children}</>
 if (Platform.OS !== "web") {
   try {
     KeyboardProvider = require("react-native-keyboard-controller").KeyboardProvider
@@ -75,6 +77,13 @@ const config = {
     Login: "login",
     Register: "register",
     ForgotPassword: "forgot-password",
+    ResetPassword: {
+      path: "reset-password",
+      parse: {
+        code: (code: string) => code,
+        token: (token: string) => token,
+      },
+    },
     EmailVerification: "verify-email",
     Paywall: "paywall",
     Main: {
@@ -91,6 +100,8 @@ const config = {
       path: "auth/callback",
       parse: {
         code: (code: string) => code,
+        access_token: (accessToken: string) => accessToken,
+        refresh_token: (refreshToken: string) => refreshToken,
         token: (token: string) => token,
         type: (type: string) => type,
       },
@@ -211,6 +222,22 @@ export function App() {
       deferredInitialization.cancel()
     }
   }, [handleInitialEmailLink])
+
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") {
+      return undefined
+    }
+
+    const handler = (event: PromiseRejectionEvent) => {
+      const reason = event.reason instanceof Error ? event.reason : new Error(String(event.reason))
+      logger.error("Unhandled promise rejection", {}, reason)
+    }
+
+    window.addEventListener("unhandledrejection", handler)
+    return () => {
+      window.removeEventListener("unhandledrejection", handler)
+    }
+  }, [])
 
   const isLoading =
     !isNavigationStateRestored ||

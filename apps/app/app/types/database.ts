@@ -10,7 +10,7 @@ export type DatabaseProvider = "supabase" | "mock"
 export interface QueryFilter {
   column: string
   operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "like" | "ilike" | "in"
-  value: any
+  value: unknown
 }
 
 export interface QueryOptions {
@@ -21,13 +21,13 @@ export interface QueryOptions {
   select?: string
 }
 
-export interface DatabaseResponse<T = any> {
+export interface DatabaseResponse<T = unknown> {
   data: T | null
   error: Error | null
   count?: number | null
 }
 
-export interface DatabaseTable<T = any> {
+export interface DatabaseTable<T = unknown> {
   // Select
   select(columns?: string): DatabaseQuery<T>
 
@@ -44,17 +44,17 @@ export interface DatabaseTable<T = any> {
   upsert?(data: Partial<T> | Partial<T>[]): Promise<DatabaseResponse<T>>
 }
 
-export interface DatabaseQuery<T = any> {
+export interface DatabaseQuery<T = unknown> {
   // Filters
-  eq(column: string, value: any): DatabaseQuery<T>
-  neq(column: string, value: any): DatabaseQuery<T>
-  gt(column: string, value: any): DatabaseQuery<T>
-  gte(column: string, value: any): DatabaseQuery<T>
-  lt(column: string, value: any): DatabaseQuery<T>
-  lte(column: string, value: any): DatabaseQuery<T>
+  eq(column: string, value: unknown): DatabaseQuery<T>
+  neq(column: string, value: unknown): DatabaseQuery<T>
+  gt(column: string, value: unknown): DatabaseQuery<T>
+  gte(column: string, value: unknown): DatabaseQuery<T>
+  lt(column: string, value: unknown): DatabaseQuery<T>
+  lte(column: string, value: unknown): DatabaseQuery<T>
   like(column: string, pattern: string): DatabaseQuery<T>
   ilike(column: string, pattern: string): DatabaseQuery<T>
-  in(column: string, values: any[]): DatabaseQuery<T>
+  in(column: string, values: unknown[]): DatabaseQuery<T>
 
   // Ordering
   order(column: string, options?: { ascending?: boolean }): DatabaseQuery<T>
@@ -68,17 +68,17 @@ export interface DatabaseQuery<T = any> {
   maybeSingle(): Promise<DatabaseResponse<T>>
 
   // For update/delete
-  match?(query: Record<string, any>): DatabaseQuery<T>
+  match?(query: Record<string, unknown>): DatabaseQuery<T>
 }
 
 export interface DatabaseService {
   provider: DatabaseProvider
 
   // Get table
-  from<T = any>(table: string): DatabaseTable<T>
+  from<T = unknown>(table: string): DatabaseTable<T>
 
   // RPC (stored procedures)
-  rpc?<T = any>(fn: string, params?: Record<string, any>): Promise<DatabaseResponse<T>>
+  rpc?<T = unknown>(fn: string, params?: Record<string, unknown>): Promise<DatabaseResponse<T>>
 }
 
 /**

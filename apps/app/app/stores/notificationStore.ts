@@ -28,7 +28,7 @@ export interface NotificationState {
     id: string
     title: string
     body: string
-    data?: Record<string, any>
+    data?: Record<string, unknown>
     receivedAt: string
     read: boolean
   }>
@@ -58,7 +58,7 @@ export interface NotificationState {
     id: string
     title: string
     body: string
-    data?: Record<string, any>
+    data?: Record<string, unknown>
   }) => void
   handleNotificationResponse: (response: Notifications.NotificationResponse) => void
 }

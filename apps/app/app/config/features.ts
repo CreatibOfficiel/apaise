@@ -64,7 +64,7 @@ function getFeatureFlags(): FeatureFlags {
     enableCrashReporting: !!env.sentryDsn,
 
     // Widgets - can be enabled via env var EXPO_PUBLIC_ENABLE_WIDGETS=true
-    enableWidgets: process.env.EXPO_PUBLIC_ENABLE_WIDGETS === "true" || false,
+    enableWidgets: env.enableWidgets ?? false,
 
     // Experimental - only in dev
     enableExperimentalFeatures: isDevelopment,

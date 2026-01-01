@@ -4,6 +4,13 @@
  * Mock implementation of Supabase authentication methods
  */
 
+import { AuthError } from "@supabase/auth-js"
+import type {
+  AuthOtpResponse,
+  SignInWithPasswordlessCredentials,
+  VerifyOtpParams,
+} from "@supabase/auth-js"
+
 import {
   initializeStorage,
   delay,
@@ -29,16 +36,25 @@ import type {
 } from "../../../types/auth"
 import { logger } from "../../../utils/Logger"
 
+const buildAuthError = (message: string) => new AuthError(message)
+
 export class MockSupabaseAuth {
   constructor() {
     // Initialize storage on first auth operation
-    if (!sharedState.isInitialized) {
-      initializeStorage()
+    if (!sharedState.isInitialized && process.env.NODE_ENV !== "test") {
+      void initializeStorage()
     }
   }
 
   async signUp(credentials: SignUpCredentials): Promise<AuthResponse> {
     await initializeStorage()
+    if (!("email" in credentials)) {
+      return {
+        data: { user: null, session: null },
+        error: buildAuthError("Phone sign-up is not supported in mock mode"),
+      }
+    }
+
     const { email, password, options } = credentials
     await delay()
 
@@ -50,7 +66,7 @@ export class MockSupabaseAuth {
     if (!email || !email.includes("@")) {
       return {
         data: { user: null, session: null },
-        error: new Error("Invalid email address"),
+        error: buildAuthError("Invalid email address"),
       }
     }
 
@@ -58,7 +74,7 @@ export class MockSupabaseAuth {
     if (!password || password.length < 6) {
       return {
         data: { user: null, session: null },
-        error: new Error("Password should be at least 6 characters"),
+        error: buildAuthError("Password should be at least 6 characters"),
       }
     }
 
@@ -66,12 +82,13 @@ export class MockSupabaseAuth {
     if (sharedState.mockUsers.has(email)) {
       return {
         data: { user: null, session: null },
-        error: new Error("User already registered"),
+        error: buildAuthError("User already registered"),
       }
     }
 
     // Create new user (email not confirmed by default)
-    const user = createMockUser(email, options?.data)
+    const metadata = options?.data && typeof options.data === "object" ? options.data : undefined
+    const user = createMockUser(email, metadata as Record<string, unknown> | undefined)
     sharedState.mockUsers.set(email, { email, password, user })
     await persistUsers()
 
@@ -93,6 +110,13 @@ export class MockSupabaseAuth {
 
   async signInWithPassword(credentials: SignInCredentials): Promise<AuthResponse> {
     await initializeStorage()
+    if (!("email" in credentials)) {
+      return {
+        data: { user: null, session: null },
+        error: buildAuthError("Phone sign-in is not supported in mock mode"),
+      }
+    }
+
     const { email, password } = credentials
     await delay()
 
@@ -105,14 +129,14 @@ export class MockSupabaseAuth {
     if (!userData) {
       return {
         data: { user: null, session: null },
-        error: new Error("Invalid login credentials"),
+        error: buildAuthError("Invalid login credentials"),
       }
     }
 
     if (userData.password !== password) {
       return {
         data: { user: null, session: null },
-        error: new Error("Invalid login credentials"),
+        error: buildAuthError("Invalid login credentials"),
       }
     }
 
@@ -125,8 +149,8 @@ export class MockSupabaseAuth {
       // Return error when email is not confirmed (matches real Supabase behavior)
       // But include user data so EmailVerification screen can show the email
       return {
-        data: { user: userData.user, session: null },
-        error: new Error("Email not confirmed"),
+        data: { user: null, session: null },
+        error: buildAuthError("Email not confirmed"),
       }
     }
 
@@ -139,6 +163,41 @@ export class MockSupabaseAuth {
     return {
       data: { user: userData.user, session },
       error: null,
+    }
+  }
+
+  async signInWithOtp(credentials: SignInWithPasswordlessCredentials): Promise<AuthOtpResponse> {
+    await initializeStorage()
+    await delay()
+
+    if ("email" in credentials) {
+      const { email, options } = credentials
+      const normalizedEmail = email.toLowerCase()
+      let userData = sharedState.mockUsers.get(normalizedEmail)
+
+      if (!userData && options?.shouldCreateUser !== false) {
+        const user = createMockUser(
+          normalizedEmail,
+          options?.data as Record<string, unknown> | undefined,
+        )
+        userData = { email: normalizedEmail, password: generateToken("otp"), user }
+        sharedState.mockUsers.set(normalizedEmail, userData)
+        await persistUsers()
+      }
+
+      if (__DEV__) {
+        logger.debug(`[MockSupabase] Sign in with OTP`, { email: normalizedEmail })
+      }
+
+      return {
+        data: { user: null, session: null },
+        error: null,
+      }
+    }
+
+    return {
+      data: { user: null, session: null },
+      error: buildAuthError("Phone OTP is not supported in mock mode"),
     }
   }
 
@@ -218,6 +277,26 @@ export class MockSupabaseAuth {
     }
   }
 
+  async refreshSession(_currentSession?: { refresh_token: string }): Promise<AuthResponse> {
+    await initializeStorage()
+    await delay()
+
+    const session = sharedState.currentSession
+    if (!session || !isSessionValid(session)) {
+      sharedState.currentSession = null
+      await removeFromStorage(STORAGE_KEYS.SESSION)
+      return {
+        data: { user: null, session: null },
+        error: buildAuthError("Session expired"),
+      }
+    }
+
+    return {
+      data: { user: session.user, session },
+      error: null,
+    }
+  }
+
   async exchangeCodeForSession(code: string): Promise<AuthResponse> {
     await initializeStorage()
     await delay()
@@ -243,33 +322,22 @@ export class MockSupabaseAuth {
     }
   }
 
-  async verifyOtp(options: {
-    token?: string
-    token_hash?: string
-    type: "email" | "signup" | "email_change" | "password_recovery"
-  }): Promise<AuthResponse> {
+  async verifyOtp(options: VerifyOtpParams): Promise<AuthResponse> {
     await delay()
-    const { token, token_hash, type } = options
-    const tokenValue = token ?? token_hash ?? ""
+    const { type } = options
+    const token = "token" in options ? options.token : options.token_hash
 
     if (__DEV__) {
-      logger.debug(`[MockSupabase] Verify OTP`, {
-        type,
-        tokenPrefix: tokenValue ? tokenValue.substring(0, 10) : "missing",
-      })
-    }
-
-    if (!tokenValue) {
-      return {
-        data: { user: null, session: null },
-        error: new Error("Missing verification token"),
-      }
+      logger.debug(`[MockSupabase] Verify OTP`, { type, tokenPrefix: token.substring(0, 10) })
     }
 
     // In mock mode, find user by checking current session or any unconfirmed user
     let userToConfirm: User | null = null
 
-    if (sharedState.currentSession?.user) {
+    if ("email" in options && options.email) {
+      const userData = sharedState.mockUsers.get(options.email.toLowerCase())
+      userToConfirm = userData?.user ?? null
+    } else if (sharedState.currentSession?.user) {
       // If there's a current session, confirm that user's email
       userToConfirm = sharedState.currentSession.user
     } else {
@@ -285,7 +353,7 @@ export class MockSupabaseAuth {
     if (!userToConfirm) {
       return {
         data: { user: null, session: null },
-        error: new Error("Invalid or expired token"),
+        error: buildAuthError("Invalid or expired token"),
       }
     }
 
@@ -339,7 +407,7 @@ export class MockSupabaseAuth {
     if (!sharedState.mockUsers.has(email)) {
       return {
         data: null,
-        error: new Error("User not found"),
+        error: buildAuthError("User not found"),
       }
     }
 
@@ -376,7 +444,7 @@ export class MockSupabaseAuth {
     if (!sharedState.currentSession) {
       return {
         data: { user: null, session: null },
-        error: new Error("Not authenticated"),
+        error: buildAuthError("Not authenticated"),
       }
     }
 
@@ -397,7 +465,7 @@ export class MockSupabaseAuth {
       if (attributes.password.length < 6) {
         return {
           data: { user: null, session: null },
-          error: new Error("Password should be at least 6 characters"),
+          error: buildAuthError("Password should be at least 6 characters"),
         }
       }
       const userData = Array.from(sharedState.mockUsers.values()).find((u) => u.user.id === user.id)
@@ -442,7 +510,7 @@ export class MockSupabaseAuth {
     if (!supportedProviders.includes(provider)) {
       return {
         data: null,
-        error: new Error(`Unsupported OAuth provider: ${provider}`),
+        error: buildAuthError(`Unsupported OAuth provider: ${provider}`),
       }
     }
 
@@ -569,7 +637,7 @@ export class MockSupabaseAuth {
     if (!sharedState.pendingOAuthState) {
       return {
         data: { user: null, session: null },
-        error: new Error("No pending OAuth flow"),
+        error: buildAuthError("No pending OAuth flow"),
       }
     }
 

@@ -30,14 +30,14 @@ export interface PricingPackage {
   billingPeriod: "monthly" | "annual" | "lifetime"
   platform: SubscriptionPlatform
   // Platform-specific data
-  platformData?: any
+  platformData?: unknown
 }
 
 export interface SubscriptionService {
   platform: SubscriptionPlatform
 
   // Initialization
-  configure(config: any): Promise<void>
+  configure(config: Record<string, unknown>): Promise<void>
 
   // User management
   logIn(userId: string): Promise<{ subscriptionInfo: SubscriptionInfo }>
@@ -73,7 +73,7 @@ export interface SubscriptionService {
  */
 export function createSubscriptionInfo(
   platform: SubscriptionPlatform,
-  data: any,
+  data: unknown,
 ): SubscriptionInfo {
   // Default empty state
   const defaultInfo: SubscriptionInfo = {

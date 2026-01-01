@@ -6,6 +6,7 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import { translate } from "@/i18n/translate"
 import { supabase } from "@/services/supabase"
 import { useAuthStore } from "@/stores"
+import type { SupabaseDatabase } from "@/types/supabase"
 import { haptics } from "@/utils/haptics"
 
 import { Button } from "./Button"
@@ -20,6 +21,8 @@ export interface EditProfileModalProps {
   visible: boolean
   onClose: () => void
 }
+
+type ProfilesInsert = SupabaseDatabase["public"]["Tables"]["profiles"]["Insert"]
 
 // =============================================================================
 // COMPONENT
@@ -38,8 +41,12 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({ visible, onClose }
   // Initialize form with user data
   useEffect(() => {
     if (user?.user_metadata) {
-      setFirstName(user.user_metadata.first_name || "")
-      setLastName(user.user_metadata.last_name || "")
+      const firstName =
+        typeof user.user_metadata.first_name === "string" ? user.user_metadata.first_name : ""
+      const lastName =
+        typeof user.user_metadata.last_name === "string" ? user.user_metadata.last_name : ""
+      setFirstName(firstName)
+      setLastName(lastName)
     }
   }, [user])
 
@@ -62,7 +69,10 @@ export const EditProfileModal: FC<EditProfileModalProps> = ({ visible, onClose }
 
       // Update profiles table
       if (user?.id) {
-        const { error: profileError } = await supabase.from("profiles").upsert({
+        const profilesTable = supabase.from("profiles") as unknown as {
+          upsert: (values: ProfilesInsert) => Promise<{ error: Error | null }>
+        }
+        const { error: profileError } = await profilesTable.upsert({
           id: user.id,
           first_name: firstName,
           last_name: lastName,

@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState } from "react"
-import NetInfo, { NetInfoState } from "@react-native-community/netinfo"
+import NetInfo, { NetInfoCellularState, NetInfoState } from "@react-native-community/netinfo"
 
 import { trackEvent } from "../utils/analytics"
 import { logger } from "../utils/Logger"
@@ -46,7 +46,7 @@ function determineNetworkQuality(state: NetInfoState): NetworkQuality {
 
   // Cellular - check generation
   if (state.type === "cellular") {
-    const details = state.details as any
+    const details = (state as NetInfoCellularState).details
     if (details?.cellularGeneration === "5g") {
       return NetworkQuality.EXCELLENT
     }

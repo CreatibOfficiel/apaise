@@ -7,6 +7,7 @@
 
 import { Platform } from "react-native"
 
+import { env } from "../config/env"
 import type {
   ErrorTrackingService,
   ErrorTrackingConfig,
@@ -15,11 +16,27 @@ import type {
   Breadcrumb,
   ErrorLevel,
 } from "../types/errorTracking"
-import { mockSentry } from "./mocks/sentry"
 import { logger } from "../utils/Logger"
+import { mockSentry } from "./mocks/sentry"
+
+type SentryModule = {
+  init: (options: Record<string, unknown>) => void
+  captureException: (error: Error, context?: Record<string, unknown>) => string | undefined
+  captureMessage: (message: string, options?: Record<string, unknown>) => string | undefined
+  setUser: (user: UserContext | null) => void
+  setContext: (key: string, value: Record<string, unknown>) => void
+  setTag: (key: string, value: string) => void
+  setTags: (tags: Record<string, string>) => void
+  setExtra: (key: string, value: unknown) => void
+  setExtras: (extras: Record<string, unknown>) => void
+  addBreadcrumb: (breadcrumb: Record<string, unknown>) => void
+  withScope: (callback: (scope: Record<string, unknown>) => void) => void
+  startTransaction?: (payload: { name: string; op?: string }) => unknown
+  close: (timeout?: number) => Promise<boolean>
+}
 
 // Sentry SDKs (platform-specific)
-let SentryRN: any = null // React Native
+let SentryRN: SentryModule | null = null // React Native
 
 // Load Sentry SDK based on platform
 // Note: @sentry/react-native works on all platforms including web (via React Native Web)
@@ -34,7 +51,7 @@ try {
   }
 }
 
-const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN || ""
+const dsn = env.sentryDsn || ""
 
 // Use mock if DSN is missing in development
 const useMock = __DEV__ && !dsn
@@ -42,7 +59,7 @@ const useMock = __DEV__ && !dsn
 class SentryService implements ErrorTrackingService {
   platform = "sentry" as const
   private initialized = false
-  private Sentry: any = null
+  private Sentry: SentryModule | null = null
 
   initialize(config: ErrorTrackingConfig): void {
     if (this.initialized) return
@@ -155,11 +172,11 @@ class SentryService implements ErrorTrackingService {
     }
   }
 
-  setContext(key: string, value: any): void {
+  setContext(key: string, value: unknown): void {
     if (!this.Sentry) return
 
     try {
-      this.Sentry.setContext(key, value)
+      this.Sentry.setContext(key, value as Record<string, unknown>)
     } catch (error) {
       logger.error("Sentry setContext error", {}, error as Error)
     }
@@ -185,7 +202,7 @@ class SentryService implements ErrorTrackingService {
     }
   }
 
-  setExtra(key: string, value: any): void {
+  setExtra(key: string, value: unknown): void {
     if (!this.Sentry) return
 
     try {
@@ -195,7 +212,7 @@ class SentryService implements ErrorTrackingService {
     }
   }
 
-  setExtras(extras: Record<string, any>): void {
+  setExtras(extras: Record<string, unknown>): void {
     if (!this.Sentry) return
 
     try {
@@ -222,7 +239,7 @@ class SentryService implements ErrorTrackingService {
     }
   }
 
-  withScope(callback: (scope: any) => void): void {
+  withScope(callback: (scope: Record<string, unknown>) => void): void {
     if (!this.Sentry) return
 
     try {
@@ -232,11 +249,11 @@ class SentryService implements ErrorTrackingService {
     }
   }
 
-  startTransaction(name: string, op?: string): any {
+  startTransaction(name: string, op?: string): unknown {
     if (!this.Sentry) return null
 
     try {
-      return this.Sentry.startTransaction({
+      return this.Sentry.startTransaction?.({
         name,
         op: op || "custom",
       })

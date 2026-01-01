@@ -7,30 +7,27 @@
 
 import { Platform } from "react-native"
 
+import { env } from "../../config/env"
 import { logger } from "../../utils/Logger"
 
 // Check if we should use mock services
 export const USE_MOCK_SERVICES =
   __DEV__ &&
-  (!process.env.EXPO_PUBLIC_SUPABASE_URL ||
-    !process.env.EXPO_PUBLIC_POSTHOG_API_KEY ||
-    (!process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY &&
-      !process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY &&
-      !process.env.EXPO_PUBLIC_REVENUECAT_WEB_KEY) ||
-    !process.env.EXPO_PUBLIC_SENTRY_DSN)
+  (!env.supabaseUrl ||
+    !env.posthogApiKey ||
+    (!env.revenueCatIosKey && !env.revenueCatAndroidKey && !env.revenueCatWebKey) ||
+    !env.sentryDsn)
 
-export const USE_MOCK_SUPABASE = __DEV__ && !process.env.EXPO_PUBLIC_SUPABASE_URL
-export const USE_MOCK_POSTHOG = __DEV__ && !process.env.EXPO_PUBLIC_POSTHOG_API_KEY
+export const USE_MOCK_SUPABASE = __DEV__ && !env.supabaseUrl
+export const USE_MOCK_POSTHOG = __DEV__ && !env.posthogApiKey
 
 // RevenueCat mock based on platform
 export const USE_MOCK_REVENUECAT =
   __DEV__ &&
-  ((Platform.OS === "web" && !process.env.EXPO_PUBLIC_REVENUECAT_WEB_KEY) ||
-    (Platform.OS !== "web" &&
-      !process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY &&
-      !process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY))
+  ((Platform.OS === "web" && !env.revenueCatWebKey) ||
+    (Platform.OS !== "web" && !env.revenueCatIosKey && !env.revenueCatAndroidKey))
 
-export const USE_MOCK_SENTRY = __DEV__ && !process.env.EXPO_PUBLIC_SENTRY_DSN
+export const USE_MOCK_SENTRY = __DEV__ && !env.sentryDsn
 
 /**
  * Log mock service status

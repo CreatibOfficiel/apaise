@@ -1,173 +1,159 @@
 /**
  * Environment Configuration
  *
- * Type-safe access to environment variables with validation
+ * Type-safe access to environment variables with validation.
  */
 
 import Constants from "expo-constants"
+import { z } from "zod"
 
 import { logger } from "../utils/Logger"
 
-/**
- * Environment variable schema
- */
-interface EnvConfig {
-  // Supabase
-  supabaseUrl: string
-  supabasePublishableKey: string
-
-  // RevenueCat
-  revenueCatIosKey: string
-  revenueCatAndroidKey: string
-  revenueCatWebKey: string
-
-  // PostHog
-  posthogApiKey: string
-  posthogHost: string
-
-  // Sentry
-  sentryDsn: string
-
-  // Google OAuth
-  googleClientId: string
-  googleClientSecret: string
-
-  // Apple Sign-In
-  appleServicesId: string
-  appleTeamId: string
-  applePrivateKey: string
-  appleKeyId: string
-
-  // App
-  appEnv: "development" | "staging" | "production"
-  appVersion: string
-}
-
-/**
- * Required environment variables
- * These must be present in production
- */
-const REQUIRED_IN_PRODUCTION: Array<keyof EnvConfig> = ["supabaseUrl", "supabasePublishableKey"]
-
-/**
- * Get environment variable from expo config
- */
-function getEnvVar(key: string): string | undefined {
+const readRawEnv = (key: string): string | undefined => {
   return (
     process.env[`EXPO_PUBLIC_${key.toUpperCase()}`] ||
-    Constants.expoConfig?.extra?.[key] ||
-    undefined
+    (Constants.expoConfig?.extra?.[key] as string | undefined)
   )
 }
 
-/**
- * Get environment configuration
- */
-function getEnvConfig(): EnvConfig {
-  return {
+const readStringEnv = (key: string): string | undefined => {
+  const value = readRawEnv(key)
+  if (!value) return undefined
+  const trimmed = String(value).trim()
+  return trimmed.length > 0 ? trimmed : undefined
+}
+
+const readBooleanEnv = (key: string): boolean | undefined => {
+  const value = readStringEnv(key)
+  if (!value) return undefined
+  const normalized = value.toLowerCase()
+  if (["true", "1", "yes", "on"].includes(normalized)) return true
+  if (["false", "0", "no", "off"].includes(normalized)) return false
+  return undefined
+}
+
+const fallbackAppEnv = __DEV__ ? "development" : "production"
+const appEnvValue = readStringEnv("app_env")
+const resolvedAppEnv =
+  appEnvValue === "development" || appEnvValue === "staging" || appEnvValue === "production"
+    ? appEnvValue
+    : fallbackAppEnv
+
+const EnvSchema = z
+  .object({
     // Supabase
-    supabaseUrl: getEnvVar("supabase_url") || "",
-    supabasePublishableKey: getEnvVar("supabase_publishable_key") || "",
+    supabaseUrl: z.string().url().optional(),
+    supabasePublishableKey: z.string().optional(),
 
     // RevenueCat
-    revenueCatIosKey: getEnvVar("revenuecat_ios_key") || "",
-    revenueCatAndroidKey: getEnvVar("revenuecat_android_key") || "",
-    revenueCatWebKey: getEnvVar("revenuecat_web_key") || "",
+    revenueCatIosKey: z.string().optional(),
+    revenueCatAndroidKey: z.string().optional(),
+    revenueCatWebKey: z.string().optional(),
 
     // PostHog
-    posthogApiKey: getEnvVar("posthog_api_key") || "",
-    posthogHost: getEnvVar("posthog_host") || "https://app.posthog.com",
+    posthogApiKey: z.string().optional(),
+    posthogHost: z.string().url().optional().default("https://app.posthog.com"),
 
     // Sentry
-    sentryDsn: getEnvVar("sentry_dsn") || "",
+    sentryDsn: z.string().optional(),
 
     // Google OAuth
-    googleClientId: getEnvVar("google_client_id") || "",
-    googleClientSecret: getEnvVar("google_client_secret") || "",
+    googleClientId: z.string().optional(),
+    googleClientSecret: z.string().optional(),
 
     // Apple Sign-In
-    appleServicesId: getEnvVar("apple_services_id") || "",
-    appleTeamId: getEnvVar("apple_team_id") || "",
-    applePrivateKey: getEnvVar("apple_private_key") || "",
-    appleKeyId: getEnvVar("apple_key_id") || "",
+    appleServicesId: z.string().optional(),
+    appleTeamId: z.string().optional(),
+    applePrivateKey: z.string().optional(),
+    appleKeyId: z.string().optional(),
+
+    // Optional flags
+    enableWidgets: z.boolean().default(false),
+    useMockNotifications: z.boolean().default(false),
+    emailRedirectUrl: z.string().url().optional(),
+    passwordResetRedirectUrl: z.string().url().optional(),
 
     // App
-    appEnv: (getEnvVar("app_env") as any) || (__DEV__ ? "development" : "production"),
-    appVersion: Constants.expoConfig?.version || "1.0.0",
-  }
-}
+    appEnv: z.enum(["development", "staging", "production"]).default(resolvedAppEnv),
+    appVersion: z.string().min(1),
+  })
+  .superRefine((values, ctx) => {
+    if (values.appEnv !== "production") return
 
-/**
- * Validate environment configuration
- */
-function validateEnvConfig(config: EnvConfig): {
-  isValid: boolean
-  missing: string[]
-  warnings: string[]
-} {
-  const missing: string[] = []
-  const warnings: string[] = []
+    const required = [
+      ["supabaseUrl", values.supabaseUrl],
+      ["supabasePublishableKey", values.supabasePublishableKey],
+    ] as const
 
-  // Check required variables in production
-  if (config.appEnv === "production") {
-    for (const key of REQUIRED_IN_PRODUCTION) {
-      if (!config[key]) {
-        missing.push(key)
+    required.forEach(([key, value]) => {
+      if (!value) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${key} is required in production`,
+          path: [key],
+        })
       }
-    }
-  }
+    })
+  })
 
-  // Check optional but recommended variables
-  const hasRevenueCat =
-    config.revenueCatIosKey || config.revenueCatAndroidKey || config.revenueCatWebKey
-  if (!hasRevenueCat && config.appEnv !== "development") {
-    warnings.push("No RevenueCat keys are set - payments will not work")
-  }
+export type EnvConfig = z.infer<typeof EnvSchema>
 
-  if (!config.posthogApiKey && config.appEnv !== "development") {
-    warnings.push("posthogApiKey is not set - analytics will not work")
-  }
-
-  if (!config.sentryDsn && config.appEnv !== "development") {
-    warnings.push("sentryDsn is not set - error tracking will not work")
-  }
-
-  return {
-    isValid: missing.length === 0,
-    missing,
-    warnings,
-  }
+const envInput: Partial<EnvConfig> = {
+  supabaseUrl: readStringEnv("supabase_url"),
+  supabasePublishableKey: readStringEnv("supabase_publishable_key"),
+  revenueCatIosKey: readStringEnv("revenuecat_ios_key"),
+  revenueCatAndroidKey: readStringEnv("revenuecat_android_key"),
+  revenueCatWebKey: readStringEnv("revenuecat_web_key"),
+  posthogApiKey: readStringEnv("posthog_api_key"),
+  posthogHost: readStringEnv("posthog_host"),
+  sentryDsn: readStringEnv("sentry_dsn"),
+  googleClientId: readStringEnv("google_client_id"),
+  googleClientSecret: readStringEnv("google_client_secret"),
+  appleServicesId: readStringEnv("apple_services_id"),
+  appleTeamId: readStringEnv("apple_team_id"),
+  applePrivateKey: readStringEnv("apple_private_key"),
+  appleKeyId: readStringEnv("apple_key_id"),
+  enableWidgets: readBooleanEnv("enable_widgets"),
+  useMockNotifications: readBooleanEnv("use_mock_notifications"),
+  emailRedirectUrl: readStringEnv("email_redirect_url"),
+  passwordResetRedirectUrl: readStringEnv("password_reset_redirect_url"),
+  appEnv: resolvedAppEnv,
+  appVersion: Constants.expoConfig?.version || "1.0.0",
 }
 
-// Get and validate configuration
-const env = getEnvConfig()
-const validation = validateEnvConfig(env)
+const parsedEnv = EnvSchema.safeParse(envInput)
 
-// Store validation results for logging during app initialization
-// (logger might not be ready during module load)
-export const envValidation = validation
+const env: EnvConfig = parsedEnv.success
+  ? parsedEnv.data
+  : {
+      ...envInput,
+      appEnv: resolvedAppEnv,
+      appVersion: Constants.expoConfig?.version || "1.0.0",
+      posthogHost: envInput.posthogHost || "https://app.posthog.com",
+      enableWidgets: envInput.enableWidgets ?? false,
+      useMockNotifications: envInput.useMockNotifications ?? false,
+    }
 
-// Export configuration
+const validationIssues = parsedEnv.success ? [] : parsedEnv.error.issues
+
+export const envValidation = {
+  isValid: validationIssues.length === 0,
+  issues: validationIssues,
+  missing: validationIssues.map((issue) => issue.path.join(".")),
+  warnings: [],
+}
+
+if (!envValidation.isValid && env.appEnv === "production") {
+  const missingList = envValidation.missing.join(", ")
+  throw new Error(`Missing required environment variables: ${missingList}`)
+}
+
 export { env }
 
-/**
- * Check if running in development mode
- */
 export const isDevelopment = env.appEnv === "development"
-
-/**
- * Check if running in production mode
- */
 export const isProduction = env.appEnv === "production"
-
-/**
- * Check if running in staging mode
- */
 export const isStaging = env.appEnv === "staging"
 
-/**
- * Check if a service is configured
- */
 export function isServiceConfigured(
   service: "supabase" | "revenuecat" | "posthog" | "sentry" | "google" | "apple",
 ): boolean {
@@ -181,32 +167,27 @@ export function isServiceConfigured(
     case "sentry":
       return !!env.sentryDsn
     case "google":
-      // Google OAuth requires at least the client ID
-      // Note: For Supabase OAuth, the provider must also be enabled in Supabase dashboard
       return !!env.googleClientId
     case "apple":
-      // Apple Sign-In requires services ID and team ID at minimum
-      // Note: For Supabase OAuth, the provider must also be enabled in Supabase dashboard
       return !!(env.appleServicesId && env.appleTeamId)
     default:
       return false
   }
 }
 
-/**
- * Log environment validation results
- * Call this during app initialization (after logger is ready)
- */
 export function logEnvValidation(): void {
-  if (!validation.isValid) {
+  if (!envValidation.isValid) {
     logger.error("Environment configuration is invalid", {
-      missing: validation.missing,
+      issues: envValidation.issues.map((issue) => ({
+        path: issue.path.join("."),
+        message: issue.message,
+      })),
     })
   }
 
-  if (validation.warnings.length > 0 && __DEV__) {
+  if (envValidation.warnings.length > 0 && __DEV__) {
     logger.warn("Environment configuration warnings", {
-      warnings: validation.warnings,
+      warnings: envValidation.warnings,
     })
   }
 }

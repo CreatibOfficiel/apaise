@@ -26,12 +26,12 @@ export interface UserContext {
   email?: string
   username?: string
   ip_address?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface ErrorContext {
   tags?: Record<string, string>
-  extra?: Record<string, any>
+  extra?: Record<string, unknown>
   level?: ErrorLevel
   fingerprint?: string[]
   user?: UserContext
@@ -41,7 +41,7 @@ export interface Breadcrumb {
   type?: BreadcrumbType
   category?: string
   message?: string
-  data?: Record<string, any>
+  data?: Record<string, unknown>
   level?: ErrorLevel
   timestamp?: number
 }
@@ -53,7 +53,7 @@ export interface ErrorTrackingConfig {
   dist?: string
   enableInDevelopment?: boolean
   tracesSampleRate?: number
-  beforeSend?: (event: any) => any | null
+  beforeSend?: (event: Record<string, unknown>) => Record<string, unknown> | null
 
   // Performance monitoring (Sentry best practices)
   enableAutoPerformanceTracing?: boolean
@@ -85,20 +85,20 @@ export interface ErrorTrackingService {
   setUser(user: UserContext | null): void
 
   // Context
-  setContext(key: string, value: any): void
+  setContext(key: string, value: unknown): void
   setTag(key: string, value: string): void
   setTags(tags: Record<string, string>): void
-  setExtra(key: string, value: any): void
-  setExtras(extras: Record<string, any>): void
+  setExtra(key: string, value: unknown): void
+  setExtras(extras: Record<string, unknown>): void
 
   // Breadcrumbs
   addBreadcrumb(breadcrumb: Breadcrumb): void
 
   // Scope management
-  withScope?(callback: (scope: any) => void): void
+  withScope?(callback: (scope: Record<string, unknown>) => void): void
 
   // Performance monitoring
-  startTransaction?(name: string, op?: string): any
+  startTransaction?(name: string, op?: string): unknown
 
   // Utility
   close?(timeout?: number): Promise<boolean>
@@ -109,7 +109,7 @@ export interface ErrorTrackingService {
  */
 export function createErrorContext(
   tags?: Record<string, string>,
-  extra?: Record<string, any>,
+  extra?: Record<string, unknown>,
   level?: ErrorLevel,
 ): ErrorContext {
   return {
@@ -126,7 +126,7 @@ export function createBreadcrumb(
   message: string,
   category?: string,
   type?: BreadcrumbType,
-  data?: Record<string, any>,
+  data?: Record<string, unknown>,
 ): Breadcrumb {
   return {
     message,

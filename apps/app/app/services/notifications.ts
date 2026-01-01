@@ -1,6 +1,7 @@
 import { Platform } from "react-native"
 import Constants from "expo-constants"
 
+import { env } from "../config/env"
 import { logger } from "../utils/Logger"
 
 // Lazy import to avoid native module errors at module load time
@@ -102,7 +103,7 @@ const setupNotificationHandler = (): void => {
 /**
  * Check if we should use mock notifications
  */
-const forceMockNotifications = process.env.EXPO_PUBLIC_USE_MOCK_NOTIFICATIONS === "true"
+const forceMockNotifications = env.useMockNotifications
 
 const shouldUseMock = (): boolean => {
   // Explicit opt-in to mock mode via env for developers who want to bypass native prompts
@@ -232,7 +233,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
 export interface LocalNotificationInput {
   title: string
   body: string
-  data?: Record<string, any>
+  data?: Record<string, unknown>
   trigger?: import("expo-notifications").NotificationTriggerInput | null
   sound?: string
   badge?: number

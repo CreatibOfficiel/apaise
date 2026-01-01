@@ -68,6 +68,7 @@ const delay = (ms: number = 500) => new Promise((resolve) => setTimeout(resolve,
 
 // Platform-specific emoji for logging
 const getLogPrefix = () => {
+  if (!Platform || !("OS" in Platform)) return "[MockRevenueCat]"
   if (Platform.OS === "web") return "🌐 [MockRevenueCat Web]"
   return "💰 [MockRevenueCat]"
 }

@@ -51,7 +51,7 @@ export const ThemeProvider: FC<PropsWithChildren<ThemeProviderProps>> = ({
   // The operating system theme:
   const systemColorScheme = useColorScheme()
   // Our saved theme context: can be "light", "dark", or undefined (system theme)
-  const [themeScheme, setThemeScheme] = useMMKVString(THEME_STORAGE_KEY, storage as any)
+  const [themeScheme, setThemeScheme] = useMMKVString(THEME_STORAGE_KEY, storage)
 
   /**
    * This function is used to set the theme context and is exported from the useAppTheme() hook.

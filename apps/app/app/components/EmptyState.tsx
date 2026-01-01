@@ -228,12 +228,12 @@ export function EmptyState(props: EmptyStateProps) {
           tx={buttonTx}
           txOptions={buttonTxOptions}
           {...buttonProps}
-          style={{
-            ...styles.button,
-            ...(isImagePresent || isHeadingPresent || isContentPresent ? styles.buttonSpacing : {}),
-            ...($buttonStyleOverride as ViewStyle),
-            ...(buttonProps?.style as ViewStyle),
-          }}
+          style={[
+            styles.button,
+            (isImagePresent || isHeadingPresent || isContentPresent) && styles.buttonSpacing,
+            $buttonStyleOverride,
+            buttonProps?.style,
+          ]}
         />
       )}
     </View>

@@ -4,11 +4,13 @@
  * @see https://github.com/infinitered/reactotron
  */
 import { Platform, NativeModules } from "react-native"
+import { MMKV } from "react-native-mmkv"
 import { ArgType } from "reactotron-core-client"
 import { ReactotronReactNative } from "reactotron-react-native"
 import mmkvPlugin from "reactotron-react-native-mmkv"
 
-import { goBack, resetRoot, navigate } from "@/navigators/navigationUtilities"
+import type { AppStackParamList } from "@/navigators/navigationTypes"
+import { goBack, resetRoot, navigate, navigationRef } from "@/navigators/navigationUtilities"
 import { storage } from "@/utils/storage"
 
 import { Reactotron } from "./ReactotronClient"
@@ -21,7 +23,9 @@ const reactotron = Reactotron.configure({
   },
 })
 
-reactotron.use(mmkvPlugin<ReactotronReactNative>({ storage: storage as any }))
+if (Platform.OS !== "web") {
+  reactotron.use(mmkvPlugin<ReactotronReactNative>({ storage: storage as MMKV }))
+}
 
 if (Platform.OS !== "web") {
   reactotron.useReactNative({
@@ -68,8 +72,12 @@ reactotron.onCustomCommand<[{ name: "route"; type: ArgType.String }]>({
     const { route } = args ?? {}
     if (route) {
       Reactotron.log(`Navigating to: ${route}`)
-      // @ts-ignore
-      navigate(route as any) // this should be tied to the navigator, but since this is for debugging, we can navigate to illegal routes
+      const routeNames = navigationRef.getRootState()?.routeNames ?? []
+      if (routeNames.includes(route)) {
+        navigate(route as keyof AppStackParamList)
+      } else {
+        Reactotron.log(`Could not navigate. Unknown route: ${route}`)
+      }
     } else {
       Reactotron.log("Could not navigate. No route provided.")
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { BackHandler, Linking, Platform } from "react-native"
 import {
+  CommonActions,
   NavigationState,
   PartialState,
   createNavigationContainerRef,
@@ -169,16 +170,20 @@ export function useNavigationPersistence(storage: Storage, persistenceKey: strin
 }
 
 /**
- * use this to navigate without the navigation
- * prop. If you have access to the navigation prop, do not use this.
- * @see {@link https://reactnavigation.org/docs/navigating-without-navigation-prop/}
- * @param {unknown} name - The name of the route to navigate to.
- * @param {unknown} params - The params to pass to the route.
+ * Use this to navigate without the navigation prop.
+ * If you have access to the navigation prop, do not use this.
  */
-export function navigate(name: unknown, params?: unknown) {
+export function navigate(
+  name: keyof AppStackParamList,
+  params?: AppStackParamList[keyof AppStackParamList],
+) {
   if (navigationRef.isReady()) {
-    // @ts-expect-error
-    navigationRef.navigate(name as never, params as never)
+    navigationRef.dispatch(
+      CommonActions.navigate({
+        name: name as string,
+        params: params as object | undefined,
+      }),
+    )
   }
 }
 

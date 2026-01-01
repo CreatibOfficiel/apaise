@@ -31,7 +31,7 @@ export function parseDeepLink(url: string): {
 
     // Extract screen/path
     const pathParts = parsedUrl.pathname.split("/").filter(Boolean)
-    const screen = pathParts[0]
+    const screen = pathParts[0] || parsedUrl.hostname || undefined
     const path = pathParts.slice(1).join("/")
 
     // Extract query params

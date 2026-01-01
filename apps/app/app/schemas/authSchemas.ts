@@ -64,3 +64,22 @@ export const registerSchema = z
 export const forgotPasswordSchema = z.object({
   email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
 })
+
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (!confirmPassword || confirmPassword.trim() === "") {
+      return
+    }
+
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+      })
+    }
+  })

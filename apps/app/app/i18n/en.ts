@@ -122,6 +122,28 @@ const en = {
     closeButton: "Close",
     backButton: "Go back",
   },
+  authCallbackScreen: {
+    invalidParams: "Invalid auth callback parameters.",
+    loadingMessage: "Signing you in...",
+    loadingStatus: "Finalizing your session.",
+    errorTitle: "We couldn't finish signing you in",
+    backToLogin: "Back to Login",
+  },
+  resetPasswordScreen: {
+    missingToken: "Missing reset token. Please request a new reset link.",
+    verifyingTitle: "Securing your reset link...",
+    verifyingSubtitle: "One moment while we verify your request.",
+    successTitle: "Password updated",
+    successSubtitle: "You can now sign in with your new password.",
+    backToLogin: "Back to Login",
+    title: "Reset your password",
+    subtitle: "Choose a new password for your account.",
+    passwordLabel: "New password",
+    passwordPlaceholder: "Create a new password",
+    confirmLabel: "Confirm password",
+    confirmPlaceholder: "Re-enter your password",
+    submit: "Update Password",
+  },
   onboardingScreenLayout: {
     // Title and subtitle are typically passed as props
   },

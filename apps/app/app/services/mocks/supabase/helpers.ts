@@ -403,8 +403,8 @@ export function createMockUser(email: string, metadata?: Record<string, any>): U
     email,
     created_at: new Date().toISOString(),
     // Don't set email_confirmed_at by default - simulates email confirmation required
-    email_confirmed_at: null,
-    confirmed_at: null,
+    email_confirmed_at: undefined,
+    confirmed_at: undefined,
     app_metadata: {},
     user_metadata: userMetadata,
   }

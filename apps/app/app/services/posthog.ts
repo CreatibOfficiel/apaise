@@ -7,6 +7,7 @@
 
 import { Platform } from "react-native"
 
+import { env } from "../config/env"
 import type {
   AnalyticsService,
   AnalyticsConfig,
@@ -14,14 +15,60 @@ import type {
   UserProperties,
   ScreenProperties,
   GroupProperties,
+  FeatureFlagValue,
 } from "../types/analytics"
-import { MockPostHog } from "./mocks/posthog"
 import { logger } from "../utils/Logger"
+import { MockPostHog } from "./mocks/posthog"
+
+type PostHogClient = {
+  capture: (event: string, properties?: EventProperties) => void
+  screen?: (name: string, properties?: ScreenProperties) => void
+  identify: (userId: string, properties?: UserProperties) => void
+  reset: () => void
+  setPersonProperties: (properties: UserProperties) => void
+  group: (type: string, id: string, properties?: GroupProperties) => void
+  isFeatureEnabled: (flag: string) => boolean
+  getFeatureFlag: (flag: string) => FeatureFlagValue
+  onFeatureFlags?: (callback: (flags: Record<string, FeatureFlagValue>) => void) => void
+  optIn: () => void
+  optOut: () => void
+  flush?: () => Promise<void>
+  shutdown?: () => Promise<void>
+}
+
+type PostHogWebModule = {
+  init?: (
+    apiKey: string,
+    options: {
+      api_host?: string
+      autocapture?: boolean
+      capture_pageview?: boolean
+      loaded?: (posthog: PostHogClient) => void
+    },
+  ) => void
+  capture?: PostHogClient["capture"]
+}
+
+const isPostHogClient = (client: unknown): client is PostHogClient => {
+  if (!client || typeof client !== "object") return false
+  const candidate = client as PostHogClient
+  return (
+    typeof candidate.capture === "function" &&
+    typeof candidate.identify === "function" &&
+    typeof candidate.reset === "function" &&
+    typeof candidate.setPersonProperties === "function" &&
+    typeof candidate.group === "function" &&
+    typeof candidate.isFeatureEnabled === "function" &&
+    typeof candidate.getFeatureFlag === "function" &&
+    typeof candidate.optIn === "function" &&
+    typeof candidate.optOut === "function"
+  )
+}
 
 // PostHog SDKs (platform-specific)
-let PostHogRN: any = null // React Native
-let PostHogJS: any = null // Web
-let loadPostHogWebPromise: Promise<any | null> | null = null
+let PostHogRN: { new (apiKey: string, options?: { host?: string }): PostHogClient } | null = null // React Native
+let PostHogJS: PostHogWebModule | null = null // Web
+let loadPostHogWebPromise: Promise<PostHogWebModule | null> | null = null
 
 // Load React Native SDK eagerly (native only)
 if (Platform.OS !== "web") {
@@ -39,14 +86,14 @@ if (Platform.OS !== "web") {
 }
 
 // Lazy-load PostHog web SDK to keep the initial web bundle lighter
-async function loadPostHogWebSdk(): Promise<any | null> {
+async function loadPostHogWebSdk(): Promise<PostHogWebModule | null> {
   if (PostHogJS) return PostHogJS
   if (loadPostHogWebPromise) return loadPostHogWebPromise
 
   loadPostHogWebPromise = import("posthog-js")
     .then((mod) => {
-      const candidate = (mod as any).posthog || (mod as any).default || (mod as any)
-      PostHogJS = candidate
+      const candidate = mod as unknown as PostHogWebModule & { posthog?: PostHogWebModule }
+      PostHogJS = candidate.posthog || candidate
       return PostHogJS
     })
     .catch((error) => {
@@ -59,15 +106,15 @@ async function loadPostHogWebSdk(): Promise<any | null> {
   return loadPostHogWebPromise
 }
 
-const apiKey = process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ""
-const host = process.env.EXPO_PUBLIC_POSTHOG_HOST || "https://app.posthog.com"
+const apiKey = env.posthogApiKey || ""
+const host = env.posthogHost || "https://app.posthog.com"
 
 // Use mock if API key is missing in development
 const useMock = __DEV__ && !apiKey
 
 class PostHogService implements AnalyticsService {
   platform = "posthog" as const
-  private client: any = null
+  private client: PostHogClient | null = null
   private initialized = false
 
   async initialize(config?: AnalyticsConfig): Promise<void> {
@@ -108,17 +155,19 @@ class PostHogService implements AnalyticsService {
             api_host: apiHost,
             autocapture: config?.captureClicks ?? true,
             capture_pageview: config?.captureScreens ?? true,
-            loaded: (posthog: any) => {
-              this.client = posthog
-              this.initialized = true
-              if (__DEV__) {
-                logger.debug("📊 [PostHog] Initialized for web")
+            loaded: (posthog: PostHogClient) => {
+              if (isPostHogClient(posthog)) {
+                this.client = posthog
+                this.initialized = true
+                if (__DEV__) {
+                  logger.debug("📊 [PostHog] Initialized for web")
+                }
               }
             },
           })
           // Set client to PostHogJS instance if callback hasn't fired yet
           // posthog-js exposes itself as the client after init
-          if (!this.client && PostHogJS) {
+          if (!this.client && PostHogJS && isPostHogClient(PostHogJS)) {
             this.client = PostHogJS
             this.initialized = true
             if (__DEV__) {
@@ -132,7 +181,7 @@ class PostHogService implements AnalyticsService {
             keys: Object.keys(PostHogJS || {}),
           })
           // Try to use PostHogJS directly as the client if it has capture method
-          if (PostHogJS && typeof PostHogJS.capture === "function") {
+          if (PostHogJS && isPostHogClient(PostHogJS)) {
             this.client = PostHogJS
             this.initialized = true
             if (__DEV__) {
@@ -181,7 +230,7 @@ class PostHogService implements AnalyticsService {
           ...properties,
         })
       } else {
-        this.client.screen(name, properties)
+        this.client.screen?.(name, properties)
       }
 
       if (__DEV__) {
@@ -260,7 +309,7 @@ class PostHogService implements AnalyticsService {
     }
   }
 
-  getFeatureFlag(flag: string): any {
+  getFeatureFlag(flag: string): FeatureFlagValue | undefined {
     if (!this.client) return undefined
 
     try {
@@ -271,11 +320,11 @@ class PostHogService implements AnalyticsService {
     }
   }
 
-  onFeatureFlags(callback: (flags: Record<string, any>) => void): void {
+  onFeatureFlags(callback: (flags: Record<string, FeatureFlagValue>) => void): void {
     if (!this.client) return
 
     try {
-      this.client.onFeatureFlags(callback)
+      this.client.onFeatureFlags?.(callback)
     } catch (error) {
       logger.error("PostHog onFeatureFlags error", {}, error as Error)
     }

@@ -7,6 +7,8 @@
 
 export type AnalyticsPlatform = "posthog" | "mock"
 
+export type FeatureFlagValue = boolean | string | number | null
+
 export interface EventProperties {
   [key: string]: string | number | boolean | null | undefined
 }
@@ -35,8 +37,8 @@ export interface AnalyticsConfig {
 
 export interface FeatureFlag {
   key: string
-  value: boolean | string | number
-  payload?: any
+  value: FeatureFlagValue
+  payload?: Record<string, unknown>
 }
 
 export interface AnalyticsService {
@@ -61,8 +63,8 @@ export interface AnalyticsService {
 
   // Feature flags
   isFeatureEnabled(flag: string): boolean
-  getFeatureFlag(flag: string): any
-  onFeatureFlags?(callback: (flags: Record<string, any>) => void): void
+  getFeatureFlag(flag: string): FeatureFlagValue | undefined
+  onFeatureFlags?(callback: (flags: Record<string, FeatureFlagValue>) => void): void
 
   // Opt in/out
   optIn(): void

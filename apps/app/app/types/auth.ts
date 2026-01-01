@@ -5,60 +5,31 @@
  * across different platforms and providers (Supabase, etc.)
  */
 
+import type {
+  SignInWithPasswordCredentials,
+  SignUpWithPasswordCredentials,
+} from "@supabase/auth-js"
+import type {
+  AuthResponse as SupabaseAuthResponse,
+  Session as SupabaseSession,
+  User as SupabaseUser,
+  UserAttributes,
+} from "@supabase/supabase-js"
+
 export type AuthProvider = "supabase" | "mock"
 
-export interface User {
-  id: string
-  aud: string
-  email?: string
-  created_at: string
-  email_confirmed_at?: string | null
-  confirmed_at?: string | null
-  app_metadata: Record<string, any>
-  user_metadata: Record<string, any>
-  [key: string]: any
-}
+export type User = SupabaseUser
+export type Session = SupabaseSession
+export type AuthResponse = SupabaseAuthResponse
 
-export interface Session {
-  access_token: string
-  refresh_token: string
-  expires_in: number
-  expires_at?: number
-  token_type: "bearer"
-  user: User
-}
-
-export interface AuthResponse<T = User> {
-  data: {
-    user: T | null
-    session: Session | null
-  }
-  error: Error | null
-}
-
-export interface SignUpCredentials {
-  email: string
-  password: string
-  options?: {
-    data?: Record<string, any>
-    emailRedirectTo?: string
-  }
-}
-
-export interface SignInCredentials {
-  email: string
-  password: string
-}
+export type SignUpCredentials = SignUpWithPasswordCredentials
+export type SignInCredentials = SignInWithPasswordCredentials
 
 export interface ResetPasswordOptions {
   redirectTo?: string
 }
 
-export interface UpdateUserAttributes {
-  email?: string
-  password?: string
-  data?: Record<string, any>
-}
+export type UpdateUserAttributes = UserAttributes
 
 export type AuthChangeEvent =
   | "SIGNED_IN"
@@ -92,7 +63,7 @@ export interface AuthService {
     email: string,
     options?: ResetPasswordOptions,
   ): Promise<{
-    data: any
+    data: Record<string, unknown> | null
     error: Error | null
   }>
 

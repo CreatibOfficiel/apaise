@@ -21,7 +21,16 @@ export type AppStackParamList = {
   Login: undefined
   Register: undefined
   ForgotPassword: undefined
+  ResetPassword: { code?: string; token?: string } | undefined
   EmailVerification: undefined
+  AuthCallback:
+    | {
+        code?: string
+        access_token?: string
+        refresh_token?: string
+        type?: string
+      }
+    | undefined
   Starter: undefined
   Paywall: undefined
   Profile: undefined

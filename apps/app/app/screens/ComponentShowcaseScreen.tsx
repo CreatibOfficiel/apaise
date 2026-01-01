@@ -118,9 +118,7 @@ export const ComponentShowcaseScreen: FC<ComponentShowcaseScreenProps> =
             <Button text="Loading" loading={isLoading} onPress={simulateLoading} />
             <Button
               text="With Icon"
-              LeftAccessory={() => (
-                <Text style={{ color: theme.colors.primaryForeground }}>⭐</Text>
-              )}
+              LeftAccessory={() => <Text style={styles.starIcon}>⭐</Text>}
             />
           </View>
         </Section>
@@ -645,6 +643,9 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     gap: theme.spacing.md,
     alignItems: "center",
+  },
+  starIcon: {
+    color: theme.colors.primaryForeground,
   },
   tabContent: {
     padding: theme.spacing.md,

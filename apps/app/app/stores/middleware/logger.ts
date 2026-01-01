@@ -22,7 +22,7 @@ type LoggerImpl = <T>(f: StateCreator<T, [], []>, name?: string) => StateCreator
 const loggerImpl: LoggerImpl = (f, name) => (set, get, store) => {
   const loggedSet: typeof set = (...args) => {
     const prevState = get()
-    set(...(args as [any, any]))
+    set(...(args as Parameters<typeof set>))
     const nextState = get()
 
     if (__DEV__) {

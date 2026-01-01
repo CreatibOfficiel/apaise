@@ -48,7 +48,7 @@ export interface AppError {
   originalError?: Error
   code?: string
   retryable: boolean
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 /**
@@ -215,7 +215,7 @@ class ErrorHandler {
   /**
    * Handle an error with full processing
    */
-  handle(error: Error | string, context?: Record<string, any>): AppError {
+  handle(error: Error | string, context?: Record<string, unknown>): AppError {
     const originalError = typeof error === "string" ? new Error(error) : error
     const { category, severity } = classifyError(originalError)
 
@@ -308,7 +308,7 @@ class ErrorHandler {
     message: string,
     category: ErrorCategory,
     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
   ): AppError {
     return {
       category,
@@ -329,7 +329,7 @@ export const errorHandler = new ErrorHandler()
  */
 export async function handleAsync<T>(
   operation: () => Promise<T>,
-  context?: Record<string, any>,
+  context?: Record<string, unknown>,
 ): Promise<{ data?: T; error?: AppError }> {
   try {
     const data = await operation()
@@ -347,7 +347,7 @@ export async function retryWithBackoff<T>(
   operation: () => Promise<T>,
   maxRetries: number = 3,
   initialDelay: number = TIMING.RETRY_DELAY_NETWORK,
-  context?: Record<string, any>,
+  context?: Record<string, unknown>,
 ): Promise<{ data?: T; error?: AppError }> {
   let lastError: AppError | undefined
 

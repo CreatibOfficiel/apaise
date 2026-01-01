@@ -204,6 +204,21 @@ const AppStack = () => {
             }}
           />
           <Stack.Screen
+            name="ResetPassword"
+            component={Screens.ResetPasswordScreen}
+            options={{
+              animation: "slide_from_right",
+            }}
+          />
+          <Stack.Screen
+            name="AuthCallback"
+            component={Screens.AuthCallbackScreen}
+            options={{
+              animation: "fade",
+              gestureEnabled: false,
+            }}
+          />
+          <Stack.Screen
             name="EmailVerification"
             component={Screens.EmailVerificationScreen}
             options={{

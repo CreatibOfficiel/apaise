@@ -9,7 +9,12 @@ import { useCallback } from "react"
 
 import { posthog } from "../services/posthog"
 import { sentry } from "../services/sentry"
-import type { EventProperties, UserProperties, ScreenProperties } from "../types/analytics"
+import type {
+  EventProperties,
+  UserProperties,
+  ScreenProperties,
+  FeatureFlagValue,
+} from "../types/analytics"
 import type { ErrorContext } from "../types/errorTracking"
 import {
   trackEvent as utilTrackEvent,
@@ -38,7 +43,7 @@ export interface UseAnalyticsReturn {
 
   // Feature flags
   isFeatureEnabled: (flag: string) => boolean
-  getFeatureFlag: (flag: string) => any
+  getFeatureFlag: (flag: string) => FeatureFlagValue | undefined
 
   // Convenience methods
   auth: typeof trackAuth

@@ -66,7 +66,9 @@ export const ProfileScreen: FC = () => {
       }
     : {}
 
-  const userName = user?.user_metadata?.first_name || user?.email?.split("@")[0] || "User"
+  const firstName =
+    typeof user?.user_metadata?.first_name === "string" ? user.user_metadata.first_name : undefined
+  const userName = firstName ?? user?.email?.split("@")[0] ?? "User"
   const userInitials = userName.slice(0, 2).toUpperCase()
 
   const toggleThemeMode = () => {

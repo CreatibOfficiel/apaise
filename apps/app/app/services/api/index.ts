@@ -12,7 +12,9 @@ import {
 
 import Config from "@/config"
 import { API_CONFIG } from "@/config/constants"
+import { queryClient } from "@/hooks/queries"
 import type { EpisodeItem } from "@/services/api/types" // @demo remove-current-line
+import { useAuthStore } from "@/stores"
 import { errorHandler } from "@/utils/ErrorHandler"
 import { logger } from "@/utils/Logger"
 
@@ -21,6 +23,7 @@ import type {
   ApiConfig,
   ApiFeedResponse, // @demo remove-current-line
 } from "./types"
+import { supabase } from "../supabase"
 
 /**
  * Configuring the apisauce instance.
@@ -76,6 +79,7 @@ const enforceSecureBaseUrl = (url: string) => {
 export class Api {
   apisauce: ApisauceInstance
   config: ApiConfig
+  private isHandlingUnauthorized = false
 
   /**
    * Set up our API instance. Keep this lightweight!
@@ -117,13 +121,38 @@ export class Api {
           problem: response.problem,
         })
       }
+    })
 
-      // Handle global errors here if needed (e.g. 401 logout)
+    this.apisauce.addAsyncResponseTransform(async (response) => {
       if (response.status === 401) {
         logger.warn("API Unauthorized", { url: response.config?.url })
-        // Could trigger logout here via event emitter or similar
+        await this.handleUnauthorized()
       }
     })
+  }
+
+  private async handleUnauthorized(): Promise<void> {
+    if (this.isHandlingUnauthorized) return
+    this.isHandlingUnauthorized = true
+
+    try {
+      const { session, setSession, signOut } = useAuthStore.getState()
+
+      if (session && typeof supabase.auth.refreshSession === "function") {
+        const { data, error } = await supabase.auth.refreshSession()
+        if (!error && data.session) {
+          setSession(data.session)
+          return
+        }
+      }
+
+      await signOut()
+      queryClient.clear()
+    } catch (error) {
+      logger.error("Failed to handle unauthorized response", {}, error as Error)
+    } finally {
+      this.isHandlingUnauthorized = false
+    }
   }
 
   // @demo remove-block-start

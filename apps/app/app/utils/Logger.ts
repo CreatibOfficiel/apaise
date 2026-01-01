@@ -78,7 +78,7 @@ function isSensitiveKey(key: string): boolean {
 /**
  * Check if a value contains sensitive data
  */
-function isSensitiveValue(value: any): boolean {
+function isSensitiveValue(value: unknown): boolean {
   if (typeof value !== "string") {
     return false
   }
@@ -122,61 +122,52 @@ function redactSensitiveString(str: string): string {
 }
 
 /**
- * Redact sensitive data from an object
+ * Redact sensitive data from values
  */
-function redactSensitiveData(data: any): any {
-  if (data === null || data === undefined) {
-    return data
+function redactSensitiveValue(value: unknown): unknown {
+  if (value === null || value === undefined) {
+    return value
   }
 
-  // Handle strings (values)
-  if (typeof data === "string") {
-    // Check if it's a sensitive value pattern
-    if (isSensitiveValue(data)) {
-      // For JWT tokens, show first few chars
-      if (/^eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*$/.test(data)) {
-        return `${data.substring(0, 10)}...[REDACTED]`
+  if (typeof value === "string") {
+    if (isSensitiveValue(value)) {
+      if (/^eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*$/.test(value)) {
+        return `${value.substring(0, 10)}...[REDACTED]`
       }
-      // For emails, mask but show domain
-      if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(data)) {
-        const [local, domain] = data.split("@")
+      if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+        const [local, domain] = value.split("@")
         const maskedLocal = local.length > 2 ? `${local[0]}***${local[local.length - 1]}` : "***"
         return `${maskedLocal}@${domain}`
       }
-      // For other sensitive values, fully redact
       return "[REDACTED]"
     }
-    return data
+    return value
   }
 
-  if (typeof data !== "object") {
-    return data
+  if (Array.isArray(value)) {
+    return value.map(redactSensitiveValue)
   }
 
-  if (Array.isArray(data)) {
-    return data.map(redactSensitiveData)
+  if (typeof value === "object") {
+    return redactSensitiveData(value as Record<string, unknown>)
   }
 
-  const redacted: Record<string, any> = {}
+  return value
+}
+
+/**
+ * Redact sensitive data from an object
+ */
+function redactSensitiveData(data: Record<string, unknown>): Record<string, unknown> {
+  const redacted: Record<string, unknown> = {}
+
   for (const [key, value] of Object.entries(data)) {
     if (isSensitiveKey(key)) {
-      // Key is sensitive - always redact
       redacted[key] = "[REDACTED]"
     } else if (typeof value === "string" && isSensitiveValue(value)) {
-      // Value is sensitive even though key isn't - redact it
-      if (/^eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*$/.test(value)) {
-        redacted[key] = `${value.substring(0, 10)}...[REDACTED]`
-      } else if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
-        const [local, domain] = value.split("@")
-        const maskedLocal = local.length > 2 ? `${local[0]}***${local[local.length - 1]}` : "***"
-        redacted[key] = `${maskedLocal}@${domain}`
-      } else {
-        redacted[key] = "[REDACTED]"
-      }
-    } else if (typeof value === "object" && value !== null) {
-      redacted[key] = redactSensitiveData(value)
+      redacted[key] = redactSensitiveValue(value)
     } else {
-      redacted[key] = value
+      redacted[key] = redactSensitiveValue(value)
     }
   }
 
@@ -189,7 +180,7 @@ function redactSensitiveData(data: any): any {
 function formatLogMessage(
   level: LogLevel,
   message: string,
-  metadata?: Record<string, any>,
+  metadata?: Record<string, unknown>,
 ): string {
   const timestamp = new Date().toISOString()
   const metadataStr = metadata ? ` ${JSON.stringify(metadata)}` : ""
@@ -241,7 +232,7 @@ class Logger {
   /**
    * Prepare metadata for logging
    */
-  private prepareMetadata(metadata?: Record<string, any>): Record<string, any> | undefined {
+  private prepareMetadata(metadata?: Record<string, unknown>): Record<string, unknown> | undefined {
     if (!metadata) return undefined
 
     return this.config.redactSensitiveData ? redactSensitiveData(metadata) : metadata
@@ -258,7 +249,7 @@ class Logger {
   /**
    * Log to console
    */
-  private logToConsole(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+  private logToConsole(level: LogLevel, message: string, metadata?: Record<string, unknown>): void {
     if (!this.config.enableConsole) return
 
     const safeMessage = this.prepareMessage(message)
@@ -283,7 +274,11 @@ class Logger {
   /**
    * Log to analytics
    */
-  private logToAnalytics(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+  private logToAnalytics(
+    level: LogLevel,
+    message: string,
+    metadata?: Record<string, unknown>,
+  ): void {
     if (!this.config.enableAnalytics) return
 
     // Only track warnings and errors to analytics
@@ -310,7 +305,7 @@ class Logger {
   private logToCrashReporting(
     level: LogLevel,
     message: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     error?: Error,
   ): void {
     if (!this.config.enableCrashReporting) return
@@ -346,7 +341,7 @@ class Logger {
   private log(
     level: LogLevel,
     message: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     error?: Error,
   ): void {
     if (!this.shouldLog(level)) return
@@ -362,35 +357,35 @@ class Logger {
   /**
    * Debug level logging
    */
-  debug(message: string, metadata?: Record<string, any>): void {
+  debug(message: string, metadata?: Record<string, unknown>): void {
     this.log(LogLevel.DEBUG, message, metadata)
   }
 
   /**
    * Info level logging
    */
-  info(message: string, metadata?: Record<string, any>): void {
+  info(message: string, metadata?: Record<string, unknown>): void {
     this.log(LogLevel.INFO, message, metadata)
   }
 
   /**
    * Warning level logging
    */
-  warn(message: string, metadata?: Record<string, any>): void {
+  warn(message: string, metadata?: Record<string, unknown>): void {
     this.log(LogLevel.WARN, message, metadata)
   }
 
   /**
    * Error level logging
    */
-  error(message: string, metadata?: Record<string, any>, error?: Error): void {
+  error(message: string, metadata?: Record<string, unknown>, error?: Error): void {
     this.log(LogLevel.ERROR, message, metadata, error)
   }
 
   /**
    * Create a child logger with additional context
    */
-  child(context: Record<string, any>): Logger {
+  child(context: Record<string, unknown>): Logger {
     const childLogger = new Logger()
     childLogger.config = { ...this.config }
 
@@ -399,7 +394,7 @@ class Logger {
     childLogger.log = (
       level: LogLevel,
       message: string,
-      metadata?: Record<string, any>,
+      metadata?: Record<string, unknown>,
       error?: Error,
     ) => {
       originalLog(level, message, { ...context, ...metadata }, error)
@@ -432,7 +427,7 @@ export function createLogger(moduleName: string): Logger {
 export async function measureExecutionTime<T>(
   operation: () => Promise<T>,
   operationName: string,
-  metadata?: Record<string, any>,
+  metadata?: Record<string, unknown>,
 ): Promise<T> {
   const startTime = Date.now()
 

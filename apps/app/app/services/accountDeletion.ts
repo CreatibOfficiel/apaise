@@ -12,8 +12,8 @@ async function deleteSupabaseAccount(session: Session) {
 
   try {
     // Prefer edge function when deployed (best-practice path)
-    if ((supabase as any).functions?.invoke) {
-      const { error } = await (supabase as any).functions.invoke("delete-user", {
+    if (supabase.functions?.invoke) {
+      const { error } = await supabase.functions.invoke("delete-user", {
         body: { userId: session.user.id },
         headers: {
           Authorization: `Bearer ${session.access_token}`,

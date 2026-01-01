@@ -1,9 +1,7 @@
 import { Platform } from "react-native"
-import { CustomerInfo, PurchasesPackage } from "react-native-purchases"
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 
-import { useAuthStore } from "./auth"
 import { revenueCat } from "../services/revenuecat"
 import type {
   SubscriptionPlatform,
@@ -13,27 +11,33 @@ import type {
 } from "../types/subscription"
 import * as storage from "../utils/storage"
 
+const getAuthStore = () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useAuthStore } = require("./auth") as typeof import("./auth")
+  return useAuthStore
+}
+
 interface SubscriptionState {
   isPro: boolean
   platform: SubscriptionPlatform
 
   // RevenueCat data (mobile)
-  customerInfo: CustomerInfo | null
+  customerInfo: SubscriptionInfo | null
 
   // RevenueCat Web data
   webSubscriptionInfo: SubscriptionInfo | null
 
   // Unified packages
-  packages: (PurchasesPackage | PricingPackage)[]
+  packages: PricingPackage[]
   loading: boolean
 
   // Actions
-  setCustomerInfo: (info: CustomerInfo | null) => void
+  setCustomerInfo: (info: SubscriptionInfo | null) => void
   setWebSubscriptionInfo: (info: SubscriptionInfo | null) => void
-  setPackages: (packages: (PurchasesPackage | PricingPackage)[]) => void
+  setPackages: (packages: PricingPackage[]) => void
   checkProStatus: () => void
   fetchPackages: () => Promise<void>
-  purchasePackage: (pkg: PurchasesPackage | PricingPackage) => Promise<{ error?: Error }>
+  purchasePackage: (pkg: PricingPackage) => Promise<{ error?: Error }>
   restorePurchases: () => Promise<{ error?: Error }>
   initialize: () => Promise<void>
   getActiveService: () => SubscriptionService
@@ -87,20 +91,12 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
         let isPro = false
 
-        // Check RevenueCat (mobile) - customerInfo is actually a SubscriptionInfo object
-        if (customerInfo && platform === "revenuecat") {
-          // Check if it has the new SubscriptionInfo structure (with isActive property)
-          if ("isActive" in customerInfo) {
-            isPro = (customerInfo as any).isActive
-          } else {
-            // Fallback to old structure
-            isPro = !!customerInfo.entitlements?.active?.["pro"]
-          }
+        if (platform === "revenuecat") {
+          isPro = customerInfo?.isActive ?? false
         }
 
-        // Check RevenueCat Web
-        if (webSubscriptionInfo && platform === "revenuecat-web") {
-          isPro = webSubscriptionInfo.isActive
+        if (platform === "revenuecat-web") {
+          isPro = webSubscriptionInfo?.isActive ?? false
         }
 
         set({ isPro })
@@ -111,14 +107,15 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           const service = get().getActiveService()
           const packages = await service.getPackages()
           set({ packages })
-        } catch (error: any) {
+        } catch (error) {
           // getPackages already handles "no products" errors gracefully
           // Only log unexpected errors here
           if (
-            !error?.message?.includes("no products registered") &&
-            !error?.message?.includes("offerings") &&
-            error?.code !== "23" &&
-            error?.code !== "1"
+            !(error instanceof Error) ||
+            (!error.message.includes("no products registered") &&
+              !error.message.includes("offerings") &&
+              (error as { code?: string }).code !== "23" &&
+              (error as { code?: string }).code !== "1")
           ) {
             console.error("Failed to fetch packages:", error)
           }
@@ -131,7 +128,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           const service = get().getActiveService()
           const { platform } = get()
 
-          const result = await service.purchasePackage(pkg as any)
+          const result = await service.purchasePackage(pkg)
 
           if (platform === "revenuecat-web") {
             set({
@@ -140,7 +137,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             })
           } else {
             set({
-              customerInfo: result.subscriptionInfo as any,
+              customerInfo: result.subscriptionInfo,
               loading: false,
             })
           }
@@ -148,15 +145,15 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           get().checkProStatus()
 
           return result.error ? { error: result.error } : {}
-        } catch (error: any) {
+        } catch (error) {
           set({ loading: false })
 
           // User cancelled
-          if (error.userCancelled) {
+          if (error && typeof error === "object" && "userCancelled" in error) {
             return {}
           }
 
-          return { error: error as Error }
+          return { error: error instanceof Error ? error : new Error(String(error)) }
         }
       },
 
@@ -175,7 +172,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             })
           } else {
             set({
-              customerInfo: (result as any).subscriptionInfo || result.subscriptionInfo,
+              customerInfo: result.subscriptionInfo,
               loading: false,
             })
           }
@@ -191,7 +188,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 
       initialize: async () => {
         try {
-          const user = useAuthStore.getState().user
+          const user = getAuthStore().getState().user
           const service = get().getActiveService()
           const { platform } = get()
 
@@ -202,7 +199,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
             if (platform === "revenuecat-web") {
               set({ webSubscriptionInfo: result.subscriptionInfo })
             } else {
-              set({ customerInfo: result.subscriptionInfo as any })
+              set({ customerInfo: result.subscriptionInfo })
             }
 
             get().checkProStatus()
@@ -219,7 +216,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
                 })
               } else {
                 set({
-                  customerInfo: subscriptionInfo as any,
+                  customerInfo: subscriptionInfo,
                   isPro: false,
                 })
               }
@@ -249,7 +246,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
               if (platform === "revenuecat-web") {
                 set({ webSubscriptionInfo: info })
               } else {
-                set({ customerInfo: info as any })
+                set({ customerInfo: info })
               }
               get().checkProStatus()
             })
@@ -274,14 +271,29 @@ export const useSubscriptionStore = create<SubscriptionState>()(
 )
 
 // Listen for auth changes to re-initialize subscription status
-useAuthStore.subscribe((state, prevState) => {
-  // If user changed (logged in or out)
-  if (state.user?.id !== prevState.user?.id) {
-    useSubscriptionStore
-      .getState()
-      .initialize()
-      .catch((err) => {
-        console.error("Failed to re-initialize subscription on auth change:", err)
-      })
-  }
-})
+const subscribeToAuthChanges = () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const useAuthStore = getAuthStore()
+  useAuthStore.subscribe((state, prevState) => {
+    if (state.user?.id !== prevState.user?.id) {
+      useSubscriptionStore
+        .getState()
+        .initialize()
+        .catch((err) => {
+          console.error("Failed to re-initialize subscription on auth change:", err)
+        })
+    }
+  })
+}
+
+if (process.env.NODE_ENV !== "test" && typeof setTimeout === "function") {
+  setTimeout(() => {
+    try {
+      subscribeToAuthChanges()
+    } catch (error) {
+      if (__DEV__) {
+        console.warn("Failed to subscribe to auth changes for subscription store", error)
+      }
+    }
+  }, 0)
+}

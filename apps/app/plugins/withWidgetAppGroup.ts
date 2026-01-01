@@ -10,7 +10,9 @@ type PluginProps = {
 const withWidgetAppGroup: ConfigPlugin<PluginProps> = (config, props = {}) => {
   const bundleIdentifier =
     config.ios?.bundleIdentifier ??
-    (config as any).bundleIdentifier ??
+    ("bundleIdentifier" in config
+      ? (config as { bundleIdentifier?: string }).bundleIdentifier
+      : undefined) ??
     config.android?.package ??
     "com.shipnative.app"
   const appGroupIdentifier = props.appGroupIdentifier ?? `group.${bundleIdentifier}`

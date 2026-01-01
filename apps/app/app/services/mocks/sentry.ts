@@ -28,7 +28,7 @@ class MockSentry implements ErrorTrackingService {
   platform = "mock" as const
   private user: UserContext | null = null
   private tags: Record<string, string> = {}
-  private extras: Record<string, any> = {}
+  private extras: Record<string, unknown> = {}
   private breadcrumbs: Breadcrumb[] = []
   private errors: MockError[] = []
 
@@ -118,7 +118,7 @@ class MockSentry implements ErrorTrackingService {
     }
   }
 
-  setContext(key: string, value: any): void {
+  setContext(key: string, value: unknown): void {
     if (__DEV__) {
       logger.debug(`🐛 [MockSentry] Set context "${key}"`, { [key]: value })
     }
@@ -140,7 +140,7 @@ class MockSentry implements ErrorTrackingService {
     }
   }
 
-  setExtra(key: string, value: any): void {
+  setExtra(key: string, value: unknown): void {
     this.extras[key] = value
 
     if (__DEV__) {
@@ -148,7 +148,7 @@ class MockSentry implements ErrorTrackingService {
     }
   }
 
-  setExtras(extras: Record<string, any>): void {
+  setExtras(extras: Record<string, unknown>): void {
     this.extras = { ...this.extras, ...extras }
 
     if (__DEV__) {
@@ -171,7 +171,7 @@ class MockSentry implements ErrorTrackingService {
     }
   }
 
-  withScope(callback: (scope: any) => void): void {
+  withScope(callback: (scope: Record<string, unknown>) => void): void {
     // Create a mock scope object
     const mockScope = {
       setTag: this.setTag.bind(this),
@@ -186,7 +186,7 @@ class MockSentry implements ErrorTrackingService {
     callback(mockScope)
   }
 
-  startTransaction(name: string, op?: string): any {
+  startTransaction(name: string, op?: string): unknown {
     if (__DEV__) {
       logger.debug(`🐛 [MockSentry] Start transaction "${name}"`, { op: op || "custom" })
     }
@@ -271,7 +271,7 @@ class MockSentry implements ErrorTrackingService {
   /**
    * Get all extras (for testing)
    */
-  getExtras(): Record<string, any> {
+  getExtras(): Record<string, unknown> {
     return this.extras
   }
 }

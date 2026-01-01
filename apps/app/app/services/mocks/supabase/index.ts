@@ -32,6 +32,15 @@ export class MockSupabaseClient {
   auth: MockSupabaseAuth
   storage: MockStorage
   realtime: MockRealtime
+  functions = {
+    invoke: async (
+      _fn: string,
+      _options?: { body?: unknown; headers?: Record<string, string> },
+    ) => {
+      await delay(200)
+      return { data: null, error: new Error("Mock functions are not implemented") }
+    },
+  }
 
   constructor() {
     this.auth = new MockSupabaseAuth()
@@ -39,18 +48,20 @@ export class MockSupabaseClient {
     this.realtime = new MockRealtime()
 
     // Initialize storage on client creation
-    initializeStorage().then(() => {
-      if (__DEV__) {
-        logger.debug(`[MockSupabase] Initialized mock Supabase client`)
-        logger.debug(`[MockSupabase] Storage mock enabled`)
-        logger.debug(`[MockSupabase] Realtime mock enabled`)
-        if (sharedState.currentSession) {
-          logger.debug(`[MockSupabase] Active session found`, {
-            email: sharedState.currentSession.user.email,
-          })
+    if (process.env.NODE_ENV !== "test") {
+      initializeStorage().then(() => {
+        if (__DEV__) {
+          logger.debug(`[MockSupabase] Initialized mock Supabase client`)
+          logger.debug(`[MockSupabase] Storage mock enabled`)
+          logger.debug(`[MockSupabase] Realtime mock enabled`)
+          if (sharedState.currentSession) {
+            logger.debug(`[MockSupabase] Active session found`, {
+              email: sharedState.currentSession.user.email,
+            })
+          }
         }
-      }
-    })
+      })
+    }
   }
 
   from(table: string) {

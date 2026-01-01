@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { Text, Container, Button } from "../components"
+import { env } from "../config/env"
 import { translate } from "../i18n"
 import type { AppStackScreenProps } from "../navigators/navigationTypes"
 import { isRevenueCatMock } from "../services/revenuecat"
@@ -12,16 +13,22 @@ import type { PricingPackage } from "../types/subscription"
 
 // Conditionally import native RevenueCat SDKs (not available on web or in mock mode)
 // Note: isRevenueCatMock is imported from revenuecat service which handles the mock detection logic
-let Purchases: any = null
-let Paywalls: any = null
+type RevenueCatOfferings = { current?: unknown }
+type RevenueCatPurchases = { getOfferings: () => Promise<RevenueCatOfferings> }
+type RevenueCatPaywalls = {
+  presentPaywall: (options: { offering: unknown }) => Promise<unknown>
+}
+
+let Purchases: RevenueCatPurchases | null = null
+let Paywalls: RevenueCatPaywalls | null = null
 
 // Only load native SDK if not web and not in mock mode
 // Mock mode = dev environment without API keys
 // We check isRevenueCatMock at runtime in the component, but for module-level imports
 // we need to check the same conditions
 const mobileApiKey = Platform.select({
-  ios: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY,
-  android: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY,
+  ios: env.revenueCatIosKey,
+  android: env.revenueCatAndroidKey,
 })
 // Load SDK if: not web AND (production OR has API key)
 const shouldLoadNativeSDK = Platform.OS !== "web" && (!__DEV__ || mobileApiKey)
@@ -94,9 +101,9 @@ export const PaywallScreen = () => {
         if (!useSubscriptionStore.getState().packages.length) {
           throw new Error(isWeb ? noWebOfferingMessage : noPackagesMessage)
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Failed to load paywall:", err)
-        setError(err?.message || loadErrorMessage)
+        setError(err instanceof Error ? err.message : loadErrorMessage)
       } finally {
         setIsPresenting(false)
       }
@@ -128,14 +135,11 @@ export const PaywallScreen = () => {
       })
 
       // Normalize result shape from SDK
-      const resultValue = typeof result === "string" ? result : result?.result
+      const resultValue =
+        typeof result === "string" ? result : (result as { result?: string } | null)?.result
 
       // If the SDK returned fresh customer info (e.g., "Test Valid Purchase"/restore),
       // apply it immediately so the Pro state updates without waiting on a fetch.
-      if (result && typeof result === "object" && "customerInfo" in result && result.customerInfo) {
-        useSubscriptionStore.getState().setCustomerInfo(result.customerInfo as any)
-      }
-
       // Refresh subscription status after paywall is dismissed (authoritative fetch)
       const service = useSubscriptionStore.getState().getActiveService()
       const subscriptionInfo = await service.getSubscriptionInfo()
@@ -144,7 +148,7 @@ export const PaywallScreen = () => {
       if (platform === "revenuecat-web") {
         useSubscriptionStore.getState().setWebSubscriptionInfo(subscriptionInfo)
       } else {
-        useSubscriptionStore.getState().setCustomerInfo(subscriptionInfo as any)
+        useSubscriptionStore.getState().setCustomerInfo(subscriptionInfo)
       }
 
       // If user purchased or restored, navigate to Main (if from onboarding)
@@ -156,9 +160,9 @@ export const PaywallScreen = () => {
       if (resultValue && resultValue !== "PURCHASED" && resultValue !== "RESTORED") {
         console.info("[Paywall] Unexpected paywall result", resultValue)
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to present paywall:", err)
-      setError(err?.message || loadErrorMessage)
+      setError(err instanceof Error ? err.message : loadErrorMessage)
     } finally {
       setIsPresenting(false)
     }
@@ -189,9 +193,9 @@ export const PaywallScreen = () => {
         if (isFromOnboarding) {
           navigateToMain()
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Purchase failed:", err)
-        setError(err?.message || purchaseErrorMessage)
+        setError(err instanceof Error ? err.message : purchaseErrorMessage)
       }
     },
     [purchaseErrorMessage, purchasePackage, isFromOnboarding, navigateToMain],
@@ -261,8 +265,7 @@ export const PaywallScreen = () => {
                   {isWeb ? noWebOfferingMessage : noPackagesMessage}
                 </Text>
               ) : (
-                packages.map((pkg) => {
-                  const pricingPkg = pkg as PricingPackage
+                packages.map((pricingPkg) => {
                   return (
                     <View key={pricingPkg.identifier} style={styles.packageCard}>
                       <View style={styles.packageHeader}>

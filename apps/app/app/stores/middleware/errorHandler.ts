@@ -21,9 +21,9 @@ type ErrorHandlerImpl = <T>(f: StateCreator<T, [], []>) => StateCreator<T, [], [
 const errorHandlerImpl: ErrorHandlerImpl = (f) => (set, get, store) => {
   const errorHandlingSet: typeof set = (...args) => {
     try {
-      set(...(args as [any, any]))
+      set(...(args as Parameters<typeof set>))
     } catch (error) {
-      errorHandler.handle(error as Error, {
+      errorHandler.handle(error instanceof Error ? error : new Error(String(error)), {
         context: "zustand_store",
         state: get(),
       })

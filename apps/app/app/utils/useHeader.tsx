@@ -7,7 +7,7 @@ import { Header, HeaderProps } from "@/components/Header"
 /**
  * A hook that can be used to easily set the Header of a react-navigation screen from within the screen's component.
  * @param {HeaderProps} headerProps - The props for the `Header` component.
- * @param {any[]} deps - The dependencies to watch for changes to update the header.
+ * @param {unknown[]} deps - The dependencies to watch for changes to update the header.
  */
 export function useHeader(
   headerProps: HeaderProps,

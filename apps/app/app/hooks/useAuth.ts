@@ -3,7 +3,13 @@ import { Platform } from "react-native"
 import * as Linking from "expo-linking"
 
 import { supabase } from "../services/supabase"
-import type { User, Session, SignUpCredentials, SignInCredentials } from "../types/auth"
+import type {
+  User,
+  Session,
+  SignUpCredentials,
+  SignInCredentials,
+  UpdateUserAttributes,
+} from "../types/auth"
 import { logger } from "../utils/Logger"
 
 // Conditionally import expo-web-browser only on native platforms
@@ -37,11 +43,7 @@ export interface UseAuthReturn {
   verifyOtp: (email: string, token: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
   resetPassword: (email: string) => Promise<{ error: Error | null }>
-  updateUser: (attributes: {
-    email?: string
-    password?: string
-    data?: Record<string, any>
-  }) => Promise<{ error: Error | null }>
+  updateUser: (attributes: UpdateUserAttributes) => Promise<{ error: Error | null }>
 
   // Helpers
   isAuthenticated: boolean
@@ -104,15 +106,12 @@ export function useAuth(): UseAuthReturn {
     return { error }
   }, [])
 
-  const updateUser = useCallback(
-    async (attributes: { email?: string; password?: string; data?: Record<string, any> }) => {
-      setLoading(true)
-      const { error } = await (supabase.auth as any).updateUser(attributes)
-      setLoading(false)
-      return { error }
-    },
-    [],
-  )
+  const updateUser = useCallback(async (attributes: UpdateUserAttributes) => {
+    setLoading(true)
+    const { error } = await supabase.auth.updateUser(attributes)
+    setLoading(false)
+    return { error }
+  }, [])
 
   const signInWithGoogle = useCallback(async () => {
     setLoading(true)
@@ -127,7 +126,7 @@ export function useAuth(): UseAuthReturn {
         redirectTo = Linking.createURL("/auth/callback")
       }
 
-      const { data, error } = await (supabase.auth as any).signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo,
@@ -156,9 +155,8 @@ export function useAuth(): UseAuthReturn {
             const code = getParam("code")
 
             if (code) {
-              const { data: sessionData, error: sessionError } = await (
-                supabase.auth as any
-              ).exchangeCodeForSession(code)
+              const { data: sessionData, error: sessionError } =
+                await supabase.auth.exchangeCodeForSession(code)
               if (sessionError) {
                 logger.error(
                   "[useAuth] Failed to exchange code for session",
@@ -214,7 +212,7 @@ export function useAuth(): UseAuthReturn {
         redirectTo = Linking.createURL("/auth/callback")
       }
 
-      const { data, error } = await (supabase.auth as any).signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "apple",
         options: {
           redirectTo,
@@ -243,9 +241,8 @@ export function useAuth(): UseAuthReturn {
             const code = getParam("code")
 
             if (code) {
-              const { data: sessionData, error: sessionError } = await (
-                supabase.auth as any
-              ).exchangeCodeForSession(code)
+              const { data: sessionData, error: sessionError } =
+                await supabase.auth.exchangeCodeForSession(code)
               if (sessionError) {
                 logger.error(
                   "[useAuth] Failed to exchange code for session (Apple)",
@@ -291,7 +288,7 @@ export function useAuth(): UseAuthReturn {
   const signInWithMagicLink = useCallback(async (email: string, captchaToken?: string) => {
     setLoading(true)
     try {
-      const { error } = await (supabase.auth as any).signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: undefined,
@@ -306,7 +303,7 @@ export function useAuth(): UseAuthReturn {
 
   const verifyOtp = useCallback(async (email: string, token: string) => {
     setLoading(true)
-    const { data, error } = await (supabase.auth as any).verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       email,
       token,
       type: "email",

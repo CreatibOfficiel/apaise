@@ -5,10 +5,11 @@
  */
 
 import { Platform } from "react-native"
+import * as Linking from "expo-linking"
 
-import { getEmailRedirectUrl, updateUserState } from "./authHelpers"
-import type { AuthState } from "./authTypes"
 import { TIMING } from "../../config/constants"
+import { env } from "../../config/env"
+import { queryClient } from "../../hooks/queries"
 import { supabase, isUsingMockSupabase } from "../../services/supabase"
 import { isEmailConfirmed } from "../../types/auth"
 import { extractSupabaseError } from "../../types/supabaseErrors"
@@ -18,6 +19,9 @@ import {
   passwordResetRateLimiter,
   signUpRateLimiter,
 } from "../../utils/rateLimiter"
+import { useSubscriptionStore } from "../subscriptionStore"
+import { getEmailRedirectUrl, getPasswordResetRedirectUrl, updateUserState } from "./authHelpers"
+import type { AuthState } from "./authTypes"
 
 type SetState = (partial: Partial<AuthState> | ((state: AuthState) => Partial<AuthState>)) => void
 type GetState = () => AuthState
@@ -101,8 +105,8 @@ export async function signUpAction(
   try {
     // Check if using real Supabase and validate configuration
     if (!isUsingMockSupabase) {
-      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || ""
-      const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""
+      const supabaseUrl = env.supabaseUrl || ""
+      const supabaseKey = env.supabasePublishableKey || ""
 
       if (!supabaseUrl || !supabaseKey) {
         logger.warn("Supabase credentials missing but not using mock - this shouldn't happen")
@@ -162,7 +166,7 @@ export async function signUpAction(
             isUsingMock: isUsingMockSupabase,
             hasEmailRedirectTo: !!emailRedirectTo,
             platform: Platform.OS,
-            supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL?.substring(0, 30) + "...",
+            supabaseUrl: env.supabaseUrl ? env.supabaseUrl.substring(0, 30) + "..." : undefined,
           })
         } else {
           logger.debug("SignUp success", {
@@ -196,7 +200,7 @@ export async function signUpAction(
           isUsingMock: isUsingMockSupabase,
           platform: Platform.OS,
           hasEmailRedirectTo: !!emailRedirectTo,
-          supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL?.substring(0, 30) + "...",
+          supabaseUrl: env.supabaseUrl ? env.supabaseUrl.substring(0, 30) + "..." : undefined,
         },
         signUpError as Error,
       )
@@ -239,7 +243,7 @@ export async function signUpAction(
           fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
           isUsingMock: isUsingMockSupabase,
           platform: Platform.OS,
-          supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL?.substring(0, 30) + "...",
+          supabaseUrl: env.supabaseUrl ? env.supabaseUrl.substring(0, 30) + "..." : undefined,
         })
 
         // In development, return the original error so user can see real details
@@ -359,7 +363,7 @@ export async function verifyEmailAction(code: string, set: SetState): Promise<{ 
   try {
     // Supabase confirmation links provide token_hash; try signup first, then email as fallback.
     const tryVerify = async (type: "signup" | "email") => {
-      return (supabase.auth.verifyOtp as any)({
+      return supabase.auth.verifyOtp({
         token_hash: code,
         type,
       })
@@ -400,6 +404,12 @@ export async function signOutAction(
   guestUserKey: string,
 ): Promise<void> {
   await supabase.auth.signOut()
+  queryClient.clear()
+  const subscriptionState = useSubscriptionStore.getState()
+  subscriptionState.setCustomerInfo(null)
+  subscriptionState.setWebSubscriptionInfo(null)
+  subscriptionState.setPackages([])
+  subscriptionState.checkProStatus()
   const guestOnboarding = get().onboardingStatusByUserId[guestUserKey] ?? false
   set({
     session: null,
@@ -427,7 +437,16 @@ export async function resetPasswordAction(email: string): Promise<{ error?: Erro
       }
     }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
+    const redirectTo =
+      getPasswordResetRedirectUrl() ??
+      (Platform.OS !== "web" && process.env.NODE_ENV !== "test"
+        ? Linking.createURL("/reset-password")
+        : undefined)
+
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo ? { redirectTo } : undefined,
+    )
 
     if (error) {
       return { error }

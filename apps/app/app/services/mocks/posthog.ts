@@ -12,13 +12,14 @@ import type {
   UserProperties,
   ScreenProperties,
   GroupProperties,
+  FeatureFlagValue,
 } from "../../types/analytics"
 import { logger } from "../../utils/Logger"
 
 interface MockEvent {
   type: "event" | "screen" | "identify"
   name: string
-  properties?: Record<string, any>
+  properties?: Record<string, unknown>
   timestamp: number
 }
 
@@ -29,7 +30,7 @@ class MockPostHog implements AnalyticsService {
   private enabled: boolean = true
   private userId: string | null = null
   private userProperties: UserProperties = {}
-  private featureFlags: Record<string, any> = {}
+  private featureFlags: Record<string, FeatureFlagValue> = {}
   private events: MockEvent[] = []
 
   constructor(config: AnalyticsConfig) {
@@ -155,7 +156,7 @@ class MockPostHog implements AnalyticsService {
     return enabled
   }
 
-  getFeatureFlag(flag: string): any {
+  getFeatureFlag(flag: string): FeatureFlagValue | undefined {
     const value = this.featureFlags[flag]
 
     if (__DEV__) {
@@ -165,7 +166,7 @@ class MockPostHog implements AnalyticsService {
     return value
   }
 
-  onFeatureFlags(callback: (flags: Record<string, any>) => void): void {
+  onFeatureFlags(callback: (flags: Record<string, FeatureFlagValue>) => void): void {
     // Immediately call with current flags
     callback(this.featureFlags)
 
@@ -207,7 +208,7 @@ class MockPostHog implements AnalyticsService {
   /**
    * Set a feature flag value (for testing)
    */
-  setFeatureFlag(flag: string, value: any): void {
+  setFeatureFlag(flag: string, value: FeatureFlagValue): void {
     this.featureFlags[flag] = value
 
     if (__DEV__) {

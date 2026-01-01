@@ -68,14 +68,14 @@ export const captureException = (
   error: Error,
   context?: {
     tags?: Record<string, string>
-    extra?: Record<string, any>
+    extra?: Record<string, unknown>
     level?: "fatal" | "error" | "warning" | "info" | "debug"
     fingerprint?: string[]
     user?: {
       id?: string
       email?: string
       username?: string
-      [key: string]: any
+      [key: string]: unknown
     }
   },
 ) => {
@@ -112,13 +112,13 @@ export const captureMessage = (
   context?: {
     level?: "fatal" | "error" | "warning" | "info" | "debug"
     tags?: Record<string, string>
-    extra?: Record<string, any>
+    extra?: Record<string, unknown>
     fingerprint?: string[]
     user?: {
       id?: string
       email?: string
       username?: string
-      [key: string]: any
+      [key: string]: unknown
     }
   },
 ) => {

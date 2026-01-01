@@ -62,7 +62,7 @@ export const mockData = {
  * Mock store helper
  */
 export const createMockStore = <T extends object>(initialState: T) => {
-  return (set: any) => ({
+  return (set: Partial<T>) => ({
     ...initialState,
     ...set,
   })
