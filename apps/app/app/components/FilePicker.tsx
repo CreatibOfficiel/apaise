@@ -296,21 +296,19 @@ export function FilePicker(props: FilePickerProps) {
   const showPermissionSetupAlert = useCallback(() => {
     const setupMessage = Platform.select({
       ios: "To use the image picker, add NSPhotoLibraryUsageDescription to your Info.plist and rebuild the app.\n\nSee the expo-image-picker docs for setup instructions.",
-      android: "To use the image picker, ensure READ_MEDIA_IMAGES permission is in your AndroidManifest.xml (added automatically by expo-image-picker plugin).\n\nRun 'npx expo prebuild --clean' to regenerate the native project.",
-      default: "To use the image picker, ensure your app has the required permissions configured.\n\nSee the expo-image-picker docs for setup instructions.",
+      android:
+        "To use the image picker, ensure READ_MEDIA_IMAGES permission is in your AndroidManifest.xml (added automatically by expo-image-picker plugin).\n\nRun 'npx expo prebuild --clean' to regenerate the native project.",
+      default:
+        "To use the image picker, ensure your app has the required permissions configured.\n\nSee the expo-image-picker docs for setup instructions.",
     })
 
-    Alert.alert(
-      "Setup Required",
-      setupMessage,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Open Settings",
-          onPress: () => Linking.openSettings(),
-        },
-      ],
-    )
+    Alert.alert("Setup Required", setupMessage, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Open Settings",
+        onPress: () => Linking.openSettings(),
+      },
+    ])
   }, [])
 
   const pickImage = useCallback(async () => {
@@ -368,7 +366,10 @@ export function FilePicker(props: FilePickerProps) {
     } catch (err) {
       // Check if this is a permission configuration error
       const errorMessage = err instanceof Error ? err.message : String(err)
-      if (errorMessage.includes("NSPhotoLibraryUsageDescription") || errorMessage.includes("Info.plist")) {
+      if (
+        errorMessage.includes("NSPhotoLibraryUsageDescription") ||
+        errorMessage.includes("Info.plist")
+      ) {
         setPermissionStatus("not_configured")
         setShowPermissionWarning(true)
         showPermissionSetupAlert()
@@ -377,7 +378,15 @@ export function FilePicker(props: FilePickerProps) {
         Alert.alert("Error", "Failed to pick image. Please try again.")
       }
     }
-  }, [multiple, maxFiles, value, onChange, validateFile, permissionStatus, showPermissionSetupAlert])
+  }, [
+    multiple,
+    maxFiles,
+    value,
+    onChange,
+    validateFile,
+    permissionStatus,
+    showPermissionSetupAlert,
+  ])
 
   const pickDocument = useCallback(async () => {
     try {
@@ -461,10 +470,7 @@ export function FilePicker(props: FilePickerProps) {
 
       {/* Permission Warning Banner */}
       {showPermissionWarning && (fileType === "image" || fileType === "any") && (
-        <Pressable
-          style={styles.warningBanner}
-          onPress={showPermissionSetupAlert}
-        >
+        <Pressable style={styles.warningBanner} onPress={showPermissionSetupAlert}>
           <Ionicons name="warning-outline" size={18} color={theme.colors.warning} />
           <Text size="xs" style={styles.warningText}>
             {permissionStatus === "not_configured"
@@ -499,13 +505,22 @@ export function FilePicker(props: FilePickerProps) {
                 style={[
                   styles.iconContainer,
                   compact && styles.iconContainerCompact,
-                  { backgroundColor: fileType === "image" ? theme.colors.palette.primary100 : theme.colors.palette.secondary100 },
+                  {
+                    backgroundColor:
+                      fileType === "image"
+                        ? theme.colors.palette.primary100
+                        : theme.colors.palette.secondary100,
+                  },
                 ]}
               >
                 <Ionicons
                   name={fileType === "image" ? "image-outline" : "document-attach-outline"}
                   size={compact ? 18 : 28}
-                  color={fileType === "image" ? theme.colors.palette.primary500 : theme.colors.palette.secondary500}
+                  color={
+                    fileType === "image"
+                      ? theme.colors.palette.primary500
+                      : theme.colors.palette.secondary500
+                  }
                 />
               </View>
               <View style={compact ? styles.textContainerCompact : styles.textContainer}>

@@ -17,7 +17,8 @@ import type { PricingPackage, SubscriptionInfo } from "../../types/subscription"
 // Mock RevenueCat service
 jest.mock("../../services/revenuecat", () => ({
   revenueCat: {
-    initialize: jest.fn(),
+    platform: "revenuecat",
+    configure: jest.fn(),
     getSubscriptionInfo: jest.fn(),
     getPackages: jest.fn(),
     purchasePackage: jest.fn(),
@@ -42,48 +43,48 @@ jest.mock("../../stores/auth", () => ({
 
 const mockPackages: PricingPackage[] = [
   {
+    id: "monthly",
     identifier: "monthly",
-    packageType: "MONTHLY",
-    product: {
-      identifier: "com.app.monthly",
-      title: "Monthly",
-      description: "Monthly subscription",
-      priceString: "$9.99",
-      price: 9.99,
-      currencyCode: "USD",
-    },
+    title: "Monthly",
+    description: "Monthly subscription",
+    priceString: "$9.99",
+    price: 9.99,
+    currencyCode: "USD",
+    billingPeriod: "monthly",
+    platform: "revenuecat",
   },
   {
+    id: "annual",
     identifier: "annual",
-    packageType: "ANNUAL",
-    product: {
-      identifier: "com.app.annual",
-      title: "Annual",
-      description: "Annual subscription",
-      priceString: "$79.99",
-      price: 79.99,
-      currencyCode: "USD",
-    },
+    title: "Annual",
+    description: "Annual subscription",
+    priceString: "$79.99",
+    price: 79.99,
+    currencyCode: "USD",
+    billingPeriod: "annual",
+    platform: "revenuecat",
   },
 ]
 
 const mockSubscriptionInfo: SubscriptionInfo = {
+  platform: "revenuecat",
+  status: "active",
   isActive: true,
   willRenew: true,
-  periodType: "normal",
+  isTrial: false,
   expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-  productIdentifier: "com.app.monthly",
-  isSandbox: true,
+  productId: "com.app.monthly",
   originalPurchaseDate: new Date().toISOString(),
 }
 
 const mockFreeSubscriptionInfo: SubscriptionInfo = {
+  platform: "revenuecat",
+  status: "none",
   isActive: false,
   willRenew: false,
-  periodType: "normal",
+  isTrial: false,
   expirationDate: null,
-  productIdentifier: null,
-  isSandbox: false,
+  productId: null,
   originalPurchaseDate: null,
 }
 
@@ -97,7 +98,7 @@ describe("Subscription Flow Integration", () => {
       packages: [],
       customerInfo: null,
       webSubscriptionInfo: null,
-      platform: "revenuecat-native",
+      platform: "revenuecat",
     })
   })
 
@@ -105,7 +106,7 @@ describe("Subscription Flow Integration", () => {
     it("should initialize subscription service and fetch status", async () => {
       const { result } = renderHook(() => useSubscriptionStore())
 
-      ;(revenueCatService.revenueCat.initialize as jest.Mock).mockResolvedValue(undefined)
+      ;(revenueCatService.revenueCat.configure as jest.Mock).mockResolvedValue(undefined)
       ;(revenueCatService.revenueCat.getSubscriptionInfo as jest.Mock).mockResolvedValue(
         mockFreeSubscriptionInfo,
       )
@@ -123,13 +124,13 @@ describe("Subscription Flow Integration", () => {
         expect(result.current.isPro).toBe(false)
       })
 
-      expect(revenueCatService.revenueCat.initialize).toHaveBeenCalled()
+      expect(revenueCatService.revenueCat.configure).toHaveBeenCalled()
     })
 
     it("should detect pro status from subscription info", async () => {
       const { result } = renderHook(() => useSubscriptionStore())
 
-      ;(revenueCatService.revenueCat.initialize as jest.Mock).mockResolvedValue(undefined)
+      ;(revenueCatService.revenueCat.configure as jest.Mock).mockResolvedValue(undefined)
       ;(revenueCatService.revenueCat.getSubscriptionInfo as jest.Mock).mockResolvedValue(
         mockSubscriptionInfo,
       )
@@ -382,35 +383,6 @@ describe("Subscription Flow Integration", () => {
       await waitFor(() => {
         expect(result.current.isPro).toBe(false)
       })
-    })
-  })
-
-  describe("User Login/Logout", () => {
-    it("should log in user to subscription service", async () => {
-      const { result } = renderHook(() => useSubscriptionStore())
-
-      ;(revenueCatService.revenueCat.logIn as jest.Mock).mockResolvedValue({
-        subscriptionInfo: mockSubscriptionInfo,
-        created: false,
-      })
-
-      await act(async () => {
-        await result.current.logIn("user-123")
-      })
-
-      expect(revenueCatService.revenueCat.logIn).toHaveBeenCalledWith("user-123")
-    })
-
-    it("should log out user from subscription service", async () => {
-      const { result } = renderHook(() => useSubscriptionStore())
-
-      ;(revenueCatService.revenueCat.logOut as jest.Mock).mockResolvedValue(undefined)
-
-      await act(async () => {
-        await result.current.logOut()
-      })
-
-      expect(revenueCatService.revenueCat.logOut).toHaveBeenCalled()
     })
   })
 })

@@ -104,7 +104,8 @@ const es: Translations = {
       "No se encontró una oferta web. Agrega una oferta de Web Billing en RevenueCat e inténtalo de nuevo.",
     noPackagesError: "No hay paquetes disponibles. Configura RevenueCat o agrega claves API.",
     sdkUnavailableError: "El SDK de RevenueCat no está disponible en esta plataforma.",
-    noOfferingError: "No hay una oferta disponible. Configura una oferta en el panel de RevenueCat.",
+    noOfferingError:
+      "No hay una oferta disponible. Configura una oferta en el panel de RevenueCat.",
     loadFailed: "No se pudo cargar el paywall. Inténtalo de nuevo.",
     purchaseFailed: "El pago falló. Inténtalo de nuevo.",
     processing: "Procesando...",

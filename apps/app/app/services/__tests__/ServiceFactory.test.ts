@@ -27,7 +27,7 @@ jest.mock("../../utils/ErrorHandler", () => ({
 
 describe("ServiceFactory", () => {
   // Create a fresh factory for each test to avoid state pollution
-  let testFactory: typeof serviceFactory
+  let _testFactory: typeof serviceFactory
 
   beforeEach(() => {
     jest.clearAllMocks()

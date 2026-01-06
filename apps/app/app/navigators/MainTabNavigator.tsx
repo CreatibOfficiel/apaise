@@ -3,6 +3,7 @@ import { View, Pressable, Platform, ViewStyle, TextStyle, useWindowDimensions } 
 import { BlurView } from "expo-blur"
 import { Ionicons } from "@expo/vector-icons"
 import { createBottomTabNavigator, BottomTabBarProps } from "@react-navigation/bottom-tabs"
+import { useTranslation } from "react-i18next"
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -12,7 +13,6 @@ import Animated, {
 } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles, UnistylesRuntime } from "react-native-unistyles"
-import { useTranslation } from "react-i18next"
 
 import { ComponentShowcaseScreen } from "@/screens/ComponentShowcaseScreen"
 import { HomeScreen } from "@/screens/HomeScreen"
@@ -346,11 +346,7 @@ function MobileTabBar({ state, navigation }: BottomTabBarProps) {
   return (
     <View style={$tabBarContainer}>
       {false && Platform.OS === "ios" ? (
-        <BlurView
-          intensity={80}
-          tint={isDark ? "dark" : "light"}
-          style={containerStyle}
-        >
+        <BlurView intensity={80} tint={isDark ? "dark" : "light"} style={containerStyle}>
           {state.routes.map((route, index) => {
             const isFocused = state.index === index
 

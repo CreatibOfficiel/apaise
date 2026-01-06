@@ -1,6 +1,6 @@
 import { I18nManager, Platform } from "react-native"
-import i18n from "i18next"
 import * as Updates from "expo-updates"
+import i18n from "i18next"
 
 import { loadDateFnsLocale } from "@/utils/formatDate"
 import { logger } from "@/utils/Logger"

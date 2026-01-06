@@ -22,11 +22,7 @@ import type {
  * Format a price with proper localization
  * Falls back to the package's priceString if localization fails
  */
-export function formatLocalizedPrice(
-  price: number,
-  currencyCode: string,
-  locale?: string,
-): string {
+export function formatLocalizedPrice(price: number, currencyCode: string, locale?: string): string {
   try {
     return new Intl.NumberFormat(locale || "en-US", {
       style: "currency",
@@ -34,7 +30,7 @@ export function formatLocalizedPrice(
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(price)
-  } catch (error) {
+  } catch {
     // Fallback to simple format
     return `${currencyCode} ${price.toFixed(2)}`
   }
@@ -43,10 +39,7 @@ export function formatLocalizedPrice(
 /**
  * Get a human-readable period string
  */
-export function formatPeriod(
-  count: number,
-  unit: "day" | "week" | "month" | "year",
-): string {
+export function formatPeriod(count: number, unit: "day" | "week" | "month" | "year"): string {
   if (count === 1) {
     return unit
   }
@@ -74,7 +67,7 @@ export function calculateSavings(regularPrice: number, salePrice: number): numbe
  * Get a formatted promotional offer description
  * Example: "3 days free, then $9.99/month"
  */
-export function getPromotionalOfferText(pkg: PricingPackage, locale?: string): string | null {
+export function getPromotionalOfferText(pkg: PricingPackage, _locale?: string): string | null {
   const parts: string[] = []
 
   // Free trial
@@ -311,10 +304,7 @@ export function isExpiringWithin(info: SubscriptionInfo, days: number): boolean 
  * Format expiration date relative to now
  * Examples: "expires in 5 days", "renews on Jan 15", "expired 3 days ago"
  */
-export function formatExpirationStatus(
-  info: SubscriptionInfo,
-  locale?: string,
-): string | null {
+export function formatExpirationStatus(info: SubscriptionInfo, locale?: string): string | null {
   if (!info.expirationDate) return null
 
   const remaining = getDaysRemaining(info)

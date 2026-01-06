@@ -51,7 +51,7 @@ const getInitialLanguage = (): string => {
 }
 
 const initialLanguage = getInitialLanguage()
-export let isRTL = RTL_LANGUAGES.includes(initialLanguage)
+export const isRTL = RTL_LANGUAGES.includes(initialLanguage)
 
 // Need to set RTL ASAP to ensure the app is rendered correctly. Waiting for i18n to init is too late.
 // Must call both allowRTL and forceRTL for the change to take effect

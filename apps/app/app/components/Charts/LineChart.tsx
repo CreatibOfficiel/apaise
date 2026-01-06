@@ -1,10 +1,6 @@
 import { useEffect, useMemo } from "react"
 import { View, LayoutChangeEvent } from "react-native"
-import Animated, {
-  useSharedValue,
-  withTiming,
-  Easing,
-} from "react-native-reanimated"
+import Animated, { useSharedValue, withTiming, Easing } from "react-native-reanimated"
 import Svg, {
   Path,
   Circle,
@@ -23,8 +19,8 @@ import type { LineChartProps } from "./types"
 // ANIMATED COMPONENTS
 // =============================================================================
 
-const AnimatedPath = Animated.createAnimatedComponent(Path)
-const AnimatedCircle = Animated.createAnimatedComponent(Circle)
+const _AnimatedPath = Animated.createAnimatedComponent(Path)
+const _AnimatedCircle = Animated.createAnimatedComponent(Circle)
 
 // =============================================================================
 // HELPERS

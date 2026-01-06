@@ -4,7 +4,7 @@
  * Comprehensive tests for the pressable gesture hook functionality
  */
 
-import { renderHook, act } from "@testing-library/react-native"
+import { renderHook } from "@testing-library/react-native"
 
 import { usePressableGesture, type UsePressableGestureOptions } from "../usePressableGesture"
 
@@ -25,7 +25,7 @@ jest.mock("../../utils/haptics", () => ({
 const mockWithSpring = jest.fn((value) => value)
 const mockWithTiming = jest.fn((value) => value)
 const mockRunOnJS = jest.fn((fn) => fn)
-const mockInterpolate = jest.fn((value, _input, output) => {
+const _mockInterpolate = jest.fn((_value, _input, output) => {
   // Return first output value as a simple approximation
   return output[0]
 })
@@ -36,7 +36,7 @@ jest.mock("react-native-reanimated", () => {
 
   return {
     useSharedValue: jest.fn((initialValue) => ({ value: initialValue })),
-    useAnimatedStyle: jest.fn((fn) => {
+    useAnimatedStyle: jest.fn((_fn) => {
       // Return an empty style object instead of executing the function
       // This avoids the interpolate reference issue
       return {}

@@ -102,9 +102,11 @@ const ja: Translations = {
     secureCheckoutDescription: "安全な決済はRevenueCatが処理します。",
     noWebOfferingError:
       "Webオファーが見つかりません。RevenueCatでWeb Billingのオファーを追加して再試行してください。",
-    noPackagesError: "利用可能なパッケージがありません。RevenueCatを設定するかAPIキーを追加してください。",
+    noPackagesError:
+      "利用可能なパッケージがありません。RevenueCatを設定するかAPIキーを追加してください。",
     sdkUnavailableError: "このプラットフォームではRevenueCat SDKを使用できません。",
-    noOfferingError: "利用可能なオファーがありません。RevenueCatダッシュボードでオファーを設定してください。",
+    noOfferingError:
+      "利用可能なオファーがありません。RevenueCatダッシュボードでオファーを設定してください。",
     loadFailed: "ペイウォールの読み込みに失敗しました。もう一度お試しください。",
     purchaseFailed: "支払いに失敗しました。もう一度お試しください。",
     processing: "処理中...",
@@ -319,8 +321,7 @@ const ja: Translations = {
   },
   demoShowroomScreen: {
     jumpStart: "あなたのプロジェクトをスタートさせるコンポーネントです！",
-    lorem2Sentences:
-      "画面上の文章の見え方を示すためのサンプルテキストです。",
+    lorem2Sentences: "画面上の文章の見え方を示すためのサンプルテキストです。",
     demoHeaderTxExample: "やったー",
     demoViaTxProp: "`tx`から",
     demoViaSpecifiedTxProp: "`{{prop}}Tx`から",

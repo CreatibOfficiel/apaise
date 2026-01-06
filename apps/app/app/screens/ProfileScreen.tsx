@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next"
 import Animated, { FadeInDown } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { UnistylesRuntime } from "react-native-unistyles"
 
 import {
   Avatar,
@@ -19,10 +20,9 @@ import {
 import { ANIMATION } from "@/config/constants"
 import { features } from "@/config/features"
 import type { MainTabScreenProps } from "@/navigators/navigationTypes"
-import { isRevenueCatMock } from "@/services/revenuecat"
 import { mockRevenueCat } from "@/services/mocks/revenueCat"
+import { isRevenueCatMock } from "@/services/revenuecat"
 import { useAuthStore, useNotificationStore, useSubscriptionStore, useWidgetStore } from "@/stores"
-import { UnistylesRuntime } from "react-native-unistyles"
 import { webDimension } from "@/types/webStyles"
 import { haptics } from "@/utils/haptics"
 import { testErrors } from "@/utils/testError"
@@ -145,9 +145,7 @@ export const ProfileScreen: FC<ProfileScreenProps> = ({ navigation }) => {
                   <View style={styles.proBadge}>
                     <Ionicons name="diamond" size={12} color={theme.colors.background} />
                     <Text style={styles.proText} tx="profileScreen:proBadge" />
-                    {isRevenueCatMock && (
-                      <Text style={styles.mockBadge}> (Mock)</Text>
-                    )}
+                    {isRevenueCatMock && <Text style={styles.mockBadge}> (Mock)</Text>}
                   </View>
                 ) : (
                   <Pressable

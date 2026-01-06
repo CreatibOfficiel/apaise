@@ -179,7 +179,9 @@ export function Header(props: HeaderProps) {
   const titleContent = titleTx ? t(titleTx, titleTxOptions as Record<string, string>) : title
 
   return (
-    <View style={[styles.container, $containerInsets, { backgroundColor }, $containerStyleOverride]}>
+    <View
+      style={[styles.container, $containerInsets, { backgroundColor }, $containerStyleOverride]}
+    >
       <View style={[styles.row, styles.wrapper, $styleOverride]}>
         <HeaderAction
           tx={leftTx}

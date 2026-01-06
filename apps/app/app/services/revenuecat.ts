@@ -466,7 +466,11 @@ const revenueCatMobile: SubscriptionService = {
         const freeTrial = pkg.product.freeTrialPeriod
         const freeTrialData = freeTrial
           ? {
-              freeTrialPeriodUnit: freeTrial.unit.toLowerCase() as "day" | "week" | "month" | "year",
+              freeTrialPeriodUnit: freeTrial.unit.toLowerCase() as
+                | "day"
+                | "week"
+                | "month"
+                | "year",
               freeTrialPeriodCount: freeTrial.value,
               freeTrialPeriod: formatPeriod(
                 freeTrial.value,

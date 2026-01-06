@@ -294,11 +294,12 @@ export const PaywallScreen = () => {
               ) : (
                 packages.map((pricingPkg, index) => {
                   const isPopular = index === 0
-                  const isAnnual = pricingPkg.identifier.toLowerCase().includes('annual') ||
-                                   pricingPkg.identifier.toLowerCase().includes('year')
+                  const isAnnual =
+                    pricingPkg.identifier.toLowerCase().includes("annual") ||
+                    pricingPkg.identifier.toLowerCase().includes("year")
 
                   // Calculate proper display
-                  let displayPrice = pricingPkg.priceString || `$${pricingPkg.price.toFixed(2)}`
+                  const displayPrice = pricingPkg.priceString || `$${pricingPkg.price.toFixed(2)}`
                   let billingPeriod = "month"
                   let pricePerMonth = undefined
                   let savingsText = undefined

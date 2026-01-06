@@ -1,11 +1,12 @@
-import React, { ReactNode } from "react"
+import { memo, ReactNode } from "react"
 import { Pressable, View } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { Text } from "./Text"
 import { haptics } from "@/utils/haptics"
+
+import { Text } from "./Text"
 
 // =============================================================================
 // TYPES
@@ -44,55 +45,53 @@ const SPRING_CONFIG = {
  *   onPress={() => navigate('Profile')}
  * />
  */
-export const MenuItem = React.memo<MenuItemProps>(
-  ({ icon, title, subtitle, onPress, rightElement }) => {
-    const { theme } = useUnistyles()
-    const scale = useSharedValue(1)
+export const MenuItem = memo<MenuItemProps>(({ icon, title, subtitle, onPress, rightElement }) => {
+  const { theme } = useUnistyles()
+  const scale = useSharedValue(1)
 
-    const handlePressIn = () => {
-      if (onPress) {
-        scale.value = withSpring(0.98, SPRING_CONFIG)
-      }
+  const handlePressIn = () => {
+    if (onPress) {
+      scale.value = withSpring(0.98, SPRING_CONFIG)
     }
+  }
 
-    const handlePressOut = () => {
-      scale.value = withSpring(1, SPRING_CONFIG)
+  const handlePressOut = () => {
+    scale.value = withSpring(1, SPRING_CONFIG)
+  }
+
+  const handlePress = () => {
+    if (onPress) {
+      haptics.listItemPress()
+      onPress()
     }
+  }
 
-    const handlePress = () => {
-      if (onPress) {
-        haptics.listItemPress()
-        onPress()
-      }
-    }
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }))
 
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: scale.value }],
-    }))
-
-    return (
-      <Pressable
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        disabled={!onPress}
-      >
-        <Animated.View style={[styles.menuItem, animatedStyle]}>
-          <View style={styles.menuIconBox}>
-            <Ionicons name={icon} size={22} color={theme.colors.foreground} />
-          </View>
-          <View style={styles.menuContent}>
-            <Text style={styles.menuTitle}>{title}</Text>
-            {subtitle ? <Text style={styles.menuSubtitle}>{subtitle}</Text> : null}
-          </View>
-          {rightElement || (
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.foregroundTertiary} />
-          )}
-        </Animated.View>
-      </Pressable>
-    )
-  },
-)
+  return (
+    <Pressable
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      disabled={!onPress}
+    >
+      <Animated.View style={[styles.menuItem, animatedStyle]}>
+        <View style={styles.menuIconBox}>
+          <Ionicons name={icon} size={22} color={theme.colors.foreground} />
+        </View>
+        <View style={styles.menuContent}>
+          <Text style={styles.menuTitle}>{title}</Text>
+          {subtitle ? <Text style={styles.menuSubtitle}>{subtitle}</Text> : null}
+        </View>
+        {rightElement || (
+          <Ionicons name="chevron-forward" size={20} color={theme.colors.foregroundTertiary} />
+        )}
+      </Animated.View>
+    </Pressable>
+  )
+})
 
 MenuItem.displayName = "MenuItem"
 

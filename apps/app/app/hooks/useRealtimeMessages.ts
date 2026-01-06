@@ -2,12 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 
 import { supabase, isUsingMockSupabase } from "../services/supabase"
-import type {
-  RealtimeMessage,
-  RealtimeMessageWithUser,
-  RealtimePayload,
-  TypingState,
-} from "../types/realtime"
+import type { RealtimeMessage, RealtimePayload, TypingState } from "../types/realtime"
 import { logger } from "../utils/Logger"
 
 export interface UseRealtimeMessagesOptions {

@@ -84,7 +84,11 @@ export const HomeScreen: FC<HomeScreenProps> = function HomeScreen(_props) {
           {/* Header Section */}
           <Animated.View entering={FadeInDown.delay(0).springify()} style={styles.header}>
             <View style={styles.headerLeft}>
-              <Avatar source={avatarUrl ? { uri: avatarUrl } : undefined} fallback={userInitials} size="md" />
+              <Avatar
+                source={avatarUrl ? { uri: avatarUrl } : undefined}
+                fallback={userInitials}
+                size="md"
+              />
               <View style={styles.headerText}>
                 <Text size="sm" color="secondary" tx="homeScreen:goodMorning" />
                 <Text size="xl" weight="bold">

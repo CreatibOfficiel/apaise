@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react"
+import { memo, ReactNode } from "react"
 import { Pressable, ViewStyle } from "react-native"
 import type { StyleProp } from "react-native"
 import Animated, {
@@ -46,7 +46,7 @@ const SPRING_CONFIG = {
  *   <Text>Card content</Text>
  * </PressableCard>
  */
-export const PressableCard = React.memo<PressableCardProps>(
+export const PressableCard = memo<PressableCardProps>(
   ({ children, onPress, style, containerStyle, delay = 0, disabled = false }) => {
     const scale = useSharedValue(1)
 

@@ -11,8 +11,8 @@ import type {
   SubscriptionLifecycleData,
 } from "../types/subscription"
 import { logger } from "../utils/Logger"
-import { detectLifecycleEvent, getLifecycleEventDescription } from "../utils/subscriptionHelpers"
 import * as storage from "../utils/storage"
+import { detectLifecycleEvent, getLifecycleEventDescription } from "../utils/subscriptionHelpers"
 
 const getAuthStore = () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -83,8 +83,8 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       setCustomerInfo: (info) => {
         const { customerInfo: oldInfo, lifecycleListeners } = get()
 
-        // Detect lifecycle events
-        const lifecycleEvent = detectLifecycleEvent(oldInfo, info)
+        // Detect lifecycle events (only if new info is not null)
+        const lifecycleEvent = info ? detectLifecycleEvent(oldInfo, info) : null
         if (lifecycleEvent) {
           // Log event
           if (__DEV__) {
@@ -113,8 +113,8 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       setWebSubscriptionInfo: (info) => {
         const { webSubscriptionInfo: oldInfo, lifecycleListeners } = get()
 
-        // Detect lifecycle events
-        const lifecycleEvent = detectLifecycleEvent(oldInfo, info)
+        // Detect lifecycle events (only if new info is not null)
+        const lifecycleEvent = info ? detectLifecycleEvent(oldInfo, info) : null
         if (lifecycleEvent) {
           // Log event
           if (__DEV__) {

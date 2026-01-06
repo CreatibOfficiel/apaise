@@ -62,9 +62,7 @@ export const PricingCard: FC<PricingCardProps> = ({
           <Text style={styles.price}>{price}</Text>
           <Text style={styles.billingPeriod}>/{billingPeriod}</Text>
         </View>
-        {pricePerMonth && (
-          <Text style={styles.pricePerMonth}>{pricePerMonth}</Text>
-        )}
+        {pricePerMonth && <Text style={styles.pricePerMonth}>{pricePerMonth}</Text>}
       </View>
 
       {features.length > 0 && (
@@ -89,7 +87,7 @@ export const PricingCard: FC<PricingCardProps> = ({
         disabled={disabled || loading}
       >
         <Text style={[styles.buttonText, isPopular && styles.popularButtonText]}>
-          {loading ? t("pricingCard:processing") : (ctaText || t("pricingCard:subscribeNow"))}
+          {loading ? t("pricingCard:processing") : ctaText || t("pricingCard:subscribeNow")}
         </Text>
       </Pressable>
     </View>

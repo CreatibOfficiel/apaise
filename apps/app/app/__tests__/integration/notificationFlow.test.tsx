@@ -8,6 +8,7 @@
  * - Notification handling
  */
 
+import { SchedulableTriggerInputTypes } from "expo-notifications"
 import { act, renderHook, waitFor } from "@testing-library/react-native"
 
 import * as notificationService from "../../services/notifications"
@@ -343,7 +344,11 @@ describe("Notification Flow Integration", () => {
         scheduledId = await result.current.scheduleNotification({
           title: "Reminder",
           body: "Don't forget!",
-          trigger: { seconds: 60 },
+          trigger: {
+            type: SchedulableTriggerInputTypes.TIME_INTERVAL,
+            seconds: 60,
+            repeats: false,
+          },
         })
       })
 
@@ -351,7 +356,11 @@ describe("Notification Flow Integration", () => {
       expect(notificationService.scheduleNotification).toHaveBeenCalledWith({
         title: "Reminder",
         body: "Don't forget!",
-        trigger: { seconds: 60 },
+        trigger: {
+          type: SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 60,
+          repeats: false,
+        },
       })
     })
 

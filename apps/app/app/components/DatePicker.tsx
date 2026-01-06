@@ -1,12 +1,10 @@
 import { useCallback, useMemo, useState } from "react"
 import { View, ViewStyle, Pressable, Platform } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker"
 import { format } from "date-fns"
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated"
 import { StyleSheet, UnistylesRuntime, useUnistyles } from "react-native-unistyles"
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from "@react-native-community/datetimepicker"
 
 import { SPRING_CONFIG } from "@/utils/animations"
 
@@ -313,11 +311,7 @@ export function DatePicker(props: DatePickerProps) {
       {showPicker && Platform.OS === "web" && (
         <input
           type={pickerMode === "date" ? "date" : "time"}
-          value={
-            pickerMode === "date"
-              ? format(tempDate, "yyyy-MM-dd")
-              : format(tempDate, "HH:mm")
-          }
+          value={pickerMode === "date" ? format(tempDate, "yyyy-MM-dd") : format(tempDate, "HH:mm")}
           onChange={(e) => {
             const value = e.target.value
             if (!value) return
@@ -345,6 +339,7 @@ export function DatePicker(props: DatePickerProps) {
             }
           }}
           onBlur={() => setShowPicker(false)}
+          // eslint-disable-next-line react-native/no-inline-styles
           style={{
             position: "absolute",
             top: "100%",

@@ -12,7 +12,7 @@ import {
   ViewProps,
   ViewStyle,
 } from "react-native"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { useUnistyles } from "react-native-unistyles"
 
 import { $styles } from "@/theme/styles"
 

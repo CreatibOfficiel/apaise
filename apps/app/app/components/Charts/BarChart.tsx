@@ -11,7 +11,7 @@ import Animated, {
 import Svg, { Rect, Line, Text as SvgText } from "react-native-svg"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { Text } from "../Text"
+import { Text as _Text } from "../Text"
 import type { BarChartProps } from "./types"
 
 // =============================================================================
@@ -48,7 +48,7 @@ interface AnimatedBarProps {
   index: number
   animated: boolean
   orientation: "vertical" | "horizontal"
-  chartHeight: number
+  _chartHeight: number
   baseY: number
 }
 
@@ -62,7 +62,7 @@ function AnimatedBar({
   index,
   animated,
   orientation,
-  chartHeight,
+  _chartHeight,
   baseY,
 }: AnimatedBarProps) {
   const progress = useSharedValue(0)
@@ -374,7 +374,7 @@ export function BarChart(props: BarChartProps) {
             index={index}
             animated={animated}
             orientation={orientation}
-            chartHeight={chartData.chartHeight}
+            _chartHeight={chartData.chartHeight}
             baseY={bar.baseY}
           />
         ))}
@@ -409,7 +409,7 @@ export function BarChart(props: BarChartProps) {
 // STYLES
 // =============================================================================
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create((_theme) => ({
   container: {
     width: "100%",
   },

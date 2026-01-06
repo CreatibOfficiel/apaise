@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from "react"
 import { Animated, Image, ImageStyle, Platform, StyleProp, View, ViewStyle } from "react-native"
 import { useTranslation } from "react-i18next"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { useUnistyles } from "react-native-unistyles"
 
 import { iconRegistry } from "@/components/Icon"
 import { $styles } from "@/theme/styles"

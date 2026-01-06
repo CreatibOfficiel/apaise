@@ -7,7 +7,7 @@
  * Migration note: The old `useAppTheme()` hook has been removed.
  * Use `useUnistyles()` and `UnistylesRuntime` directly instead.
  */
-import { FC, PropsWithChildren, useCallback, useEffect } from "react"
+import { FC, PropsWithChildren, useEffect } from "react"
 import { UnistylesRuntime } from "react-native-unistyles"
 
 import { syncDarkModePreference } from "@/services/preferencesSync"

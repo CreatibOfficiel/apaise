@@ -4,7 +4,7 @@
  * Comprehensive tests for the network monitoring service
  */
 
-import { renderHook, act, waitFor } from "@testing-library/react-native"
+import { renderHook, waitFor } from "@testing-library/react-native"
 
 import { trackEvent } from "../../utils/analytics"
 import { logger } from "../../utils/Logger"
@@ -14,7 +14,6 @@ import {
   useNetworkState,
   useIsOnline,
   useNetworkQuality,
-  type NetworkState,
 } from "../NetworkMonitor"
 
 // Mock NetInfo

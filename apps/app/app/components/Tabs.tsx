@@ -138,12 +138,15 @@ export function Tabs(props: TabsProps) {
     })
   }, [])
 
-  const handleTabPress = useCallback((key: string) => {
-    if (haptic) {
-      haptics.selection()
-    }
-    onTabChange(key)
-  }, [haptic, onTabChange])
+  const handleTabPress = useCallback(
+    (key: string) => {
+      if (haptic) {
+        haptics.selection()
+      }
+      onTabChange(key)
+    },
+    [haptic, onTabChange],
+  )
 
   // Animated indicator style
   const indicatorStyle = useAnimatedStyle(() => ({

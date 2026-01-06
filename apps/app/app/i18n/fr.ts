@@ -105,7 +105,8 @@ const fr: Translations = {
       "Aucune offre web trouvée. Ajoutez une offre Web Billing dans RevenueCat et réessayez.",
     noPackagesError: "Aucun forfait disponible. Configurez RevenueCat ou ajoutez des clés API.",
     sdkUnavailableError: "Le SDK RevenueCat n'est pas disponible sur cette plateforme.",
-    noOfferingError: "Aucune offre disponible. Configurez une offre dans le tableau de bord RevenueCat.",
+    noOfferingError:
+      "Aucune offre disponible. Configurez une offre dans le tableau de bord RevenueCat.",
     loadFailed: "Impossible de charger le paywall. Veuillez réessayer.",
     purchaseFailed: "Le paiement a échoué. Veuillez réessayer.",
     processing: "Traitement...",
@@ -326,8 +327,7 @@ const fr: Translations = {
   },
   demoShowroomScreen: {
     jumpStart: "Composants pour démarrer votre projet !",
-    lorem2Sentences:
-      "Voici un texte d'exemple pour montrer l'apparence du contenu à l'écran.",
+    lorem2Sentences: "Voici un texte d'exemple pour montrer l'apparence du contenu à l'écran.",
     demoHeaderTxExample: "Youpi",
     demoViaTxProp: "Via la propriété `tx`",
     demoViaSpecifiedTxProp: "Via la propriété `{{prop}}Tx` spécifiée",

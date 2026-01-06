@@ -3,6 +3,7 @@ import { View, ScrollView, useWindowDimensions, Platform, Switch as RNSwitch } f
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { UnistylesRuntime } from "react-native-unistyles"
 
 import {
   Text,
@@ -40,12 +41,11 @@ import {
   SubscriptionStatus,
 } from "@/components"
 // Toggle controls (not exported from main index)
-import { Switch } from "@/components/Toggle/Switch"
 import { Checkbox } from "@/components/Toggle/Checkbox"
 import { Radio } from "@/components/Toggle/Radio"
+import { Switch } from "@/components/Toggle/Switch"
 import { ANIMATION } from "@/config/constants"
 import type { MainTabScreenProps } from "@/navigators/navigationTypes"
-import { UnistylesRuntime } from "react-native-unistyles"
 import { webDimension } from "@/types/webStyles"
 
 // =============================================================================
@@ -83,8 +83,12 @@ export const ComponentShowcaseScreen: FC<ComponentShowcaseScreenProps> =
 
     // Form inputs state
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
-    const [selectedFiles, setSelectedFiles] = useState<Array<{ uri: string; name: string; type: string; size?: number }>>([])
-    const [selectedDocuments, setSelectedDocuments] = useState<Array<{ uri: string; name: string; type: string; size?: number }>>([])
+    const [selectedFiles, setSelectedFiles] = useState<
+      Array<{ uri: string; name: string; type: string; size?: number }>
+    >([])
+    const [selectedDocuments, setSelectedDocuments] = useState<
+      Array<{ uri: string; name: string; type: string; size?: number }>
+    >([])
 
     // Modal state
     const [showModal, setShowModal] = useState(false)
@@ -720,16 +724,8 @@ export const ComponentShowcaseScreen: FC<ComponentShowcaseScreenProps> =
           </Text>
 
           <View style={styles.buttonRow}>
-            <Button
-              text="Open Modal"
-              variant="outlined"
-              onPress={() => setShowModal(true)}
-            />
-            <Button
-              text="Alert Modal"
-              variant="danger"
-              onPress={() => setShowAlertModal(true)}
-            />
+            <Button text="Open Modal" variant="outlined" onPress={() => setShowModal(true)} />
+            <Button text="Alert Modal" variant="danger" onPress={() => setShowAlertModal(true)} />
           </View>
 
           <Modal
@@ -743,7 +739,9 @@ export const ComponentShowcaseScreen: FC<ComponentShowcaseScreenProps> =
             onSecondaryAction={() => setShowModal(false)}
           >
             <View style={styles.modalDemoContent}>
-              <Text>You can put any content here. The modal supports scrolling for longer content.</Text>
+              <Text>
+                You can put any content here. The modal supports scrolling for longer content.
+              </Text>
             </View>
           </Modal>
 
@@ -768,7 +766,9 @@ export const ComponentShowcaseScreen: FC<ComponentShowcaseScreenProps> =
           </Text>
 
           <View style={styles.toastInfoCard}>
-            <Text size="sm" weight="semiBold">Usage Example:</Text>
+            <Text size="sm" weight="semiBold">
+              Usage Example:
+            </Text>
             <Text size="xs" color="secondary" style={styles.codeBlock}>
               {`const toast = useToast()\n\ntoast.show({\n  title: "Success!",\n  description: "Your changes saved",\n  variant: "success", // success | error | warning | info\n})`}
             </Text>
@@ -784,7 +784,7 @@ export const ComponentShowcaseScreen: FC<ComponentShowcaseScreenProps> =
             <Badge text="Info" variant="info" />
           </View>
 
-          <Text size="sm" color="secondary" style={{ marginTop: 8 }}>
+          <Text size="sm" color="secondary" style={styles.marginTop8}>
             Features: Auto-dismiss with progress bar, action buttons, stacking, swipe to dismiss
           </Text>
         </Section>
@@ -830,11 +830,9 @@ export const ComponentShowcaseScreen: FC<ComponentShowcaseScreenProps> =
           <Text size="sm" weight="medium" style={styles.variantLabel}>
             Subscription Status:
           </Text>
-          <SubscriptionStatus
-            isPro={false}
-          />
+          <SubscriptionStatus isPro={false} />
 
-          <View style={{ height: 12 }} />
+          <View style={styles.height12} />
 
           <SubscriptionStatus
             isPro={true}
@@ -866,11 +864,7 @@ export const ComponentShowcaseScreen: FC<ComponentShowcaseScreenProps> =
             price="$4.99"
             description="Great for getting started"
             billingPeriod="month"
-            features={[
-              "5 projects",
-              "Email support",
-              "Basic analytics",
-            ]}
+            features={["5 projects", "Email support", "Basic analytics"]}
             onPress={() => console.log("Subscribe pressed")}
           />
         </Section>
@@ -1072,6 +1066,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   animatedCardsGrid: {
     gap: theme.spacing.md,
+  },
+  marginTop8: {
+    marginTop: 8,
+  },
+  height12: {
+    height: 12,
   },
   avatarRow: {
     flexDirection: "row",
