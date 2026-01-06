@@ -59,17 +59,26 @@ const AppStack = () => {
     })
   }
 
-  // Handle navigation when state changes (e.g., login with unverified email)
+  // Handle navigation when state changes (e.g., login with unverified email, sign out)
   // MUST be called before any early returns to comply with React Hooks rules
   useEffect(() => {
     // Only navigate if state actually changed (not on initial render)
     const wasNeedingVerification = prevNeedsEmailVerificationRef.current
+    const wasAuthenticated = prevIsAuthenticatedRef.current
 
     // If we transitioned to needing email verification, navigate to that screen
     if (needsEmailVerification && !wasNeedingVerification && navigationRef.isReady()) {
       resetRoot({
         index: 0,
         routes: [{ name: "EmailVerification" }],
+      })
+    }
+
+    // If user signed out (was authenticated, now not), reset to Welcome screen
+    if (wasAuthenticated && !isAuthenticated && !needsEmailVerification && navigationRef.isReady()) {
+      resetRoot({
+        index: 0,
+        routes: [{ name: "Welcome" }],
       })
     }
 
