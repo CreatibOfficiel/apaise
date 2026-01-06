@@ -71,7 +71,7 @@ export const ForgotPasswordScreen = () => {
         headerIcon="✉️"
         titleTx="forgotPasswordScreen:successTitle"
         subtitle={t("forgotPasswordScreen:successSubtitle", { email: emailValue })}
-        scrollable={false}
+        scrollable
       >
         <Text
           color="secondary"
@@ -103,7 +103,7 @@ export const ForgotPasswordScreen = () => {
       subtitleTx="forgotPasswordScreen:subtitle"
       showBackButton
       onBack={() => navigation.goBack()}
-      scrollable={false}
+      scrollable
     >
       {/* Email Input */}
       <View style={styles.inputContainer}>

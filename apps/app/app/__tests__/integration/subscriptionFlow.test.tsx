@@ -106,10 +106,10 @@ describe("Subscription Flow Integration", () => {
     it("should initialize subscription service and fetch status", async () => {
       const { result } = renderHook(() => useSubscriptionStore())
 
-      ;(revenueCatService.revenueCat.configure as jest.Mock).mockResolvedValue(undefined)
-      ;(revenueCatService.revenueCat.getSubscriptionInfo as jest.Mock).mockResolvedValue(
-        mockFreeSubscriptionInfo,
-      )
+      // logIn is called when there's a user (auth mock returns a user)
+      ;(revenueCatService.revenueCat.logIn as jest.Mock).mockResolvedValue({
+        subscriptionInfo: mockFreeSubscriptionInfo,
+      })
       ;(revenueCatService.revenueCat.getPackages as jest.Mock).mockResolvedValue(mockPackages)
       ;(revenueCatService.revenueCat.addSubscriptionUpdateListener as jest.Mock).mockReturnValue(
         undefined,
@@ -124,16 +124,16 @@ describe("Subscription Flow Integration", () => {
         expect(result.current.isPro).toBe(false)
       })
 
-      expect(revenueCatService.revenueCat.configure).toHaveBeenCalled()
+      expect(revenueCatService.revenueCat.logIn).toHaveBeenCalledWith("test-user-123")
     })
 
     it("should detect pro status from subscription info", async () => {
       const { result } = renderHook(() => useSubscriptionStore())
 
-      ;(revenueCatService.revenueCat.configure as jest.Mock).mockResolvedValue(undefined)
-      ;(revenueCatService.revenueCat.getSubscriptionInfo as jest.Mock).mockResolvedValue(
-        mockSubscriptionInfo,
-      )
+      // logIn is called when there's a user (auth mock returns a user)
+      ;(revenueCatService.revenueCat.logIn as jest.Mock).mockResolvedValue({
+        subscriptionInfo: mockSubscriptionInfo,
+      })
       ;(revenueCatService.revenueCat.getPackages as jest.Mock).mockResolvedValue(mockPackages)
       ;(revenueCatService.revenueCat.addSubscriptionUpdateListener as jest.Mock).mockReturnValue(
         undefined,
@@ -295,14 +295,15 @@ describe("Subscription Flow Integration", () => {
         error: null,
       })
 
-      let restoreResult: { subscriptionInfo?: SubscriptionInfo; error?: Error }
+      let restoreResult: { error?: Error }
       await act(async () => {
         restoreResult = await result.current.restorePurchases()
       })
 
       await waitFor(() => {
+        // Store returns {} on success, subscriptionInfo is stored in customerInfo
         expect(restoreResult.error).toBeUndefined()
-        expect(restoreResult.subscriptionInfo?.isActive).toBe(true)
+        expect(result.current.customerInfo?.isActive).toBe(true)
         expect(result.current.isPro).toBe(true)
       })
     })
@@ -315,14 +316,16 @@ describe("Subscription Flow Integration", () => {
         error: null,
       })
 
-      let restoreResult: { subscriptionInfo?: SubscriptionInfo; error?: Error }
+      let restoreResult: { error?: Error }
       await act(async () => {
         restoreResult = await result.current.restorePurchases()
       })
 
       await waitFor(() => {
-        expect(restoreResult.subscriptionInfo?.isActive).toBe(false)
+        // Store returns {} on success, no subscriptionInfo
+        expect(restoreResult.error).toBeUndefined()
         expect(result.current.isPro).toBe(false)
+        expect(result.current.customerInfo?.isActive).toBe(false)
       })
     })
 
@@ -335,7 +338,7 @@ describe("Subscription Flow Integration", () => {
         error: restoreError,
       })
 
-      let restoreResult: { subscriptionInfo?: SubscriptionInfo; error?: Error }
+      let restoreResult: { error?: Error }
       await act(async () => {
         restoreResult = await result.current.restorePurchases()
       })

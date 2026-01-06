@@ -72,7 +72,8 @@ export const ThemeProvider: FC<PropsWithChildren<ThemeProviderProps>> = ({
         syncDarkModePreference(userId, currentTheme === "dark")
       }
     }
-  }, [UnistylesRuntime.themeName, themeScheme, setThemeScheme, userId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- UnistylesRuntime.themeName is an external runtime value
+  }, [themeScheme, setThemeScheme, userId])
 
   return <>{children}</>
 }

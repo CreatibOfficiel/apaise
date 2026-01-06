@@ -166,11 +166,14 @@ export function BarChart(props: BarChartProps) {
   const { theme } = useUnistyles()
   const containerWidth = useSharedValue(propWidth || 300)
 
-  const padding = {
-    ...DEFAULT_PADDING,
-    ...(orientation === "horizontal" ? { left: 80 } : {}),
-    ...propPadding,
-  }
+  const padding = useMemo(
+    () => ({
+      ...DEFAULT_PADDING,
+      ...(orientation === "horizontal" ? { left: 80 } : {}),
+      ...propPadding,
+    }),
+    [orientation, propPadding],
+  )
 
   const handleLayout = (event: LayoutChangeEvent) => {
     if (!propWidth) {

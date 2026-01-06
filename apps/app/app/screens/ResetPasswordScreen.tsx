@@ -124,7 +124,7 @@ export const ResetPasswordScreen = () => {
         headerIcon="🔒"
         title={t("resetPasswordScreen:verifyingTitle")}
         subtitle={t("resetPasswordScreen:verifyingSubtitle")}
-        scrollable={false}
+        scrollable
       >
         <View style={styles.loadingContainer}>
           <Spinner size="lg" />
@@ -139,7 +139,7 @@ export const ResetPasswordScreen = () => {
         headerIcon="✅"
         title={t("resetPasswordScreen:successTitle")}
         subtitle={t("resetPasswordScreen:successSubtitle")}
-        scrollable={false}
+        scrollable
       >
         <TouchableOpacity
           style={styles.primaryButton}
@@ -163,7 +163,7 @@ export const ResetPasswordScreen = () => {
       subtitle={t("resetPasswordScreen:subtitle")}
       showBackButton
       onBack={() => navigation.goBack()}
-      scrollable={false}
+      scrollable
     >
       {verificationError ? (
         <View style={styles.errorContainer}>

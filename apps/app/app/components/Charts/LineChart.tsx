@@ -133,7 +133,7 @@ export function LineChart(props: LineChartProps) {
   const containerWidth = useSharedValue(propWidth || 300)
   const animationProgress = useSharedValue(0)
 
-  const padding = { ...DEFAULT_PADDING, ...propPadding }
+  const padding = useMemo(() => ({ ...DEFAULT_PADDING, ...propPadding }), [propPadding])
 
   useEffect(() => {
     if (animated) {

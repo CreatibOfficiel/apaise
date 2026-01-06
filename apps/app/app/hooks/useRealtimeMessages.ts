@@ -290,10 +290,13 @@ export function useRealtimeMessages(
 
     channelRef.current = channel
 
+    // Copy ref value to local variable for cleanup (React hooks rule)
+    const timeouts = typingTimeoutsRef.current
+
     return () => {
       // Clear typing timeouts
-      typingTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout))
-      typingTimeoutsRef.current.clear()
+      timeouts.forEach((timeout) => clearTimeout(timeout))
+      timeouts.clear()
 
       // Unsubscribe
       channel.unsubscribe()

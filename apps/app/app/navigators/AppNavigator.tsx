@@ -75,7 +75,12 @@ const AppStack = () => {
     }
 
     // If user signed out (was authenticated, now not), reset to Welcome screen
-    if (wasAuthenticated && !isAuthenticated && !needsEmailVerification && navigationRef.isReady()) {
+    if (
+      wasAuthenticated &&
+      !isAuthenticated &&
+      !needsEmailVerification &&
+      navigationRef.isReady()
+    ) {
       resetRoot({
         index: 0,
         routes: [{ name: "Welcome" }],

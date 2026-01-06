@@ -1,13 +1,15 @@
 import { useEffect, useCallback, useState } from "react"
-import { View, Platform, ActivityIndicator } from "react-native"
+import { View, Platform, ActivityIndicator, ScrollView, Pressable } from "react-native"
 import { RouteProp, useRoute } from "@react-navigation/native"
 import { useTranslation } from "react-i18next"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { Text, Container, Button, PricingCard } from "../components"
+import { Text, Container, Button } from "../components"
 import { env } from "../config/env"
 import type { AppStackParamList } from "../navigators/navigationTypes"
 import { resetRoot } from "../navigators/navigationUtilities"
+import { mockRevenueCat } from "../services/mocks/revenueCat"
 import { isRevenueCatMock } from "../services/revenuecat"
 import { useSubscriptionStore } from "../stores/subscriptionStore"
 import type { PricingPackage } from "../types/subscription"
@@ -46,6 +48,9 @@ if (shouldLoadNativeSDK) {
   }
 }
 
+// Height of floating tab bar + its bottom margin for content padding
+const TAB_BAR_HEIGHT = 80
+
 // =============================================================================
 // COMPONENT
 // =============================================================================
@@ -54,6 +59,7 @@ export const PaywallScreen = () => {
   const route = useRoute<RouteProp<AppStackParamList, "Paywall">>()
   const { theme } = useUnistyles()
   const { t } = useTranslation()
+  const { bottom } = useSafeAreaInsets()
   const isPro = useSubscriptionStore((state) => state.isPro)
   const packages = useSubscriptionStore((state) => state.packages)
   const fetchPackages = useSubscriptionStore((state) => state.fetchPackages)
@@ -65,11 +71,15 @@ export const PaywallScreen = () => {
   const [isPresenting, setIsPresenting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasAutoPresented, setHasAutoPresented] = useState(false)
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const loadErrorMessage = t("paywallScreen:loadFailed")
   const purchaseErrorMessage = t("paywallScreen:purchaseFailed")
   const noWebOfferingMessage = t("paywallScreen:noWebOfferingError")
   const noPackagesMessage = t("paywallScreen:noPackagesError")
   const sdkUnavailableMessage = t("paywallScreen:sdkUnavailableError")
+
+  // Calculate bottom padding to account for floating tab bar
+  const bottomPadding = Math.max(bottom, 20) + TAB_BAR_HEIGHT
 
   const isFromOnboarding = route.params?.fromOnboarding === true
 
@@ -82,6 +92,16 @@ export const PaywallScreen = () => {
       routes: [{ name: "Main" }],
     })
   }, [isFromOnboarding])
+
+  // Reset mock subscription state (DEV only)
+  const handleResetMock = useCallback(() => {
+    if (__DEV__ && isMock) {
+      mockRevenueCat.reset()
+      // Force refresh subscription store
+      useSubscriptionStore.getState().checkProStatus()
+      logger.info("[Paywall] Mock subscription state reset")
+    }
+  }, [isMock])
 
   // Present RevenueCat Paywall
   const presentPaywall = useCallback(async () => {
@@ -99,6 +119,15 @@ export const PaywallScreen = () => {
         if (!useSubscriptionStore.getState().packages.length) {
           throw new Error(isWeb ? noWebOfferingMessage : noPackagesMessage)
         }
+
+        // Auto-select annual package if available
+        const pkgs = useSubscriptionStore.getState().packages
+        const annualPkg = pkgs.find(
+          (p) =>
+            p.identifier.toLowerCase().includes("annual") ||
+            p.identifier.toLowerCase().includes("year"),
+        )
+        setSelectedPackage(annualPkg?.identifier || pkgs[0]?.identifier || null)
       } catch (err) {
         logger.error("Failed to load paywall", { error: err })
         setError(err instanceof Error ? err.message : loadErrorMessage)
@@ -229,160 +258,178 @@ export const PaywallScreen = () => {
     navigateToMain()
   }, [navigateToMain])
 
+  // Get selected package for purchase
+  const getSelectedPkg = () => packages.find((p) => p.identifier === selectedPackage)
+
   return (
-    <Container safeAreaEdges={["top", "bottom"]}>
-      <View style={styles.container}>
-        {isPro ? (
-          // User is already Pro - show success message
-          <View style={styles.content}>
-            <Text preset="heading" style={styles.title} tx="paywallScreen:welcomeTitle" />
-            <Text style={styles.description} tx="paywallScreen:welcomeDescription" />
+    <Container safeAreaEdges={["top"]}>
+      {isPro ? (
+        // User is already Pro - show success message
+        <View style={[styles.centeredContainer, { paddingBottom: bottomPadding }]}>
+          <View style={styles.successIcon}>
+            <Text style={styles.successIconText}>Pro</Text>
           </View>
-        ) : isPresenting ? (
-          // Loading state while presenting paywall
-          <View style={styles.content}>
-            <ActivityIndicator size="large" color={theme.colors.tint} />
-            <Text style={styles.loadingText} tx="paywallScreen:loadingPaywall" />
-          </View>
-        ) : isWeb || isMockMode ? (
-          // Web billing or Mock mode - use packages + custom UI instead of native paywall
-          <View style={styles.content}>
-            <Text preset="heading" style={styles.title} tx="paywallScreen:upgradeTitle" />
-            <Text style={styles.description}>
-              {isMock
-                ? isWeb
-                  ? t("paywallScreen:mockWebDescription")
-                  : t("paywallScreen:mockNativeDescription")
-                : t("paywallScreen:secureCheckoutDescription")}
-            </Text>
-
-            {/* Value proposition */}
-            <View style={styles.valueProps}>
-              <View style={styles.valuePropRow}>
-                <View style={styles.checkIcon}>
-                  <Text style={styles.checkText}>✓</Text>
-                </View>
-                <Text style={styles.valuePropText}>Unlimited projects</Text>
-              </View>
-              <View style={styles.valuePropRow}>
-                <View style={styles.checkIcon}>
-                  <Text style={styles.checkText}>✓</Text>
-                </View>
-                <Text style={styles.valuePropText}>Priority support</Text>
-              </View>
-              <View style={styles.valuePropRow}>
-                <View style={styles.checkIcon}>
-                  <Text style={styles.checkText}>✓</Text>
-                </View>
-                <Text style={styles.valuePropText}>Advanced analytics</Text>
-              </View>
-              <View style={styles.valuePropRow}>
-                <View style={styles.checkIcon}>
-                  <Text style={styles.checkText}>✓</Text>
-                </View>
-                <Text style={styles.valuePropText}>No watermarks</Text>
-              </View>
+          <Text preset="heading" style={styles.title} tx="paywallScreen:welcomeTitle" />
+          <Text style={styles.description} tx="paywallScreen:welcomeDescription" />
+        </View>
+      ) : isPresenting ? (
+        // Loading state while presenting paywall
+        <View style={[styles.centeredContainer, { paddingBottom: bottomPadding }]}>
+          <ActivityIndicator size="large" color={theme.colors.tint} />
+          <Text style={styles.loadingText} tx="paywallScreen:loadingPaywall" />
+        </View>
+      ) : isWeb || isMockMode ? (
+        // Web billing or Mock mode - use packages + custom UI instead of native paywall
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPadding }]}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* DEV-only mock mode warning banner */}
+          {__DEV__ && isMock && (
+            <View style={styles.mockBanner}>
+              <Text style={styles.mockBannerText}>MOCK MODE</Text>
+              <Text style={styles.mockBannerSubtext}>
+                Purchases are simulated. Add EXPO_PUBLIC_REVENUECAT_IOS_KEY to .env for real
+                purchases.
+              </Text>
+              <Pressable style={styles.mockResetButton} onPress={handleResetMock}>
+                <Text style={styles.mockResetButtonText}>Reset Subscription</Text>
+              </Pressable>
             </View>
+          )}
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {/* Header */}
+          <View style={styles.header}>
+            <Text preset="heading" style={styles.title}>
+              Unlock Pro
+            </Text>
+            <Text style={styles.subtitle}>Get unlimited access to all features</Text>
+          </View>
 
-            <View style={styles.packageList}>
-              {packages.length === 0 ? (
-                <Text style={styles.errorText}>
-                  {isWeb ? noWebOfferingMessage : noPackagesMessage}
-                </Text>
-              ) : (
-                packages.map((pricingPkg, index) => {
-                  const isPopular = index === 0
+          {/* Features list */}
+          <View style={styles.featuresContainer}>
+            {[
+              { title: "Unlimited projects", desc: "Create as many as you need" },
+              { title: "Priority support", desc: "Get help when you need it" },
+              { title: "Advanced analytics", desc: "Deep insights into your data" },
+              { title: "No watermarks", desc: "Clean, professional exports" },
+            ].map((feature, idx) => (
+              <View key={idx} style={styles.featureRow}>
+                <View style={styles.featureCheck}>
+                  <Text style={styles.featureCheckText}>✓</Text>
+                </View>
+                <View style={styles.featureContent}>
+                  <Text style={styles.featureTitle}>{feature.title}</Text>
+                  <Text style={styles.featureDesc}>{feature.desc}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          {/* Package selection */}
+          <View style={styles.packageSection}>
+            <Text style={styles.sectionTitle}>Choose your plan</Text>
+
+            {packages.length === 0 ? (
+              <Text style={styles.errorText}>
+                {isWeb ? noWebOfferingMessage : noPackagesMessage}
+              </Text>
+            ) : (
+              <View style={styles.packageList}>
+                {packages.map((pricingPkg) => {
                   const isAnnual =
                     pricingPkg.identifier.toLowerCase().includes("annual") ||
                     pricingPkg.identifier.toLowerCase().includes("year")
-
-                  // Calculate proper display
+                  const isSelected = selectedPackage === pricingPkg.identifier
                   const displayPrice = pricingPkg.priceString || `$${pricingPkg.price.toFixed(2)}`
-                  let billingPeriod = "month"
-                  let pricePerMonth = undefined
-                  let savingsText = undefined
-                  let ctaText = undefined
-
-                  if (isAnnual) {
-                    // For annual: show yearly price, then monthly breakdown
-                    billingPeriod = "year"
-                    const monthlyEquivalent = (pricingPkg.price / 12).toFixed(2)
-                    pricePerMonth = `≈ $${monthlyEquivalent}/month`
-                    savingsText = "Save 40%"
-                    ctaText = "Unlock Pro"
-                  } else {
-                    // For monthly: simpler CTA
-                    ctaText = "Choose Monthly"
-                  }
 
                   return (
-                    <PricingCard
+                    <Pressable
                       key={pricingPkg.identifier}
-                      title={pricingPkg.title}
-                      price={displayPrice}
-                      description={pricingPkg.description || ""}
-                      billingPeriod={billingPeriod}
-                      features={[]}
-                      isPopular={isPopular}
-                      onPress={() => handlePackagePurchase(pricingPkg)}
-                      disabled={subscriptionLoading || isPresenting}
-                      loading={subscriptionLoading || isPresenting}
-                      savingsText={savingsText}
-                      pricePerMonth={pricePerMonth}
-                      ctaText={ctaText}
-                    />
+                      style={[styles.packageCard, isSelected && styles.packageCardSelected]}
+                      onPress={() => setSelectedPackage(pricingPkg.identifier)}
+                    >
+                      {isAnnual && (
+                        <View style={styles.bestValueBadge}>
+                          <Text style={styles.bestValueText}>BEST VALUE</Text>
+                        </View>
+                      )}
+                      <View style={styles.packageRadio}>
+                        <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
+                          {isSelected && <View style={styles.radioInner} />}
+                        </View>
+                      </View>
+                      <View style={styles.packageInfo}>
+                        <Text style={styles.packageName}>{isAnnual ? "Annual" : "Monthly"}</Text>
+                        <Text style={styles.packagePrice}>{displayPrice}</Text>
+                        {isAnnual && (
+                          <Text style={styles.packageSavings}>
+                            Save 40% - ${(pricingPkg.price / 12).toFixed(2)}/mo
+                          </Text>
+                        )}
+                      </View>
+                    </Pressable>
                   )
-                })
-              )}
-            </View>
-
-            {/* Risk reversal */}
-            <Text style={styles.riskReversal}>Cancel anytime • Secure App Store checkout</Text>
-
-            {isFromOnboarding && (
-              <Button
-                text={t("paywallScreen:continueWithFree")}
-                onPress={handleSkip}
-                variant="ghost"
-                style={styles.skipButton}
-                disabled={subscriptionLoading || isPresenting}
-              />
+                })}
+              </View>
             )}
           </View>
-        ) : error ? (
-          // Error state - show error and retry option
-          <View style={styles.content}>
-            <Text preset="heading" style={styles.title} tx="paywallScreen:unableToLoadTitle" />
-            <Text style={styles.errorText}>{error}</Text>
-            <View style={styles.buttonContainer}>
-              <Button
-                text={t("paywallScreen:tryAgain")}
-                onPress={handlePresentPaywall}
-                variant="filled"
-                style={styles.retryButton}
-              />
-              {isFromOnboarding && (
-                <Button
-                  text={t("paywallScreen:continueWithFree")}
-                  onPress={handleSkip}
-                  variant="ghost"
-                  style={styles.skipButton}
-                />
-              )}
-            </View>
+
+          {/* CTA Button */}
+          <Button
+            text={isMock ? "Simulate Purchase" : "Continue"}
+            onPress={() => {
+              const pkg = getSelectedPkg()
+              if (pkg) handlePackagePurchase(pkg)
+            }}
+            variant="filled"
+            style={styles.ctaButton}
+            disabled={subscriptionLoading || isPresenting || !selectedPackage}
+            loading={subscriptionLoading}
+          />
+
+          {/* Trust signals */}
+          <View style={styles.trustSignals}>
+            <Text style={styles.trustText}>Cancel anytime</Text>
+            <Text style={styles.trustDot}>•</Text>
+            <Text style={styles.trustText}>Secure checkout</Text>
+            <Text style={styles.trustDot}>•</Text>
+            <Text style={styles.trustText}>Instant access</Text>
           </View>
-        ) : (
-          // Fallback - should not reach here, but show option to present paywall
-          <View style={styles.content}>
-            <Text preset="heading" style={styles.title} tx="paywallScreen:upgradeTitle" />
-            <Text style={styles.description} tx="paywallScreen:upgradeDescription" />
+
+          {/* Skip option */}
+          {isFromOnboarding && (
             <Button
-              text={t("paywallScreen:viewPlans")}
+              text={t("paywallScreen:continueWithFree")}
+              onPress={handleSkip}
+              variant="ghost"
+              style={styles.skipButton}
+              disabled={subscriptionLoading || isPresenting}
+            />
+          )}
+
+          {/* Restore purchases link */}
+          <Pressable
+            style={styles.restoreLink}
+            onPress={() => useSubscriptionStore.getState().restorePurchases()}
+          >
+            <Text style={styles.restoreLinkText}>Restore purchases</Text>
+          </Pressable>
+        </ScrollView>
+      ) : error ? (
+        // Error state - show error and retry option
+        <View style={[styles.centeredContainer, { paddingBottom: bottomPadding }]}>
+          <Text preset="heading" style={styles.title} tx="paywallScreen:unableToLoadTitle" />
+          <Text style={styles.errorText}>{error}</Text>
+          <View style={styles.buttonContainer}>
+            <Button
+              text={t("paywallScreen:tryAgain")}
               onPress={handlePresentPaywall}
               variant="filled"
-              style={styles.presentButton}
+              style={styles.retryButton}
             />
             {isFromOnboarding && (
               <Button
@@ -393,34 +440,66 @@ export const PaywallScreen = () => {
               />
             )}
           </View>
-        )}
-      </View>
+        </View>
+      ) : (
+        // Fallback - should not reach here, but show option to present paywall
+        <View style={[styles.centeredContainer, { paddingBottom: bottomPadding }]}>
+          <Text preset="heading" style={styles.title} tx="paywallScreen:upgradeTitle" />
+          <Text style={styles.description} tx="paywallScreen:upgradeDescription" />
+          <Button
+            text={t("paywallScreen:viewPlans")}
+            onPress={handlePresentPaywall}
+            variant="filled"
+            style={styles.presentButton}
+          />
+          {isFromOnboarding && (
+            <Button
+              text={t("paywallScreen:continueWithFree")}
+              onPress={handleSkip}
+              variant="ghost"
+              style={styles.skipButton}
+            />
+          )}
+        </View>
+      )}
     </Container>
   )
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
+  scrollView: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    paddingHorizontal: theme.spacing.lg,
+  },
+  centeredContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: theme.colors.background,
     paddingHorizontal: theme.spacing.lg,
   },
-  content: {
+  header: {
     alignItems: "center",
-    justifyContent: "center",
-    maxWidth: 480,
-    width: "100%",
+    marginTop: theme.spacing.xl,
+    marginBottom: theme.spacing.xl,
   },
   title: {
     color: theme.colors.foreground,
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "800",
-    lineHeight: 38,
-    marginBottom: theme.spacing.sm,
+    lineHeight: 34,
     textAlign: "center",
     letterSpacing: -0.5,
+  },
+  subtitle: {
+    color: theme.colors.foregroundSecondary,
+    fontSize: 16,
+    lineHeight: 22,
+    marginTop: theme.spacing.xs,
+    textAlign: "center",
   },
   description: {
     color: theme.colors.foregroundSecondary,
@@ -429,20 +508,20 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.spacing.lg,
     textAlign: "center",
   },
-  valueProps: {
-    alignSelf: "stretch",
+  // Features
+  featuresContainer: {
     backgroundColor: theme.colors.backgroundSecondary,
     borderRadius: 16,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.xl,
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
   },
-  valuePropRow: {
+  featureRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
   },
-  checkIcon: {
+  featureCheck: {
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -450,17 +529,131 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "center",
   },
-  checkText: {
+  featureCheckText: {
     color: theme.colors.palette.white,
     fontSize: 14,
     fontWeight: "700",
   },
-  valuePropText: {
-    color: theme.colors.foreground,
-    fontSize: 15,
-    fontWeight: "500",
+  featureContent: {
     flex: 1,
   },
+  featureTitle: {
+    color: theme.colors.foreground,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  featureDesc: {
+    color: theme.colors.foregroundTertiary,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  // Package selection
+  packageSection: {
+    marginBottom: theme.spacing.lg,
+  },
+  sectionTitle: {
+    color: theme.colors.foreground,
+    fontSize: 17,
+    fontWeight: "700",
+    marginBottom: theme.spacing.md,
+  },
+  packageList: {
+    gap: theme.spacing.sm,
+  },
+  packageCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.backgroundSecondary,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.md,
+    position: "relative",
+    overflow: "hidden",
+  },
+  packageCardSelected: {
+    borderColor: theme.colors.tint,
+    backgroundColor: theme.colors.palette.primary100,
+  },
+  bestValueBadge: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: theme.colors.palette.success500,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 4,
+    borderBottomLeftRadius: 8,
+  },
+  bestValueText: {
+    color: theme.colors.palette.white,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  packageRadio: {
+    marginRight: theme.spacing.md,
+  },
+  radioOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioOuterSelected: {
+    borderColor: theme.colors.tint,
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: theme.colors.tint,
+  },
+  packageInfo: {
+    flex: 1,
+  },
+  packageName: {
+    color: theme.colors.foreground,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  packagePrice: {
+    color: theme.colors.foreground,
+    fontSize: 20,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+  packageSavings: {
+    color: theme.colors.palette.success600,
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  // CTA
+  ctaButton: {
+    marginBottom: theme.spacing.md,
+  },
+  // Trust signals
+  trustSignals: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: theme.spacing.xs,
+    marginBottom: theme.spacing.lg,
+  },
+  trustText: {
+    color: theme.colors.foregroundTertiary,
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  trustDot: {
+    color: theme.colors.foregroundTertiary,
+    fontSize: 12,
+  },
+  // Other
   loadingText: {
     color: theme.colors.foregroundSecondary,
     fontSize: 14,
@@ -471,7 +664,7 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.error,
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.md,
     textAlign: "center",
   },
   buttonContainer: {
@@ -486,19 +679,65 @@ const styles = StyleSheet.create((theme) => ({
     width: "100%",
   },
   skipButton: {
-    marginTop: theme.spacing.md,
-  },
-  packageList: {
-    gap: theme.spacing.lg,
-    width: "100%",
-    marginTop: theme.spacing.md,
-  },
-  riskReversal: {
-    color: theme.colors.foregroundTertiary,
-    fontSize: 13,
-    textAlign: "center",
-    marginTop: theme.spacing.lg,
     marginBottom: theme.spacing.sm,
+  },
+  restoreLink: {
+    alignItems: "center",
+    paddingVertical: theme.spacing.md,
+  },
+  restoreLinkText: {
+    color: theme.colors.tint,
+    fontSize: 14,
     fontWeight: "500",
+  },
+  // Mock banner
+  mockBanner: {
+    backgroundColor: theme.colors.palette.warning100,
+    borderColor: theme.colors.palette.warning500,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: theme.spacing.md,
+    marginTop: theme.spacing.md,
+    alignItems: "center",
+  },
+  mockBannerText: {
+    color: theme.colors.palette.warning700,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  mockBannerSubtext: {
+    color: theme.colors.palette.warning600,
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  mockResetButton: {
+    marginTop: theme.spacing.sm,
+    backgroundColor: theme.colors.palette.warning500,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: 6,
+  },
+  mockResetButtonText: {
+    color: theme.colors.palette.white,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  // Success state
+  successIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: theme.colors.tint,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: theme.spacing.lg,
+  },
+  successIconText: {
+    color: theme.colors.palette.white,
+    fontSize: 18,
+    fontWeight: "800",
   },
 }))

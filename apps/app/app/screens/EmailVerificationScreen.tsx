@@ -121,7 +121,7 @@ export const EmailVerificationScreen = () => {
       titleTx="emailVerificationScreen:title"
       subtitle={t("emailVerificationScreen:subtitle", { email })}
       showCloseButton={false}
-      scrollable={false}
+      scrollable
     >
       {/* Email Icon */}
       <View style={styles.iconContainer}>

@@ -212,12 +212,23 @@ export function DatePicker(props: DatePickerProps) {
         // On iOS, the picker stays open and updates in real-time
         if (selectedDate) {
           setTempDate(selectedDate)
+          // For datetime mode on iOS, we need to update the value but keep showing picker
+          // The user needs to manually dismiss or we handle the transition
           onChange?.(selectedDate)
         }
       }
     },
     [mode, pickerMode, tempDate, onChange],
   )
+
+  // Handle transitioning from date to time picker for datetime mode on iOS
+  const handleConfirmDatetime = useCallback(() => {
+    if (mode === "datetime" && pickerMode === "date") {
+      setPickerMode("time")
+    } else {
+      setShowPicker(false)
+    }
+  }, [mode, pickerMode])
 
   const handleDismiss = useCallback(() => {
     setShowPicker(false)
@@ -291,20 +302,51 @@ export function DatePicker(props: DatePickerProps) {
       )}
 
       {/* Native Picker */}
-      {showPicker && Platform.OS !== "web" && (
+      {showPicker && Platform.OS === "android" && (
         <DateTimePicker
           value={tempDate}
           mode={pickerMode}
-          display={Platform.OS === "ios" ? "spinner" : "default"}
+          display="default"
           onChange={handleChange}
           minimumDate={minDate}
           maximumDate={maxDate}
           themeVariant={UnistylesRuntime.themeName === "dark" ? "dark" : "light"}
-          // iOS specific props
-          {...(Platform.OS === "ios" && {
-            onTouchCancel: handleDismiss,
-          })}
         />
+      )}
+
+      {/* iOS Picker with toolbar for datetime mode */}
+      {showPicker && Platform.OS === "ios" && (
+        <View style={styles.iosPickerContainer}>
+          {mode === "datetime" && (
+            <View style={styles.iosPickerToolbar}>
+              <Pressable onPress={handleDismiss} hitSlop={8}>
+                <Text style={styles.iosPickerCancel}>Cancel</Text>
+              </Pressable>
+              <Text weight="semiBold" style={styles.iosPickerTitle}>
+                {pickerMode === "date" ? "Select Date" : "Select Time"}
+              </Text>
+              <Pressable onPress={handleConfirmDatetime} hitSlop={8}>
+                <Text style={styles.iosPickerAction}>
+                  {pickerMode === "date" ? "Next" : "Done"}
+                </Text>
+              </Pressable>
+            </View>
+          )}
+          <DateTimePicker
+            value={tempDate}
+            mode={pickerMode}
+            display="spinner"
+            onChange={handleChange}
+            minimumDate={minDate}
+            maximumDate={maxDate}
+            themeVariant={UnistylesRuntime.themeName === "dark" ? "dark" : "light"}
+          />
+          {mode !== "datetime" && (
+            <Pressable onPress={handleDismiss} style={styles.iosDoneButton}>
+              <Text style={styles.iosPickerAction}>Done</Text>
+            </Pressable>
+          )}
+        </View>
       )}
 
       {/* Web Fallback - Native HTML5 input */}
@@ -404,5 +446,36 @@ const styles = StyleSheet.create((theme) => ({
   },
   helperError: {
     color: theme.colors.error,
+  },
+  iosPickerContainer: {
+    marginTop: theme.spacing.sm,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.lg,
+    overflow: "hidden",
+  },
+  iosPickerToolbar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  iosPickerTitle: {
+    color: theme.colors.foreground,
+  },
+  iosPickerCancel: {
+    color: theme.colors.foregroundSecondary,
+  },
+  iosPickerAction: {
+    color: theme.colors.primary,
+    fontWeight: "600",
+  },
+  iosDoneButton: {
+    alignItems: "center",
+    paddingVertical: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
   },
 }))

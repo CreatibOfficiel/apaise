@@ -151,7 +151,7 @@ export const RegisterScreen = () => {
       subtitleTx="registerScreen:subtitle"
       showCloseButton
       onClose={handleClose}
-      scrollable={false}
+      scrollable
     >
       {/* Email Input */}
       <View style={styles.inputContainer}>
