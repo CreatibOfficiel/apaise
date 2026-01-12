@@ -328,7 +328,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   scrollArea: {
     width: "100%",
-    // Don't use flex: 1 when scrollable - let content determine height
+    // Use flexGrow to allow ScrollView to expand within percentage-based containers
+    // while still allowing content to determine minimum height
+    flexGrow: 1,
+    flexShrink: 1,
   },
   scrollAreaWeb: {
     width: "100%",
