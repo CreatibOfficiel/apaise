@@ -2,9 +2,170 @@
 
 ## Overview
 
-This boilerplate uses a **modern design system** with gradient backgrounds, rounded cards, and explicit StyleSheet definitions. All design tokens are centralized in `designTokens.ts`.
+This boilerplate uses **Unistyles 3.0** as the primary styling system, providing powerful theme support, breakpoints, and cross-platform styling. The legacy `designTokens` approach is kept for backward compatibility but should not be used in new code.
 
-## Quick Start
+## Quick Start (Unistyles - Recommended)
+
+```tsx
+import { StyleSheet, useUnistyles } from 'react-native-unistyles'
+import { View, Text } from 'react-native'
+
+const MyComponent = () => {
+  const { theme } = useUnistyles()
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Hello</Text>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create(theme => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    padding: theme.spacing.md,
+  },
+  title: {
+    fontSize: theme.typography.sizes['2xl'],
+    lineHeight: theme.typography.lineHeights['2xl'],
+    color: theme.colors.foreground,
+  },
+}))
+```
+
+## Unistyles Theme System
+
+### Theme Colors
+
+Unistyles provides semantic color tokens that automatically adapt between light and dark themes:
+
+```tsx
+const { theme } = useUnistyles()
+
+// Semantic colors (adapt to theme)
+theme.colors.foreground          // Primary text color
+theme.colors.foregroundSecondary // Secondary text
+theme.colors.foregroundTertiary  // Tertiary/muted text
+
+theme.colors.background          // Main background
+theme.colors.backgroundSecondary // Secondary background
+theme.colors.backgroundTertiary  // Tertiary background
+
+theme.colors.primary             // Primary brand color
+theme.colors.secondary           // Secondary brand color
+theme.colors.accent              // Accent color
+
+theme.colors.card                // Card background
+theme.colors.border              // Border color
+theme.colors.input               // Input background
+
+// State colors
+theme.colors.success             // Success states
+theme.colors.error               // Error states
+theme.colors.warning             // Warning states
+theme.colors.info                // Info states
+
+// Access raw palette
+theme.colors.palette.primary500  // Direct palette access
+```
+
+### Typography
+
+```tsx
+const { theme } = useUnistyles()
+
+// Font sizes
+theme.typography.sizes.xs        // 12
+theme.typography.sizes.sm        // 14
+theme.typography.sizes.base      // 16
+theme.typography.sizes.lg        // 18
+theme.typography.sizes.xl        // 20
+theme.typography.sizes['2xl']    // 24
+theme.typography.sizes['3xl']    // 30
+theme.typography.sizes['4xl']    // 36
+theme.typography.sizes['5xl']    // 48
+
+// Line heights (always use with font sizes!)
+theme.typography.lineHeights.base  // 24
+theme.typography.lineHeights['2xl'] // 32
+
+// Font families (Platform-aware)
+theme.typography.fonts.regular
+theme.typography.fonts.medium
+theme.typography.fonts.semiBold
+theme.typography.fonts.bold
+```
+
+### Spacing
+
+```tsx
+const { theme } = useUnistyles()
+
+theme.spacing.xxxs   // 2
+theme.spacing.xxs    // 4
+theme.spacing.xs     // 8
+theme.spacing.sm     // 12
+theme.spacing.md     // 16
+theme.spacing.lg     // 24
+theme.spacing.xl     // 32
+theme.spacing['2xl'] // 40
+theme.spacing['3xl'] // 48
+theme.spacing['4xl'] // 64
+theme.spacing['5xl'] // 80
+
+// Helper function
+theme.gap(2)  // 16 (2 * 8)
+```
+
+### Border Radius
+
+```tsx
+theme.radius.none    // 0
+theme.radius.xs      // 4
+theme.radius.sm      // 8
+theme.radius.md      // 12
+theme.radius.lg      // 16
+theme.radius.xl      // 20
+theme.radius['2xl']  // 24
+theme.radius['3xl']  // 32
+theme.radius.full    // 9999
+```
+
+### Shadows
+
+```tsx
+// Platform-aware shadows
+theme.shadows.none
+theme.shadows.xs
+theme.shadows.sm
+theme.shadows.md
+theme.shadows.lg
+theme.shadows.xl
+```
+
+### Theme Switching
+
+```tsx
+import { UnistylesRuntime } from 'react-native-unistyles'
+
+// Get current theme
+const isDark = UnistylesRuntime.themeName === 'dark'
+
+// Switch theme
+UnistylesRuntime.setTheme('dark')
+UnistylesRuntime.setTheme('light')
+
+// Enable adaptive themes (follows system)
+UnistylesRuntime.setAdaptiveThemes(true)
+```
+
+## Legacy Design Tokens (Deprecated)
+
+> **⚠️ DEPRECATED:** The `designTokens` approach is legacy code kept for backward compatibility. New components should use Unistyles.
+
+<details>
+<summary>Legacy designTokens Quick Start (for reference only)</summary>
 
 ```tsx
 import { designTokens, gradients, commonStyles } from '@/theme/designTokens'
@@ -27,10 +188,9 @@ const styles = StyleSheet.create({
   },
 })
 ```
+</details>
 
-## Design Tokens
-
-### Colors
+### Colors (Legacy)
 
 ```tsx
 // Primary
