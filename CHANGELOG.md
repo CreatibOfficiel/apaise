@@ -8,11 +8,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Setup Wizard yarn.lock Regeneration**: Fixed "Package not found in project" error after renaming app
+  - Root cause: `yarn.lock` contained old package name references after `package.json` was updated
+  - Setup wizard now automatically runs `yarn install` after renaming to regenerate workspace references
+  - Prevents errors like `Internal Error: Package for myapp@workspace:apps/app not found`
+- **Deep Link URLs Auto-Update**: Redirect URLs now automatically use your app's scheme
+  - Previously: Redirect URLs stayed as `shipnative://verify-email` even after renaming
+  - Now: If you set scheme to `myapp`, URLs become `myapp://verify-email` automatically
+  - Affects `EXPO_PUBLIC_EMAIL_REDIRECT_URL` and `EXPO_PUBLIC_PASSWORD_RESET_REDIRECT_URL`
 - **Expo Widgets Patch Application**: Fixed `@bittingz/expo-widgets` Logger conflict patch not being applied in monorepo setup
   - Root cause: `patch-package` was only configured in `apps/app/` but dependencies are hoisted to root `node_modules/`
   - Added `patch-package` to root `devDependencies` and `postinstall` script to root `package.json`
   - Patches in `/patches/` directory now apply correctly during `yarn install` at root level
   - Fixes iOS build error: `missing argument for parameter 'logHandlers' in call`
+
+### Added - Dual Backend Support (Supabase & Convex)
+- **Convex Native Integration**: First-class Convex support with native providers and hooks
+  - `ConvexProvider` with `ConvexAuthProvider` from `@convex-dev/auth/react`
+  - Platform-aware secure storage (Keychain/SecureStore for mobile, encrypted localStorage for web)
+  - Uses `authTables` spread in schema for proper auth table definitions
+  - Native hooks: `useConvexAuth`, `useConvexUser`, `useConvexAuthState`
+  - Full OAuth support via `expo-web-browser` and `expo-auth-session`
+- **Supabase Native Hooks**: Consistent hook API matching Convex patterns
+  - Native hooks: `useSupabaseAuth`, `useSupabaseUser`, `useSupabaseAuthState`
+  - Full OAuth support for Google and Apple Sign-In
+- **Unified Auth Hook**: Backend-agnostic `useAppAuth` hook
+  - Automatically selects correct backend based on configuration
+  - Provides common interface (`AppAuthState`, `AppAuthActions`) for both backends
+  - Re-exports all native hooks for convenience
+- **Backend Provider Selection**: Choose backend at setup time or via environment variable
+  - `EXPO_PUBLIC_BACKEND_PROVIDER=supabase|convex`
+  - Dynamic imports prevent bundling unused backend code
+- **New Documentation**: Added `vibe/CONVEX.md` for Convex-specific guidance
+
+### Changed - Backend Architecture
+- **Convex Schema**: Now uses `authTables` spread from `@convex-dev/auth/server` instead of manual auth table definitions
+- **BackendProvider**: Simplified to use new native providers with dynamic imports
+- **Hook Organization**: Auth hooks reorganized into backend-specific directories (`hooks/convex/`, `hooks/supabase/`)
 
 ### Fixed - App Store Compliance
 - **iOS Privacy Manifest**: Added proper data collection declarations

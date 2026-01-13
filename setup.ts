@@ -452,6 +452,16 @@ const validatePostHogKey = (key: string) => {
   // PostHog keys are typically 32+ character alphanumeric strings
   return /^[A-Za-z0-9_-]{20,}$/.test(key)
 }
+const validateConvexUrl = (url: string) => {
+  if (!url) return false
+  try {
+    const parsed = new URL(url)
+    // Convex URLs are typically https://*.convex.cloud
+    return parsed.protocol === "https:" && (parsed.hostname.endsWith(".convex.cloud") || parsed.hostname.includes("convex"))
+  } catch {
+    return false
+  }
+}
 const validateSentryDSN = (dsn: string) => {
   if (!dsn) return false
   // Sentry DSN format: https://[key]@[host]/[project-id]
@@ -565,7 +575,9 @@ const getMetadataDefaults = (): Partial<MetadataConfig> => {
 
 const serviceLabels = {
   appEnv: "App Environment & Links",
+  backend: "Backend Provider",
   supabase: "Supabase",
+  convex: "Convex",
   google: "Google OAuth",
   apple: "Apple Sign-In",
   posthog: "PostHog",
@@ -577,39 +589,45 @@ const serviceLabels = {
 
 type ServiceKey = keyof typeof serviceLabels
 type ServiceStatus = Record<ServiceKey, boolean>
+type BackendProvider = "supabase" | "convex"
 type ServiceCatalogEntry = {
   key: ServiceKey
   label: string
   handler: (services: EnvVars, defaults: Partial<EnvVars>, options?: SetupOptions) => Promise<boolean>
 }
 
-const getServiceStatus = (services: EnvVars): ServiceStatus => ({
-  appEnv: Boolean(
-    services.EXPO_PUBLIC_APP_ENV ||
-      services.EXPO_PUBLIC_EMAIL_REDIRECT_URL ||
-      services.EXPO_PUBLIC_PASSWORD_RESET_REDIRECT_URL ||
-      services.EXPO_PUBLIC_USE_MOCK_NOTIFICATIONS
-  ),
-  supabase: Boolean(
-    services.EXPO_PUBLIC_SUPABASE_URL || services.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-  ),
-  google: Boolean(services.EXPO_PUBLIC_GOOGLE_CLIENT_ID || services.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID),
-  apple: Boolean(
-    services.EXPO_PUBLIC_APPLE_SERVICES_ID ||
-      services.EXPO_PUBLIC_APPLE_TEAM_ID ||
-      services.EXPO_PUBLIC_APPLE_PRIVATE_KEY ||
-      services.EXPO_PUBLIC_APPLE_KEY_ID
-  ),
-  posthog: Boolean(services.EXPO_PUBLIC_POSTHOG_API_KEY),
-  revenuecat: Boolean(
-    services.EXPO_PUBLIC_REVENUECAT_IOS_KEY ||
-      services.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ||
-      services.EXPO_PUBLIC_REVENUECAT_WEB_KEY
-  ),
-  sentry: Boolean(services.EXPO_PUBLIC_SENTRY_DSN),
-  fcm: Boolean(services.EXPO_PUBLIC_FCM_SERVER_KEY),
-  widgets: Boolean(services.EXPO_PUBLIC_ENABLE_WIDGETS === "true"),
-})
+const getServiceStatus = (services: EnvVars): ServiceStatus => {
+  const backendProvider = services.EXPO_PUBLIC_BACKEND_PROVIDER || "supabase"
+  return {
+    appEnv: Boolean(
+      services.EXPO_PUBLIC_APP_ENV ||
+        services.EXPO_PUBLIC_EMAIL_REDIRECT_URL ||
+        services.EXPO_PUBLIC_PASSWORD_RESET_REDIRECT_URL ||
+        services.EXPO_PUBLIC_USE_MOCK_NOTIFICATIONS
+    ),
+    backend: Boolean(services.EXPO_PUBLIC_BACKEND_PROVIDER),
+    supabase: backendProvider === "supabase" && Boolean(
+      services.EXPO_PUBLIC_SUPABASE_URL || services.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    ),
+    convex: backendProvider === "convex" && Boolean(services.EXPO_PUBLIC_CONVEX_URL),
+    google: Boolean(services.EXPO_PUBLIC_GOOGLE_CLIENT_ID || services.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID),
+    apple: Boolean(
+      services.EXPO_PUBLIC_APPLE_SERVICES_ID ||
+        services.EXPO_PUBLIC_APPLE_TEAM_ID ||
+        services.EXPO_PUBLIC_APPLE_PRIVATE_KEY ||
+        services.EXPO_PUBLIC_APPLE_KEY_ID
+    ),
+    posthog: Boolean(services.EXPO_PUBLIC_POSTHOG_API_KEY),
+    revenuecat: Boolean(
+      services.EXPO_PUBLIC_REVENUECAT_IOS_KEY ||
+        services.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ||
+        services.EXPO_PUBLIC_REVENUECAT_WEB_KEY
+    ),
+    sentry: Boolean(services.EXPO_PUBLIC_SENTRY_DSN),
+    fcm: Boolean(services.EXPO_PUBLIC_FCM_SERVER_KEY),
+    widgets: Boolean(services.EXPO_PUBLIC_ENABLE_WIDGETS === "true"),
+  }
+}
 
 const formatServiceList = (status: ServiceStatus, target = true): string[] =>
   Object.entries(status)
@@ -704,6 +722,39 @@ const configureMetadata = async (
   return true
 }
 
+const configureBackendProvider = async (
+  services: EnvVars,
+  defaults: Partial<EnvVars> = {},
+  _options: SetupOptions = {}
+): Promise<BackendProvider> => {
+  printSection("🔧 BACKEND PROVIDER", [
+    "Choose your backend - this determines your database, auth, and real-time infrastructure.",
+    "",
+    "💡 Both options are production-ready:",
+    "   • Supabase: PostgreSQL, REST API, real-time subscriptions (recommended for most apps)",
+    "   • Convex: TypeScript-native, reactive queries, real-time by default (great for collaborative apps)",
+    "",
+    "📖 Learn more:",
+    "   • Supabase: https://supabase.com",
+    "   • Convex: https://convex.dev",
+  ])
+
+  const currentProvider = defaults.EXPO_PUBLIC_BACKEND_PROVIDER || "supabase"
+  const choice = await askChoice("Which backend would you like to use?", [
+    {
+      value: "supabase",
+      label: "🐘 Supabase (PostgreSQL + REST) - Great for traditional apps, familiar SQL",
+    },
+    {
+      value: "convex",
+      label: "⚡ Convex (TypeScript-native) - Great for real-time, collaborative apps",
+    },
+  ], currentProvider)
+
+  services.EXPO_PUBLIC_BACKEND_PROVIDER = choice as BackendProvider
+  return choice as BackendProvider
+}
+
 const configureSupabase = async (
   services: EnvVars,
   defaults: Partial<EnvVars> = {},
@@ -756,6 +807,48 @@ const configureSupabase = async (
   return true
 }
 
+const configureConvex = async (
+  services: EnvVars,
+  defaults: Partial<EnvVars> = {},
+  options: SetupOptions = {}
+): Promise<boolean> => {
+  printSection("🔹 CONVEX (Backend & Auth)", [
+    "Convex provides a TypeScript-native backend with real-time queries and mutations.",
+    "",
+    "💡 Don't have a Convex account yet?",
+    "   1. Go to https://convex.dev and sign up (it's free!)",
+    "   2. Run 'npx convex dev' in your project to create a deployment",
+    "   3. Your deployment URL will be shown in the terminal",
+    "",
+    "💡 Your deployment URL looks like: https://xxx-xxx-xxx.convex.cloud",
+    "",
+    "⏭️  You can skip this now and set it up later - your app will work in 'mock mode'.",
+  ])
+
+  const shouldConfigure = options.skipConfirm || (await askYesNo("Do you want to set up Convex now?", true))
+  if (!shouldConfigure) {
+    console.log(chalk.dim("\n   ✅ Skipped. Your app will use mock data. You can add Convex later!"))
+    return false
+  }
+
+  console.log(chalk.cyan("\n📍 Convex Deployment URL"))
+  console.log(chalk.dim("   Find this by running 'npx convex dev' or in your Convex dashboard"))
+  console.log(chalk.dim("   Looks like: https://xxx-xxx-xxx.convex.cloud"))
+  services.EXPO_PUBLIC_CONVEX_URL = await askQuestion(
+    "Enter your Convex deployment URL",
+    validateConvexUrl,
+    defaults.EXPO_PUBLIC_CONVEX_URL
+  )
+
+  console.log(chalk.yellow("\n📝 Important Next Steps:"))
+  console.log(chalk.dim("   1. Install Convex CLI: npm install -g convex"))
+  console.log(chalk.dim("   2. Initialize Convex: npx convex dev (in apps/app directory)"))
+  console.log(chalk.dim("   3. The schema is already set up in convex/schema.ts"))
+  console.log(chalk.dim("   4. See docs/CONVEX.md for authentication setup"))
+
+  return true
+}
+
 const configureAppEnvironment = async (
   services: EnvVars,
   defaults: Partial<EnvVars> = {},
@@ -785,7 +878,7 @@ const configureAppEnvironment = async (
 
   console.log(chalk.cyan("\n📧 Email Confirmation Redirect URL"))
   console.log(chalk.dim("   Used in Supabase email confirmation links."))
-  console.log(chalk.dim("   Mobile default: shipnative://verify-email"))
+  console.log(chalk.dim("   💡 Will be updated to use your app scheme automatically"))
   services.EXPO_PUBLIC_EMAIL_REDIRECT_URL = await askQuestion(
     "Enter email confirmation redirect URL (press Enter to keep default)",
     null,
@@ -794,7 +887,7 @@ const configureAppEnvironment = async (
 
   console.log(chalk.cyan("\n🔐 Password Reset Redirect URL"))
   console.log(chalk.dim("   Used in Supabase password reset links."))
-  console.log(chalk.dim("   Mobile default: shipnative://reset-password"))
+  console.log(chalk.dim("   💡 Will be updated to use your app scheme automatically"))
   services.EXPO_PUBLIC_PASSWORD_RESET_REDIRECT_URL = await askQuestion(
     "Enter password reset redirect URL (press Enter to keep default)",
     null,
@@ -1092,9 +1185,9 @@ const configureWidgets = async (
   return true
 }
 
-const servicesCatalog: ServiceCatalogEntry[] = [
+// Services catalog without backend (backend is handled separately to allow dynamic selection)
+const servicesCatalogWithoutBackend: ServiceCatalogEntry[] = [
   { key: "appEnv", label: "App Environment & Links", handler: configureAppEnvironment },
-  { key: "supabase", label: "Supabase (Backend & Auth)", handler: configureSupabase },
   { key: "google", label: "Google OAuth (Social Login)", handler: configureGoogleOAuth },
   { key: "apple", label: "Apple Sign-In (Social Login)", handler: configureAppleSignIn },
   { key: "posthog", label: "PostHog (Analytics)", handler: configurePostHog },
@@ -1104,6 +1197,19 @@ const servicesCatalog: ServiceCatalogEntry[] = [
   { key: "widgets", label: "Native Widgets (iOS & Android)", handler: configureWidgets },
 ]
 
+// Full catalog including backend options (for menu mode)
+const getServicesCatalogForProvider = (provider: BackendProvider): ServiceCatalogEntry[] => {
+  const backendService: ServiceCatalogEntry = provider === "supabase"
+    ? { key: "supabase", label: "Supabase (Backend & Auth)", handler: configureSupabase }
+    : { key: "convex", label: "Convex (Backend & Auth)", handler: configureConvex }
+
+  return [
+    { key: "appEnv", label: "App Environment & Links", handler: configureAppEnvironment },
+    backendService,
+    ...servicesCatalogWithoutBackend.slice(1), // Skip appEnv since it's already included
+  ]
+}
+
 const configureServicesSequentially = async (
   services: EnvVars,
   defaults: Partial<EnvVars>,
@@ -1112,25 +1218,39 @@ const configureServicesSequentially = async (
   let configuredCount = 0
   let skipRemaining = false
 
+  // Step 1: Choose backend provider first
+  const backendProvider = await configureBackendProvider(services, defaults, options)
+  configuredCount += 1
+
+  // Step 2: Configure the selected backend
+  if (backendProvider === "supabase") {
+    const configured = await configureSupabase(services, defaults, options)
+    if (configured) configuredCount += 1
+  } else {
+    const configured = await configureConvex(services, defaults, options)
+    if (configured) configuredCount += 1
+  }
+
   // Ask upfront if they want to configure all services or skip optional ones
   if (!isNonInteractive && !options.skipConfirm) {
     console.log(chalk.cyan("\n💡 Quick Setup Tip:"))
     console.log(chalk.dim("   We'll go through each service one by one."))
     console.log(chalk.dim("   You can skip any service and add it later - your app will work fine!"))
-    console.log(chalk.dim("   Only Supabase is recommended for a complete setup."))
+    console.log(chalk.dim(`   Your backend (${backendProvider}) is already configured.`))
     console.log("")
   }
 
-  for (let i = 0; i < servicesCatalog.length; i++) {
+  // Step 3: Go through remaining services (skip appEnv first, then continue)
+  for (let i = 0; i < servicesCatalogWithoutBackend.length; i++) {
     if (skipRemaining) break
 
-    const service = servicesCatalog[i]
+    const service = servicesCatalogWithoutBackend[i]
     const configured = await service.handler(services, defaults, options)
     if (configured) configuredCount += 1
 
     // Ask about skipping remaining services after each service (except the last one)
-    if (!isNonInteractive && i < servicesCatalog.length - 1 && !skipRemaining) {
-      const remaining = servicesCatalog.length - i - 1
+    if (!isNonInteractive && i < servicesCatalogWithoutBackend.length - 1 && !skipRemaining) {
+      const remaining = servicesCatalogWithoutBackend.length - i - 1
       const skipAll = await askYesNo(chalk.dim(`\nSkip remaining ${remaining} service(s) and finish setup?`), false)
       if (skipAll) {
         skipRemaining = true
@@ -1145,8 +1265,20 @@ const configureServicesSequentially = async (
 
 const runServiceMenu = async (services: EnvVars, defaults: Partial<EnvVars>): Promise<number> => {
   let configuredCount = 0
+
+  // First, select backend provider if not already set
+  if (!services.EXPO_PUBLIC_BACKEND_PROVIDER) {
+    const provider = await configureBackendProvider(services, defaults, {})
+    configuredCount += 1
+    console.log(chalk.green(`\n✅ Backend set to ${provider}. Now configure your services.\n`))
+  }
+
+  const currentProvider = (services.EXPO_PUBLIC_BACKEND_PROVIDER || "supabase") as BackendProvider
+  const servicesCatalog = getServicesCatalogForProvider(currentProvider)
+
   while (true) {
     const choice = await askChoice("Which service would you like to configure next?", [
+      { value: "change-backend", label: `🔄 Change backend (currently: ${currentProvider})` },
       ...servicesCatalog.map((service) => ({
         value: service.key,
         label: service.label,
@@ -1156,6 +1288,21 @@ const runServiceMenu = async (services: EnvVars, defaults: Partial<EnvVars>): Pr
 
     if (choice === "done") {
       break
+    }
+
+    if (choice === "change-backend") {
+      const newProvider = await configureBackendProvider(services, defaults, {})
+      if (newProvider !== currentProvider) {
+        // Clear old backend config
+        if (newProvider === "convex") {
+          delete services.EXPO_PUBLIC_SUPABASE_URL
+          delete services.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        } else {
+          delete services.EXPO_PUBLIC_CONVEX_URL
+        }
+        console.log(chalk.green(`\n✅ Backend changed to ${newProvider}.\n`))
+      }
+      continue
     }
 
     const selected = servicesCatalog.find((service) => service.key === choice)
@@ -1373,6 +1520,15 @@ async function setup(): Promise<void> {
       }
 
       if (servicesConfigured > 0 || Object.keys(services).length > 0) {
+        // Update redirect URLs to use the user's scheme (not hardcoded "shipnative")
+        const effectiveScheme = config.scheme || metadataDefaults.scheme || "shipnative"
+        if (services.EXPO_PUBLIC_EMAIL_REDIRECT_URL?.includes("shipnative://") && effectiveScheme !== "shipnative") {
+          services.EXPO_PUBLIC_EMAIL_REDIRECT_URL = services.EXPO_PUBLIC_EMAIL_REDIRECT_URL.replace("shipnative://", `${effectiveScheme}://`)
+        }
+        if (services.EXPO_PUBLIC_PASSWORD_RESET_REDIRECT_URL?.includes("shipnative://") && effectiveScheme !== "shipnative") {
+          services.EXPO_PUBLIC_PASSWORD_RESET_REDIRECT_URL = services.EXPO_PUBLIC_PASSWORD_RESET_REDIRECT_URL.replace("shipnative://", `${effectiveScheme}://`)
+        }
+
         console.log("\n📝 Updating .env with service settings...")
         const backupPath = backupFile(appEnvPath)
         if (backupPath) {
@@ -1411,6 +1567,23 @@ async function setup(): Promise<void> {
       if (summaryPath) {
         console.log(`\n📋 Setup summary saved to: ${path.relative(__dirname, summaryPath)}`)
       }
+
+      // CRITICAL: When package.json name changes, yarn install MUST run to regenerate yarn.lock
+      // Otherwise yarn workspace references will fail (e.g., "old-name@workspace:apps/app not found")
+      if (metadataConfigured && config.projectName) {
+        console.log(chalk.yellow("\n⚠️  Package name changed - regenerating yarn.lock..."))
+        console.log(chalk.dim("   This is required to update workspace references."))
+        const stopSpinner = createSpinner("Running yarn install to regenerate yarn.lock")
+        try {
+          execSync("yarn install", { stdio: "inherit", cwd: __dirname })
+          stopSpinner(true)
+        } catch (error) {
+          stopSpinner(false)
+          console.error(chalk.red("   ❌ Failed to regenerate yarn.lock"))
+          console.error(chalk.yellow("   ⚠️  Run 'yarn install' manually before building, or you may see errors like:"))
+          console.error(chalk.dim("      'Package for yourapp@workspace:apps/app not found in the project'"))
+        }
+      }
     } else {
       console.log("\n🔍 DRY RUN - Preview of changes:")
       console.log("\n📝 Would update app.json with:")
@@ -1448,8 +1621,8 @@ async function setup(): Promise<void> {
       }
     }
 
-    // Offer to install dependencies only when configuration was performed
-    const shouldOfferInstall = (metadataConfigured || servicesConfigured > 0) && !isDryRun
+    // Offer to install dependencies only when services changed (not metadata - that's handled above)
+    const shouldOfferInstall = !metadataConfigured && servicesConfigured > 0 && !isDryRun
     if (shouldOfferInstall) {
       printSection("📦 DEPENDENCIES")
       const shouldInstall = await askYesNo("\nDo you want to install dependencies now? (yarn install)", true)
@@ -1464,8 +1637,6 @@ async function setup(): Promise<void> {
           console.error("   Please run 'yarn install' manually")
         }
       }
-    } else if (!isDryRun) {
-      console.log("\nℹ️ Skipping dependency install prompt (no changes made)")
     }
 
     // ========================================
@@ -1506,7 +1677,12 @@ async function setup(): Promise<void> {
     console.log(chalk.dim("   • apps/app/vibe/STYLE_GUIDE.md - Code patterns"))
 
     console.log(chalk.cyan("\n🔧 Setup & Integration:"))
-    console.log(chalk.dim("   • docs/SUPABASE.md - Auth and database"))
+    const backendProvider = services.EXPO_PUBLIC_BACKEND_PROVIDER || "supabase"
+    if (backendProvider === "convex") {
+      console.log(chalk.dim("   • docs/CONVEX.md - Auth and database (Convex)"))
+    } else {
+      console.log(chalk.dim("   • docs/SUPABASE.md - Auth and database (Supabase)"))
+    }
     console.log(chalk.dim("   • docs/MONETIZATION.md - Payments (RevenueCat for iOS, Android & Web)"))
     console.log(chalk.dim("   • docs/ANALYTICS.md - PostHog and Sentry"))
     console.log(chalk.dim("   • docs/NOTIFICATIONS.md - Push notifications"))
@@ -1527,6 +1703,9 @@ async function setup(): Promise<void> {
       `   • URL Scheme: ${chalk.green(effectiveConfig.scheme + "://")}${metadataConfigured ? "" : chalk.dim(" (unchanged)")}`
     )
     console.log(
+      `   • Backend: ${chalk.green(backendProvider === "convex" ? "Convex" : "Supabase")}`
+    )
+    console.log(
       `   • Services configured: ${chalk.green(`${configuredServices.length} / ${totalServices}`)}${configuredServices.length ? chalk.dim(` (${configuredServices.join(", ")})`) : chalk.dim(" (all in mock mode)")}`
     )
     if (mockServices.length) {
@@ -1544,8 +1723,13 @@ async function setup(): Promise<void> {
     console.log(chalk.dim("   1. cd apps/app"))
     console.log(chalk.dim("   2. yarn ios  (or yarn android)"))
     console.log(chalk.dim("   3. Check the Dev Dashboard in the app"))
-    console.log(chalk.dim("   4. Read docs/SUPABASE.md to set up your database"))
-    console.log(chalk.dim("   5. Read docs/MONETIZATION.md to configure subscriptions (RevenueCat)"))
+    if (backendProvider === "convex") {
+      console.log(chalk.dim("   4. Run 'npx convex dev' to start your Convex backend"))
+      console.log(chalk.dim("   5. Read docs/CONVEX.md to set up authentication"))
+    } else {
+      console.log(chalk.dim("   4. Read docs/SUPABASE.md to set up your database"))
+      console.log(chalk.dim("   5. Read docs/MONETIZATION.md to configure subscriptions (RevenueCat)"))
+    }
 
     console.log(chalk.bold("\n🤖 AI-Assisted Development:"))
     console.log(chalk.dim('   Use this prompt in Cursor/Claude:'))
