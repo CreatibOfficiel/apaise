@@ -580,7 +580,7 @@ const getMetadataDefaults = (): Partial<MetadataConfig> => {
 const removeUnusedBackendCode = async (selectedProvider: BackendProvider): Promise<boolean> => {
   const unusedProvider = selectedProvider === "supabase" ? "convex" : "supabase"
 
-  // Paths to clean up
+  // Paths to clean up (directories)
   const pathsToRemove = [
     // Service layer
     `apps/app/app/services/backend/${unusedProvider}`,
@@ -588,11 +588,25 @@ const removeUnusedBackendCode = async (selectedProvider: BackendProvider): Promi
     `apps/app/app/hooks/${unusedProvider}`,
   ]
 
+  // Files to remove (individual files)
+  const filesToRemove: string[] = []
+
   // Additional Convex-specific paths
   if (unusedProvider === "convex") {
     pathsToRemove.push(
       "packages/backend/convex",
       "convex", // Root convex folder
+    )
+    // Also remove Convex provider files and convex-specific screen/component files
+    filesToRemove.push(
+      "apps/app/app/providers/ConvexProvider.tsx",
+      "apps/app/app/providers/ConvexAuthSync.tsx",
+      // Convex-specific screens and components
+      "apps/app/app/screens/ProfileScreen.convex.tsx",
+      "apps/app/app/screens/ResetPasswordScreen.convex.tsx",
+      "apps/app/app/screens/DataDemoScreen.convex.tsx",
+      "apps/app/app/components/EditProfileModal.convex.tsx",
+      "apps/app/app/services/widgets.convex.ts",
     )
   }
 
@@ -601,23 +615,49 @@ const removeUnusedBackendCode = async (selectedProvider: BackendProvider): Promi
     .map(p => path.join(__dirname, p))
     .filter(p => fs.existsSync(p))
 
-  if (existingPaths.length === 0) {
+  const existingFiles = filesToRemove
+    .map(p => path.join(__dirname, p))
+    .filter(p => fs.existsSync(p))
+
+  if (existingPaths.length === 0 && existingFiles.length === 0) {
     return false // Nothing to clean up
   }
 
   // Auto-cleanup: no prompt, just do it
   console.log(chalk.cyan(`\n🧹 Cleaning up unused ${unusedProvider} code...`))
-  console.log(chalk.dim("   Removing folders:"))
-  for (const p of existingPaths) {
-    console.log(chalk.dim(`   • ${path.relative(__dirname, p)}/`))
+  if (existingPaths.length > 0) {
+    console.log(chalk.dim("   Removing folders:"))
+    for (const p of existingPaths) {
+      console.log(chalk.dim(`   • ${path.relative(__dirname, p)}/`))
+    }
+  }
+  if (existingFiles.length > 0) {
+    console.log(chalk.dim("   Removing files:"))
+    for (const p of existingFiles) {
+      console.log(chalk.dim(`   • ${path.relative(__dirname, p)}`))
+    }
   }
 
   const stopSpinner = createSpinner(`Removing ${unusedProvider} backend code`)
 
   try {
+    // Remove directories
     for (const fullPath of existingPaths) {
       // Remove directory recursively (no backup needed - they can re-clone if needed)
       fs.rmSync(fullPath, { recursive: true, force: true })
+    }
+
+    // Remove individual files
+    for (const fullPath of existingFiles) {
+      fs.rmSync(fullPath, { force: true })
+    }
+
+    // Update source files to remove Convex references if removing Convex
+    if (unusedProvider === "convex") {
+      updateProvidersIndex(selectedProvider)
+      updateBackendProviderImports(selectedProvider)
+      updateBackendServiceIndex(selectedProvider)
+      updateConditionalExports(selectedProvider)
     }
 
     stopSpinner(true)
@@ -628,6 +668,406 @@ const removeUnusedBackendCode = async (selectedProvider: BackendProvider): Promi
     console.error(chalk.red(`\n❌ Failed to remove some files: ${error.message}`))
     console.log(chalk.yellow("   You can manually remove these folders later."))
     return false
+  }
+}
+
+// Update providers/index.ts to remove Convex exports when using Supabase
+const updateProvidersIndex = (selectedProvider: BackendProvider): void => {
+  const indexPath = path.join(__dirname, "apps/app/app/providers/index.ts")
+  if (!fs.existsSync(indexPath)) return
+
+  try {
+    let content = fs.readFileSync(indexPath, "utf8")
+
+    if (selectedProvider === "supabase") {
+      // Remove Convex-related exports
+      content = content.replace(
+        /\n\/\/ Native providers for direct use\nexport \{ ConvexProvider, getConvexClient, destroyConvexClient \} from "\.\/ConvexProvider"\nexport \{ ConvexAuthSync \} from "\.\/ConvexAuthSync"\n/,
+        "\n"
+      )
+      // Also try alternative patterns
+      content = content.replace(
+        /export \{ ConvexProvider, getConvexClient, destroyConvexClient \} from "\.\/ConvexProvider"\n/g,
+        ""
+      )
+      content = content.replace(
+        /export \{ ConvexAuthSync \} from "\.\/ConvexAuthSync"\n/g,
+        ""
+      )
+    }
+
+    fs.writeFileSync(indexPath, content)
+    console.log(chalk.dim(`   • Updated providers/index.ts`))
+  } catch (error) {
+    console.warn(chalk.yellow(`   ⚠️ Could not update providers/index.ts: ${error.message}`))
+  }
+}
+
+// Update BackendProvider.tsx to remove Convex imports when using Supabase
+const updateBackendProviderImports = (selectedProvider: BackendProvider): void => {
+  const providerPath = path.join(__dirname, "apps/app/app/providers/BackendProvider.tsx")
+  if (!fs.existsSync(providerPath)) return
+
+  try {
+    const content = fs.readFileSync(providerPath, "utf8")
+    const lines = content.split("\n")
+    const newLines: string[] = []
+
+    if (selectedProvider === "supabase") {
+      let skipUntilClosingBrace = false
+      let braceDepth = 0
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+
+        // Skip import lines for Convex
+        if (line.includes('from "../providers/ConvexAuthSync"') ||
+            line.includes('from "./ConvexAuthSync"') ||
+            line.includes('from "../providers/ConvexProvider"') ||
+            line.includes('from "./ConvexProvider"')) {
+          continue
+        }
+
+        // Skip the ConvexProviderWrapper function definition
+        if (line.includes("function ConvexProviderWrapper")) {
+          skipUntilClosingBrace = true
+          braceDepth = 0
+        }
+
+        if (skipUntilClosingBrace) {
+          braceDepth += (line.match(/\{/g) || []).length
+          braceDepth -= (line.match(/\}/g) || []).length
+          if (braceDepth <= 0 && line.trim() === "}") {
+            skipUntilClosingBrace = false
+          }
+          continue
+        }
+
+        // Skip the "// Convex Provider" section header (3 lines before the function)
+        if (line.includes("// Convex Provider") && line.includes("====")) {
+          // Skip the comment block (this line and next 2)
+          i += 2
+          continue
+        }
+
+        // Skip the isConvex conditional
+        if (line.includes("if (isConvex)")) {
+          // Skip this line and the next 2 lines (return statement and closing brace)
+          i += 2
+          continue
+        }
+
+        // Update the env import to remove isConvex
+        if (line.includes("isSupabase, isConvex") && line.includes("from")) {
+          newLines.push(line.replace("isSupabase, isConvex", "isSupabase"))
+          continue
+        }
+
+        newLines.push(line)
+      }
+
+      fs.writeFileSync(providerPath, newLines.join("\n"))
+      console.log(chalk.dim(`   • Updated BackendProvider.tsx`))
+    }
+  } catch (error) {
+    console.warn(chalk.yellow(`   ⚠️ Could not update BackendProvider.tsx: ${error.message}`))
+  }
+}
+
+// Update services/backend/index.ts to remove Convex references when using Supabase
+const updateBackendServiceIndex = (selectedProvider: BackendProvider): void => {
+  const indexPath = path.join(__dirname, "apps/app/app/services/backend/index.ts")
+  if (!fs.existsSync(indexPath)) return
+
+  try {
+    let content = fs.readFileSync(indexPath, "utf8")
+
+    if (selectedProvider === "supabase") {
+      // Remove isConvex from imports
+      content = content.replace(/isSupabase, isConvex/g, "isSupabase")
+      content = content.replace(/, isConvex/g, "")
+
+      // Remove the "else if (isConvex)" blocks with their content - async version
+      content = content.replace(
+        /\} else if \(isConvex\) \{\s*\/\/ Dynamically import Convex backend\s*const \{ createConvexBackend \} = await import\("\.\/convex"\)\s*backendInstance = createConvexBackend\(\)\s*\}/g,
+        "}"
+      )
+
+      // Remove the "else if (isConvex)" blocks with their content - sync version
+      content = content.replace(
+        /\} else if \(isConvex\) \{\s*\/\/ Convex is available synchronously\s*const \{ createConvexBackend \} = require\("\.\/convex"\)\s*backendInstance = createConvexBackend\(\)\s*\}/g,
+        "}"
+      )
+
+      // Remove ConvexReactClient export
+      content = content.replace(
+        /export type \{ ConvexReactClient \} from "convex\/react"\n?/g,
+        ""
+      )
+
+      fs.writeFileSync(indexPath, content)
+      console.log(chalk.dim(`   • Updated services/backend/index.ts`))
+    }
+  } catch (error) {
+    console.warn(chalk.yellow(`   ⚠️ Could not update services/backend/index.ts: ${error.message}`))
+  }
+}
+
+// Update files with conditional exports to use only Supabase versions
+const updateConditionalExports = (selectedProvider: BackendProvider): void => {
+  if (selectedProvider !== "supabase") return
+
+  // Files that have conditional exports like:
+  // export const X = isConvex ? require("./X.convex").X : require("./X.supabase").X
+  const filesToUpdate = [
+    {
+      file: "apps/app/app/screens/ProfileScreen.tsx",
+      exportName: "ProfileScreen",
+      supabasePath: "./ProfileScreen.supabase"
+    },
+    {
+      file: "apps/app/app/screens/ResetPasswordScreen.tsx",
+      exportName: "ResetPasswordScreen",
+      supabasePath: "./ResetPasswordScreen.supabase"
+    },
+    {
+      file: "apps/app/app/screens/DataDemoScreen.tsx",
+      exportName: "DataDemoScreen",
+      supabasePath: "./DataDemoScreen.supabase"
+    },
+    {
+      file: "apps/app/app/services/widgets.ts",
+      exportName: "widgetService",
+      supabasePath: "./widgets.supabase"
+    },
+  ]
+
+  for (const { file, exportName, supabasePath } of filesToUpdate) {
+    const filePath = path.join(__dirname, file)
+    if (!fs.existsSync(filePath)) continue
+
+    try {
+      let content = fs.readFileSync(filePath, "utf8")
+
+      // Replace conditional export pattern with direct supabase export
+      // Pattern: export const X = isConvex ? require("./X.convex").X : require("./X.supabase").X
+      const conditionalPattern = new RegExp(
+        `export\\s+const\\s+${exportName}\\s*=\\s*isConvex[\\s\\S]*?require\\([^)]+\\.supabase[^)]*\\)\\.${exportName}`,
+        "m"
+      )
+
+      if (conditionalPattern.test(content)) {
+        content = content.replace(
+          conditionalPattern,
+          `export { ${exportName} } from "${supabasePath}"`
+        )
+
+        // Remove the isConvex import if it's no longer used
+        if (!content.includes("isConvex") || content.match(/isConvex/g)?.length === 1) {
+          content = content.replace(/import\s*{\s*isConvex\s*}\s*from\s*["']@\/config\/env["']\s*\n?/, "")
+        }
+
+        fs.writeFileSync(filePath, content)
+        console.log(chalk.dim(`   • Updated ${file}`))
+      }
+    } catch (error) {
+      console.warn(chalk.yellow(`   ⚠️ Could not update ${file}: ${error.message}`))
+    }
+  }
+
+  // Also update files with inline conditional requires (hooks, services, etc.)
+  updateInlineConditionalRequires(selectedProvider)
+}
+
+// Update files with inline conditional requires - file by file specific replacements
+const updateInlineConditionalRequires = (selectedProvider: BackendProvider): void => {
+  if (selectedProvider !== "supabase") return
+
+  // widgets.ts - replace conditional with direct supabase import
+  updateFileContent("apps/app/app/services/widgets.ts", (content) => {
+    // Remove the isConvex ternary and just use supabase
+    content = content.replace(
+      /const widgetService = isConvex \? require\("\.\/widgets\.convex"\) : require\("\.\/widgets\.supabase"\)/,
+      'const widgetService = require("./widgets.supabase")'
+    )
+    // Remove isConvex import
+    content = content.replace(/import \{ isConvex \} from [^\n]+\n/, "")
+    return content
+  })
+
+  // DeleteAccountModal.tsx - replace conditional with nulls since we're supabase only
+  updateFileContent("apps/app/app/components/DeleteAccountModal.tsx", (content) => {
+    content = content.replace(
+      /const \{ useMutation, api \} = isConvex[\s\S]*?\{ useMutation: null, api: null \}/,
+      "const { useMutation, api } = { useMutation: null, api: null }"
+    )
+    // Remove isConvex from imports
+    content = content.replace(/, isConvex/g, "")
+    return content
+  })
+
+  // useAppAuth.ts - replace useConvexAppAuth with a no-op stub and update useAuth export
+  updateFileContent("apps/app/app/hooks/useAppAuth.ts", (content) => {
+    // Replace the entire useConvexAppAuth function with a stub
+    content = content.replace(
+      /function useConvexAppAuth\(\): AppAuthState & AppAuthActions \{[\s\S]*?^}$/m,
+      `function useConvexAppAuth(): AppAuthState & AppAuthActions {
+  // Convex removed - returning no-op stub to satisfy React hooks rules
+  return {
+    isAuthenticated: false,
+    isLoading: false,
+    user: null,
+    session: null,
+    error: null,
+    signInWithEmail: async () => ({ success: false, error: "Convex not configured" }),
+    signUpWithEmail: async () => ({ success: false, error: "Convex not configured" }),
+    signInWithGoogle: async () => ({ success: false, error: "Convex not configured" }),
+    signInWithApple: async () => ({ success: false, error: "Convex not configured" }),
+    sendMagicLink: async () => ({ success: false, error: "Convex not configured" }),
+    verifyMagicLink: async () => ({ success: false, error: "Convex not configured" }),
+    signOut: async () => {},
+    updateProfile: async () => ({ success: false, error: "Convex not configured" }),
+    changePassword: async () => ({ success: false, error: "Convex not configured" }),
+    deleteAccount: async () => ({ success: false, error: "Convex not configured" }),
+    resetPassword: async () => ({ success: false, error: "Convex not configured" }),
+    refreshSession: async () => {},
+  }
+}`
+    )
+    // Update useAuth to always return supabase
+    content = content.replace(
+      /return isConvex \? convexAuth : supabaseAuth/,
+      "return supabaseAuth // Convex removed"
+    )
+    // Remove isConvex from imports if not used elsewhere
+    content = content.replace(/import \{ isConvex \} from "\.\.\/config\/env"\n/, "")
+    return content
+  })
+
+  // useAuth.ts - replace the Convex hook function with a stub
+  updateFileContent("apps/app/app/hooks/useAuth.ts", (content) => {
+    // Replace useConvexAuth function with stub
+    content = content.replace(
+      /function useConvexAuth\(\)[\s\S]*?^}$/m,
+      `function useConvexAuth() {
+  // Convex removed - returning no-op stub
+  return {
+    isLoading: false,
+    isAuthenticated: false,
+    userId: null,
+    user: null,
+    session: null,
+  }
+}`
+    )
+    // Update the export to always use supabase
+    content = content.replace(
+      /return isConvex \? convexAuth : supabaseAuth/g,
+      "return supabaseAuth // Convex removed"
+    )
+    // Remove isConvex import
+    content = content.replace(/import \{ isConvex \} from "\.\.\/config\/env"\n/, "")
+    return content
+  })
+
+  // accountDeletion.ts - remove convex conditional
+  updateFileContent("apps/app/app/services/accountDeletion.ts", (content) => {
+    content = content.replace(
+      /const convexClient = isConvex\s*\n?\s*\? require\("\.\/backend\/convex\/client"\)\s*\n?\s*: null/,
+      "const convexClient = null // Convex removed"
+    )
+    // Remove isConvex from imports
+    content = content.replace(/, isConvex/g, "")
+    return content
+  })
+
+  // preferencesSync.ts - remove convex conditional
+  updateFileContent("apps/app/app/services/preferencesSync.ts", (content) => {
+    content = content.replace(
+      /const convexPushTokens = isConvex \? require\("\.\/backend\/convex\/pushTokens"\) : null/,
+      "const convexPushTokens = null"
+    )
+    // Remove isConvex from imports
+    content = content.replace(/, isConvex/g, "")
+    return content
+  })
+
+  // hooks/index.ts - remove convex example from comments
+  updateFileContent("apps/app/app/hooks/index.ts", (content) => {
+    content = content.replace(
+      / \* import \{ api \} from "@convex\/_generated\/api"\n/,
+      ""
+    )
+    return content
+  })
+
+  // AuthCallbackScreen.tsx - remove convex import in callback
+  updateFileContent("apps/app/app/screens/AuthCallbackScreen.tsx", (content) => {
+    // Replace the dynamic import block with a comment
+    content = content.replace(
+      /\/\/ Dynamic import to avoid loading Convex in Supabase builds\s*\n\s*\/\/ Dynamic import to ensure Convex auth is available\s*\n\s*await import\("@convex-dev\/auth\/react"\)/,
+      "// Convex removed - using Supabase only"
+    )
+    return content
+  })
+
+  // useAuth.ts - replace useConvexAuthImpl with stub (different function name than I expected)
+  updateFileContent("apps/app/app/hooks/useAuth.ts", (content) => {
+    // Replace the entire useConvexAuthImpl function with a stub
+    const stubFunction = `function useConvexAuthImpl(): UseAuthReturn {
+  // Convex removed - returning no-op stub to satisfy React hooks rules
+  return {
+    user: null,
+    session: null,
+    loading: false,
+    signUp: async () => ({ error: new Error("Convex not configured") }),
+    signIn: async () => ({ error: new Error("Convex not configured") }),
+    signOut: async () => {},
+    refreshSession: async () => ({ error: new Error("Convex not configured") }),
+    sendOtp: async () => ({ error: new Error("Convex not configured") }),
+    verifyOtp: async () => ({ error: new Error("Convex not configured") }),
+    sendResetPasswordEmail: async () => ({ error: new Error("Convex not configured") }),
+    resetPassword: async () => ({ error: new Error("Convex not configured") }),
+    sendMagicLink: async () => ({ error: new Error("Convex not configured") }),
+    verifyMagicLink: async () => ({ error: new Error("Convex not configured") }),
+    signInWithGoogle: async () => ({ error: new Error("Convex not configured") }),
+    signInWithApple: async () => ({ error: new Error("Convex not configured") }),
+    updateUser: async () => ({ error: new Error("Convex not configured") }),
+    deleteAccount: async () => ({ error: new Error("Convex not configured") }),
+  }
+}`
+    // Match from function declaration to the closing brace at column 0
+    content = content.replace(
+      /function useConvexAuthImpl\(\): UseAuthReturn \{[\s\S]*?^}/m,
+      stubFunction
+    )
+    return content
+  })
+
+  // accountDeletion.ts - fix the multiline pattern
+  updateFileContent("apps/app/app/services/accountDeletion.ts", (content) => {
+    content = content.replace(
+      /const convexClient = isConvex[\s\S]*?require\("\.\/backend\/convex\/client"\)[\s\S]*?: null/,
+      "const convexClient = null // Convex removed"
+    )
+    return content
+  })
+}
+
+// Helper to update file content with a transform function
+const updateFileContent = (relativePath: string, transform: (content: string) => string): void => {
+  const filePath = path.join(__dirname, relativePath)
+  if (!fs.existsSync(filePath)) return
+
+  try {
+    const content = fs.readFileSync(filePath, "utf8")
+    const newContent = transform(content)
+    if (newContent !== content) {
+      fs.writeFileSync(filePath, newContent)
+      console.log(chalk.dim(`   • Updated ${relativePath}`))
+    }
+  } catch (error) {
+    console.warn(chalk.yellow(`   ⚠️ Could not update ${relativePath}: ${error.message}`))
   }
 }
 
