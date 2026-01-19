@@ -11,4 +11,12 @@ export {
   selectIsCompleted,
   selectUserName,
   selectCanGoBack,
+  selectUserDomain,
+  selectNotificationTime,
 } from "./onboardingStore"
+export {
+  useAffirmationFeedStore,
+  selectCurrentFeedItem,
+  selectFeedCount,
+  selectHasSeenSwipeHint,
+} from "./affirmationFeedStore"

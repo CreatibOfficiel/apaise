@@ -61,3 +61,5 @@ export * from "./LanguageSelector"
 // Business Components
 export * from "./PricingCard"
 export * from "./SubscriptionStatus"
+export * from "./AffirmationCard"
+export * from "./AffirmationFeedItem"

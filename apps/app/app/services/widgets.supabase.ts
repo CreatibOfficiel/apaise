@@ -241,11 +241,13 @@ export function getWidgetConfig(): {
   supabaseUrl: string
   supabaseKey: string
   isMock: boolean
+  convexUrl?: string
 } {
   return {
     supabaseUrl,
     supabaseKey,
     isMock: isUsingMockSupabase,
+    convexUrl: undefined,
   }
 }
 

@@ -1,14 +1,11 @@
 /**
- * OnboardingScreen - Complete 48-step onboarding flow
+ * OnboardingScreen - Affirmations app onboarding (I AM style)
  *
- * Based on I AM Daily Affirmations analysis, adapted for Serein (meditation/anxiety app).
  * Features:
- * - Progressive questions (demographics → emotions → goals)
- * - Dynamic branching based on answers
- * - Loading screens between sections
- * - Social proof and education
- * - Notifications permission request
- * - Paywall with timeline
+ * - Progressive questions (domain → emotions → obstacles → goals)
+ * - "Petit sucre" rewards throughout
+ * - No auth required - starts immediately
+ * - Paywall with free trial timeline
  */
 
 import { FC, useCallback, useEffect } from "react"
@@ -19,9 +16,7 @@ import { useNavigation } from "@react-navigation/native"
 import { LinearGradient } from "expo-linear-gradient"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { Text } from "@/components/Text"
 import { OnboardingStepRenderer } from "@/components/onboarding"
-import { useAuth } from "@/hooks"
 import type { AppStackScreenProps } from "@/navigators/navigationTypes"
 import {
   useOnboardingStore,
@@ -45,17 +40,21 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = function OnboardingSc
   const { theme } = useUnistyles()
   const insets = useSafeAreaInsets()
   const navigation = useNavigation<AppStackScreenProps<"Onboarding">["navigation"]>()
-  const { completeOnboarding } = useAuth()
 
   // Onboarding store
   const progress = useOnboardingStore(selectProgress)
   const canGoBack = useOnboardingStore(selectCanGoBack)
   const currentStep = useOnboardingStore(selectCurrentStep)
   const goToPreviousStep = useOnboardingStore((state) => state.goToPreviousStep)
+  const completeOnboarding = useOnboardingStore((state) => state.completeOnboarding)
   const isCompleted = useOnboardingStore((state) => state.isCompleted)
 
-  // Determine if we should show the header (not on splash screens)
-  const showHeader = currentStep?.type !== "splash" && currentStep?.type !== "loading"
+  // Determine if we should show the header (not on splash/loading/affirmation screens)
+  const showHeader =
+    currentStep?.type !== "splash" &&
+    currentStep?.type !== "affirmation_splash" &&
+    currentStep?.type !== "loading" &&
+    currentStep?.type !== "success"
 
   // Handle back button (Android)
   useEffect(() => {
@@ -71,20 +70,14 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = function OnboardingSc
   }, [canGoBack, goToPreviousStep])
 
   // Handle onboarding completion
-  const handleComplete = useCallback(async () => {
-    try {
-      logger.info("🎉 [Onboarding] Completed")
+  const handleComplete = useCallback(() => {
+    logger.info("[Onboarding] Completed - navigating to Main")
 
-      // Mark onboarding as complete
-      await completeOnboarding()
+    // Mark onboarding as complete (persisted in MMKV)
+    completeOnboarding()
 
-      // Navigate to main app (paywall is now part of onboarding flow)
-      navigation.replace("Main", { screen: "Home" })
-    } catch (error) {
-      logger.error("Failed to complete onboarding", { error })
-      // Navigate anyway
-      navigation.replace("Main", { screen: "Home" })
-    }
+    // Navigate to main app
+    navigation.replace("Main", { screen: "Home" })
   }, [completeOnboarding, navigation])
 
   // Auto-complete when store says we're done

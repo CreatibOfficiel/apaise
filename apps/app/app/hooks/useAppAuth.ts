@@ -305,24 +305,27 @@ function useSupabaseAppAuth(): AppAuthState & AppAuthActions {
 
 function useConvexAppAuth(): AppAuthState & AppAuthActions {
   // Convex removed - returning no-op stub to satisfy React hooks rules
+  const convexNotConfiguredError = new Error("Convex not configured")
   return {
     isAuthenticated: false,
     isLoading: false,
     user: null,
-    session: null,
-    error: null,
-    signInWithEmail: async () => ({ success: false, error: "Convex not configured" }),
-    signUpWithEmail: async () => ({ success: false, error: "Convex not configured" }),
-    signInWithGoogle: async () => ({ success: false, error: "Convex not configured" }),
-    signInWithApple: async () => ({ success: false, error: "Convex not configured" }),
-    sendMagicLink: async () => ({ success: false, error: "Convex not configured" }),
-    verifyMagicLink: async () => ({ success: false, error: "Convex not configured" }),
-    signOut: async () => {},
-    updateProfile: async () => ({ success: false, error: "Convex not configured" }),
-    changePassword: async () => ({ success: false, error: "Convex not configured" }),
-    deleteAccount: async () => ({ success: false, error: "Convex not configured" }),
-    resetPassword: async () => ({ success: false, error: "Convex not configured" }),
-    refreshSession: async () => {},
+    userId: null,
+    isEmailVerified: false,
+    hasCompletedOnboarding: false,
+    provider: "convex",
+    signIn: async () => ({ error: convexNotConfiguredError }),
+    signUp: async () => ({ error: convexNotConfiguredError }),
+    signInWithGoogle: async () => ({ error: convexNotConfiguredError }),
+    signInWithApple: async () => ({ error: convexNotConfiguredError }),
+    signInWithMagicLink: async () => ({ error: convexNotConfiguredError }),
+    verifyOtp: async () => ({ error: convexNotConfiguredError }),
+    signOut: async () => ({ error: null }),
+    updateProfile: async () => ({ error: convexNotConfiguredError }),
+    completeOnboarding: async () => ({ error: convexNotConfiguredError }),
+    resetPassword: async () => ({ error: convexNotConfiguredError }),
+    setUser: () => {},
+    initialize: async () => {},
   }
 }
 

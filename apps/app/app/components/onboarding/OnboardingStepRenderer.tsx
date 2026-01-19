@@ -12,9 +12,11 @@ import { useOnboardingStore, useCurrentOnboardingStep } from "@/stores"
 import type { OnboardingStep } from "@/data/onboardingFlow"
 
 import { SplashStep } from "./SplashStep"
+import { AffirmationSplashStep } from "./AffirmationSplashStep"
 import { QuestionSingleStep } from "./QuestionSingleStep"
 import { QuestionMultiStep } from "./QuestionMultiStep"
 import { InputTextStep } from "./InputTextStep"
+import { InputTextareaStep } from "./InputTextareaStep"
 import { InfoStep } from "./InfoStep"
 import { LoadingStep } from "./LoadingStep"
 import { NotificationsConfigStep } from "./NotificationsConfigStep"
@@ -97,6 +99,9 @@ const renderStep = (
     case "splash":
       return <SplashStep {...commonProps} onContinue={onContinue} />
 
+    case "affirmation_splash":
+      return <AffirmationSplashStep {...commonProps} onContinue={onContinue} />
+
     case "question_single":
       return <QuestionSingleStep {...commonProps} onAnswer={onAnswer} />
 
@@ -105,6 +110,9 @@ const renderStep = (
 
     case "input_text":
       return <InputTextStep {...commonProps} onAnswer={onAnswer} />
+
+    case "input_textarea":
+      return <InputTextareaStep {...commonProps} onAnswer={onAnswer} />
 
     case "info":
       return <InfoStep {...commonProps} onContinue={onContinue} />

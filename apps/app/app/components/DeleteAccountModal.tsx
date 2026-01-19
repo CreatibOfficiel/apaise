@@ -22,9 +22,9 @@ import { logger } from "@/utils/Logger"
 import { Button } from "./Button"
 import { Text } from "./Text"
 
-// Conditionally import Convex hooks
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { useMutation, api } = { useMutation: null, api: null }
+// Conditionally import Convex hooks - typed as any to avoid strict null checks
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
+const { useMutation, api } = { useMutation: null, api: null } as { useMutation: any; api: any }
 
 export interface DeleteAccountModalProps {
   visible: boolean

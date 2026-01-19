@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { View, Pressable, Platform, ViewStyle, TextStyle, useWindowDimensions } from "react-native"
 import { BlurView } from "expo-blur"
 import { Ionicons } from "@expo/vector-icons"
@@ -250,6 +250,12 @@ function DesktopSidebar({ state, navigation }: BottomTabBarProps) {
   const { theme } = useUnistyles()
   const { top } = useSafeAreaInsets()
 
+  // Hide sidebar on Home screen (full-screen feed experience)
+  const currentRoute = state.routes[state.index]
+  if (currentRoute?.name === "Home") {
+    return null
+  }
+
   return (
     <View style={[styles.sidebar, { paddingTop: top + 24 }]}>
       {/* Logo / Brand */}
@@ -304,6 +310,12 @@ function MobileTabBar({ state, navigation }: BottomTabBarProps) {
   const { bottom } = useSafeAreaInsets()
   const { theme } = useUnistyles()
   const isDark = UnistylesRuntime.themeName === "dark"
+
+  // Hide tab bar on Home screen (full-screen feed experience)
+  const currentRoute = state.routes[state.index]
+  if (currentRoute?.name === "Home") {
+    return null
+  }
 
   // Invert nav background for contrast: dark pill on light theme, light pill on dark theme
   const navBackground = theme.colors.palette.neutral900
@@ -470,21 +482,34 @@ function ResponsiveTabBar(props: BottomTabBarProps) {
  * - Haptic feedback on tab press
  * - Accessible (proper roles and labels)
  * - Automatic dark mode support via theme system
+ * - Home screen: Full screen experience (no tab bar/sidebar)
  */
 export function MainTabNavigator() {
   const { width } = useWindowDimensions()
   const isDesktop = Platform.OS === "web" && width >= DESKTOP_BREAKPOINT
+  const [currentRouteName, setCurrentRouteName] = useState<string>("Home")
 
   // For desktop: fixed sidebar on left, content with left margin
   // For mobile: floating bottom tab bar
+  // For Home screen: full screen (no sidebar margin)
+  const isHomeScreen = currentRouteName === "Home"
 
   return (
-    <View style={[styles.navigatorContainer, isDesktop && styles.navigatorContainerDesktop]}>
-      <View style={[styles.screenContainer, isDesktop && styles.screenContainerDesktop]}>
+    <View style={[styles.navigatorContainer, isDesktop && !isHomeScreen && styles.navigatorContainerDesktop]}>
+      <View style={[styles.screenContainer, isDesktop && !isHomeScreen && styles.screenContainerDesktop]}>
         <Tab.Navigator
           tabBar={(props) => <ResponsiveTabBar {...props} />}
           screenOptions={{
             headerShown: false,
+          }}
+          screenListeners={{
+            state: (e) => {
+              const state = e.data.state
+              if (state) {
+                const route = state.routes[state.index]
+                setCurrentRouteName(route?.name || "Home")
+              }
+            },
           }}
         >
           <Tab.Screen name="Home" component={HomeScreen} />

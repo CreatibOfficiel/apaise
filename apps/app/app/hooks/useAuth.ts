@@ -671,24 +671,22 @@ function useSupabaseAuth(): UseAuthReturn {
  */
 function useConvexAuthImpl(): UseAuthReturn {
   // Convex removed - returning no-op stub to satisfy React hooks rules
+  const convexError = new Error("Convex not configured")
   return {
     user: null,
     session: null,
     loading: false,
-    signUp: async () => ({ error: new Error("Convex not configured") }),
-    signIn: async () => ({ error: new Error("Convex not configured") }),
-    signOut: async () => {},
-    refreshSession: async () => ({ error: new Error("Convex not configured") }),
-    sendOtp: async () => ({ error: new Error("Convex not configured") }),
-    verifyOtp: async () => ({ error: new Error("Convex not configured") }),
-    sendResetPasswordEmail: async () => ({ error: new Error("Convex not configured") }),
-    resetPassword: async () => ({ error: new Error("Convex not configured") }),
-    sendMagicLink: async () => ({ error: new Error("Convex not configured") }),
-    verifyMagicLink: async () => ({ error: new Error("Convex not configured") }),
-    signInWithGoogle: async () => ({ error: new Error("Convex not configured") }),
-    signInWithApple: async () => ({ error: new Error("Convex not configured") }),
-    updateUser: async () => ({ error: new Error("Convex not configured") }),
-    deleteAccount: async () => ({ error: new Error("Convex not configured") }),
+    signUp: async () => ({ error: convexError }),
+    signIn: async () => ({ error: convexError }),
+    signOut: async () => ({ error: null }),
+    verifyOtp: async () => ({ error: convexError }),
+    resetPassword: async () => ({ error: convexError }),
+    signInWithMagicLink: async () => ({ error: convexError }),
+    signInWithGoogle: async () => ({ error: convexError }),
+    signInWithApple: async () => ({ error: convexError }),
+    updateUser: async () => ({ error: convexError }),
+    isAuthenticated: false,
+    provider: "convex",
   }
 }
 

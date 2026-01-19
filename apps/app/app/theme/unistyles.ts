@@ -128,6 +128,42 @@ const palette = {
   info700: "#1D4ED8",
   info800: "#1E40AF",
   info900: "#1E3A8A",
+
+  // Lavender (I AM style - Affirmations)
+  lavender50: "#F5F3FF",
+  lavender100: "#EDE9FE",
+  lavender200: "#DDD6FE",
+  lavender300: "#C4B5FD",
+  lavender400: "#A78BFA",
+  lavender500: "#8B5CF6",
+  lavender600: "#7C3AED",
+  lavender700: "#6D28D9",
+  lavender800: "#5B21B6",
+  lavender900: "#4C1D95",
+
+  // Rose/Pink soft (I AM style)
+  rose50: "#FFF1F2",
+  rose100: "#FFE4E6",
+  rose200: "#FECDD3",
+  rose300: "#FDA4AF",
+  rose400: "#FB7185",
+  rose500: "#F43F5E",
+
+  // Terracotta/Warm (I AM style)
+  terracotta50: "#FDF4F3",
+  terracotta100: "#FCE8E6",
+  terracotta200: "#F9D2CC",
+  terracotta300: "#F4ADA3",
+  terracotta400: "#EC7F6D",
+  terracotta500: "#D4A574",
+
+  // Category colors for affirmation cards
+  categoryConfidence: "#9B7EBD",
+  categorySelfLove: "#F2B5D4",
+  categorySuccess: "#D4A574",
+  categoryPeace: "#A8D5BA",
+  categoryRelationships: "#7EB5D4",
+  categoryGratitude: "#F5D76E",
 } as const
 
 // =============================================================================
@@ -190,10 +226,23 @@ export const lightTheme = {
     overlay: "rgba(0, 0, 0, 0.5)",
     overlayLight: "rgba(0, 0, 0, 0.1)",
 
-    // Gradient colors
-    gradientStart: palette.primary100,
-    gradientMiddle: palette.secondary50,
-    gradientEnd: palette.accent50,
+    // Gradient colors (I AM style - dreamy/oniric)
+    gradientStart: "#E8DFF5", // Lavande clair
+    gradientMiddle: "#F5E6E8", // Rose pâle
+    gradientEnd: "#FDF6F0", // Crème chaud
+
+    // Affirmation colors
+    affirmationText: palette.lavender700,
+    affirmationTextLight: palette.rose300,
+    affirmationAccent: palette.terracotta500,
+
+    // Category colors (for affirmation cards)
+    categoryConfidence: palette.categoryConfidence,
+    categorySelfLove: palette.categorySelfLove,
+    categorySuccess: palette.categorySuccess,
+    categoryPeace: palette.categoryPeace,
+    categoryRelationships: palette.categoryRelationships,
+    categoryGratitude: palette.categoryGratitude,
 
     // Misc
     transparent: "transparent",
@@ -225,6 +274,35 @@ export const lightTheme = {
         web: "spaceGroteskBold",
         default: "SpaceGrotesk-Bold",
       }),
+      // Serif fonts for affirmations (Cormorant Garamond)
+      serif: Platform.select({
+        web: "cormorantRegular",
+        default: "CormorantGaramond-Regular",
+      }),
+      serifMedium: Platform.select({
+        web: "cormorantMedium",
+        default: "CormorantGaramond-Medium",
+      }),
+      serifSemiBold: Platform.select({
+        web: "cormorantSemiBold",
+        default: "CormorantGaramond-SemiBold",
+      }),
+      serifBold: Platform.select({
+        web: "cormorantBold",
+        default: "CormorantGaramond-Bold",
+      }),
+      serifItalic: Platform.select({
+        web: "cormorantItalic",
+        default: "CormorantGaramond-Italic",
+      }),
+      serifMediumItalic: Platform.select({
+        web: "cormorantMediumItalic",
+        default: "CormorantGaramond-MediumItalic",
+      }),
+      serifBoldItalic: Platform.select({
+        web: "cormorantBoldItalic",
+        default: "CormorantGaramond-BoldItalic",
+      }),
     },
     sizes: {
       "xs": 12,
@@ -236,6 +314,9 @@ export const lightTheme = {
       "3xl": 30,
       "4xl": 36,
       "5xl": 48,
+      // Affirmation-specific sizes
+      "affirmation": 32,
+      "affirmationLg": 40,
     },
     lineHeights: {
       "xs": 16,
@@ -247,6 +328,9 @@ export const lightTheme = {
       "3xl": 36,
       "4xl": 40,
       "5xl": 48,
+      // Affirmation-specific line heights
+      "affirmation": 42,
+      "affirmationLg": 52,
     },
   },
 
@@ -457,10 +541,23 @@ export const darkTheme = {
     overlay: "rgba(0, 0, 0, 0.7)",
     overlayLight: "rgba(0, 0, 0, 0.3)",
 
-    // Gradient colors
-    gradientStart: palette.gray800,
-    gradientMiddle: palette.gray900,
-    gradientEnd: palette.black,
+    // Gradient colors (I AM style - deep/calming dark)
+    gradientStart: "#2D1B4E", // Violet profond
+    gradientMiddle: "#1F1B2E", // Mauve sombre
+    gradientEnd: "#1A1625", // Quasi-noir violet
+
+    // Affirmation colors (dark mode)
+    affirmationText: palette.lavender300,
+    affirmationTextLight: palette.rose200,
+    affirmationAccent: palette.terracotta400,
+
+    // Category colors (for affirmation cards - slightly muted for dark mode)
+    categoryConfidence: palette.categoryConfidence,
+    categorySelfLove: palette.categorySelfLove,
+    categorySuccess: palette.categorySuccess,
+    categoryPeace: palette.categoryPeace,
+    categoryRelationships: palette.categoryRelationships,
+    categoryGratitude: palette.categoryGratitude,
 
     link: palette.primary400,
     tint: palette.primary400,

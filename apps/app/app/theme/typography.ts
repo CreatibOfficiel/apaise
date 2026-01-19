@@ -3,6 +3,15 @@
 
 import { Platform } from "react-native"
 import {
+  CormorantGaramond_400Regular as cormorantRegular,
+  CormorantGaramond_500Medium as cormorantMedium,
+  CormorantGaramond_600SemiBold as cormorantSemiBold,
+  CormorantGaramond_700Bold as cormorantBold,
+  CormorantGaramond_400Regular_Italic as cormorantItalic,
+  CormorantGaramond_500Medium_Italic as cormorantMediumItalic,
+  CormorantGaramond_700Bold_Italic as cormorantBoldItalic,
+} from "@expo-google-fonts/cormorant-garamond"
+import {
   SpaceGrotesk_300Light as spaceGroteskLight,
   SpaceGrotesk_400Regular as spaceGroteskRegular,
   SpaceGrotesk_500Medium as spaceGroteskMedium,
@@ -16,6 +25,13 @@ export const customFontsToLoad = {
   spaceGroteskMedium,
   spaceGroteskSemiBold,
   spaceGroteskBold,
+  cormorantRegular,
+  cormorantMedium,
+  cormorantSemiBold,
+  cormorantBold,
+  cormorantItalic,
+  cormorantMediumItalic,
+  cormorantBoldItalic,
 }
 
 const fonts = {
@@ -49,6 +65,16 @@ const fonts = {
     // Android only font.
     normal: "monospace",
   },
+  cormorantGaramond: {
+    // Serif font for affirmations (Cross-platform Google font)
+    regular: "cormorantRegular",
+    medium: "cormorantMedium",
+    semiBold: "cormorantSemiBold",
+    bold: "cormorantBold",
+    italic: "cormorantItalic",
+    mediumItalic: "cormorantMediumItalic",
+    boldItalic: "cormorantBoldItalic",
+  },
 }
 
 export const typography = {
@@ -68,4 +94,8 @@ export const typography = {
    * Lets get fancy with a monospace font!
    */
   code: Platform.select({ ios: fonts.courier, android: fonts.monospace }),
+  /**
+   * Elegant serif font for affirmations (Cormorant Garamond)
+   */
+  serif: fonts.cormorantGaramond,
 }

@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@bittingz/expo-widgets": "^3.0.2",
+    "@expo-google-fonts/cormorant-garamond": "^0.4.1",
     "@expo-google-fonts/space-grotesk": "^0.4.0",
     "@expo/config-plugins": "^54.0.2",
     "@expo/metro-runtime": "~6.1.2",

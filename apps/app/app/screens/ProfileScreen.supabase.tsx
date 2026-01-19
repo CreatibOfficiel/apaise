@@ -37,7 +37,7 @@ import type { MainTabScreenProps } from "@/navigators/navigationTypes"
 import { mockRevenueCat } from "@/services/mocks/revenueCat"
 import { isRevenueCatMock } from "@/services/revenuecat"
 import { supabase } from "@/services/supabase"
-import { useNotificationStore, useSubscriptionStore, useWidgetStore } from "@/stores"
+import { useNotificationStore, useSubscriptionStore, useWidgetStore, useOnboardingStore, useAffirmationFeedStore } from "@/stores"
 import { webDimension } from "@/types/webStyles"
 import { haptics } from "@/utils/haptics"
 import { testErrors } from "@/utils/testError"
@@ -168,6 +168,8 @@ export const ProfileScreen: FC<ProfileScreenProps> = ({ navigation }) => {
   const checkProStatus = useSubscriptionStore((state) => state.checkProStatus)
   const { isPushEnabled, togglePush } = useNotificationStore()
   const { isWidgetsEnabled, userWidgetsEnabled, toggleWidgets, syncStatus } = useWidgetStore()
+  const resetOnboarding = useOnboardingStore((state) => state.resetOnboarding)
+  const refreshFeed = useAffirmationFeedStore((state) => state.refreshFeed)
   const insets = useSafeAreaInsets()
   const { theme } = useUnistyles()
   const { width: windowWidth } = useWindowDimensions()
@@ -232,6 +234,14 @@ export const ProfileScreen: FC<ProfileScreenProps> = ({ navigation }) => {
     haptics.switchChange()
     mockRevenueCat.setProStatus(!isPro)
     checkProStatus()
+  }
+
+  const handleResetOnboarding = () => {
+    haptics.buttonPress()
+    resetOnboarding()
+    refreshFeed()
+    // Navigate back to start - the AppNavigator will redirect to onboarding
+    navigation.navigate("Home")
   }
 
   const handleProfileUpdate = async (firstName: string, lastName: string) => {
@@ -480,6 +490,13 @@ export const ProfileScreen: FC<ProfileScreenProps> = ({ navigation }) => {
                     haptics.buttonPress()
                     testErrors.testErrorWithContext()
                   }}
+                />
+                <View style={styles.divider} />
+                <MenuItem
+                  icon="refresh-outline"
+                  title="Reset Onboarding"
+                  subtitle="Clear all data and restart the onboarding flow"
+                  onPress={handleResetOnboarding}
                 />
               </Animated.View>
             </>

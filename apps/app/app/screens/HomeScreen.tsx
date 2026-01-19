@@ -1,18 +1,48 @@
-import { FC } from "react"
-import { View, ScrollView, Pressable, Platform, useWindowDimensions } from "react-native"
+/**
+ * HomeScreen - TikTok-like Affirmation Feed
+ *
+ * Full screen vertical swipe feed of affirmations
+ * - Fixed background gradient
+ * - Fixed header buttons (Profile / Premium)
+ * - Only affirmation text + action buttons scroll
+ */
+
+import { FC, useEffect, useCallback, useState, useRef, useMemo } from "react"
+import {
+  View,
+  Platform,
+  ActivityIndicator,
+  FlatList,
+  useWindowDimensions,
+  Pressable,
+  Share,
+} from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { Ionicons } from "@expo/vector-icons"
-import Animated, { FadeInDown } from "react-native-reanimated"
+import { useTranslation } from "react-i18next"
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withSequence,
+  withTiming,
+  runOnJS,
+  FadeIn,
+} from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { Text, Avatar, Badge, PressableCard } from "@/components"
-import { ANIMATION } from "@/config/constants"
-import { useAuth } from "@/hooks"
+import { Text } from "@/components"
 import type { MainTabScreenProps } from "@/navigators/navigationTypes"
-import { useNotificationStore } from "@/stores"
-import { webDimension } from "@/types/webStyles"
-import { haptics } from "@/utils/haptics"
+import { getAffirmationText } from "@/services/affirmationService"
+import {
+  useAffirmationFeedStore,
+  useOnboardingStore,
+  useSubscriptionStore,
+  selectHasSeenSwipeHint,
+} from "@/stores"
+import type { FeedItem } from "@/stores/affirmationFeedStore"
+import { haptics, hapticImpact } from "@/utils/haptics"
 
 // =============================================================================
 // TYPES
@@ -21,248 +51,297 @@ import { haptics } from "@/utils/haptics"
 interface HomeScreenProps extends MainTabScreenProps<"Home"> {}
 
 // =============================================================================
-// CONSTANTS
-// =============================================================================
-
-const isWeb = Platform.OS === "web"
-const CONTENT_MAX_WIDTH = 800
-
-// Spring config for animations
-// =============================================================================
 // COMPONENT
 // =============================================================================
 
-export const HomeScreen: FC<HomeScreenProps> = function HomeScreen(_props) {
-  const { navigation } = _props
+export const HomeScreen: FC<HomeScreenProps> = function HomeScreen({ navigation }) {
+  // All hooks must be at the top, before any conditional returns
+  const [isReady, setIsReady] = useState(false)
+  const [containerHeight, setContainerHeight] = useState(0)
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false)
+  const flatListRef = useRef<FlatList<FeedItem>>(null)
+  const lastTapRef = useRef<number>(0)
+  const { height: windowHeight } = useWindowDimensions()
   const { theme } = useUnistyles()
-  const { user } = useAuth()
-  const { isPushEnabled, togglePush } = useNotificationStore()
   const insets = useSafeAreaInsets()
-  const { width: windowWidth } = useWindowDimensions()
+  const { i18n, t } = useTranslation()
 
-  const isLargeScreen = windowWidth > 768
-  const contentStyle = isLargeScreen
-    ? {
-        maxWidth: CONTENT_MAX_WIDTH,
-        alignSelf: "center" as const,
-        width: webDimension("100%"),
+  // Animation values
+  const heartScale = useSharedValue(0)
+  const heartOpacity = useSharedValue(0)
+  const favoriteButtonScale = useSharedValue(1)
+
+  // Use container height if available, otherwise fall back to window height
+  const screenHeight = containerHeight > 0 ? containerHeight : windowHeight
+  const lang = i18n.language.startsWith("fr") ? "fr" : "en"
+
+  // Stores
+  const isPro = useSubscriptionStore((state) => state.isPro)
+  const userCategory = useOnboardingStore((state) => state.answers.transform_domain as string)
+  const feedItems = useAffirmationFeedStore((state) => state.feedItems)
+  const currentIndex = useAffirmationFeedStore((state) => state.currentIndex)
+  const setCurrentIndex = useAffirmationFeedStore((state) => state.setCurrentIndex)
+  const loadFeed = useAffirmationFeedStore((state) => state.loadFeed)
+  const toggleFavorite = useAffirmationFeedStore((state) => state.toggleFavorite)
+  const isFavorite = useAffirmationFeedStore((state) => state.isFavorite)
+  const hasSeenSwipeHint = useAffirmationFeedStore(selectHasSeenSwipeHint)
+  const markSwipeHintSeen = useAffirmationFeedStore((state) => state.markSwipeHintSeen)
+
+  // Current item
+  const currentItem = feedItems[currentIndex]
+  const currentBackground = currentItem?.background
+  const isCurrentFavorite = currentItem ? isFavorite(currentItem.affirmation.id) : false
+
+  // Viewability config - must be stable reference
+  const viewabilityConfig = useMemo(
+    () => ({
+      itemVisiblePercentThreshold: 50,
+    }),
+    [],
+  )
+
+  // Load feed on mount
+  useEffect(() => {
+    if (feedItems.length === 0) {
+      loadFeed(userCategory || undefined, isPro)
+    }
+
+    const timer = setTimeout(() => {
+      setIsReady(true)
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Reload feed when category changes
+  useEffect(() => {
+    if (isReady && feedItems.length === 0) {
+      loadFeed(userCategory || undefined, isPro)
+    }
+  }, [isReady, feedItems.length, loadFeed, userCategory, isPro])
+
+  // Handlers
+  const handleProfilePress = useCallback(() => {
+    haptics.buttonPress()
+    navigation.navigate("Profile")
+  }, [navigation])
+
+  const handlePremiumPress = useCallback(() => {
+    haptics.buttonPress()
+    navigation.navigate("Paywall")
+  }, [navigation])
+
+  const handleDoubleTap = useCallback(() => {
+    if (!currentItem) return
+    if (!isCurrentFavorite) {
+      toggleFavorite(currentItem.affirmation.id)
+    }
+    hapticImpact.medium()
+
+    setShowHeartAnimation(true)
+    heartScale.value = withSequence(
+      withSpring(1.2, { damping: 8, stiffness: 200 }),
+      withTiming(1, { duration: 100 }),
+      withTiming(0, { duration: 300 }),
+    )
+    heartOpacity.value = withSequence(
+      withTiming(1, { duration: 100 }),
+      withTiming(1, { duration: 400 }),
+      withTiming(0, { duration: 300 }, () => {
+        runOnJS(setShowHeartAnimation)(false)
+      }),
+    )
+  }, [currentItem, isCurrentFavorite, toggleFavorite, heartScale, heartOpacity])
+
+  const handlePress = useCallback(() => {
+    const now = Date.now()
+    if (now - lastTapRef.current < 300) {
+      handleDoubleTap()
+    } else if (!hasSeenSwipeHint) {
+      markSwipeHintSeen()
+    }
+    lastTapRef.current = now
+  }, [handleDoubleTap, hasSeenSwipeHint, markSwipeHintSeen])
+
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
+      if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+        const newIndex = viewableItems[0].index
+        setCurrentIndex(newIndex)
+
+        if (!hasSeenSwipeHint && newIndex > 0) {
+          markSwipeHintSeen()
+        }
       }
-    : {}
+    },
+    [setCurrentIndex, hasSeenSwipeHint, markSwipeHintSeen],
+  )
 
-  const handleNavigateToComponents = () => {
-    navigation.navigate("Components")
-  }
+  // Animated styles - must be declared before renderItem which uses them
+  const heartAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: heartScale.value }],
+    opacity: heartOpacity.value,
+  }))
 
-  const handleTogglePush = () => {
-    haptics.switchChange()
-    togglePush()
-  }
+  const favoriteAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: favoriteButtonScale.value }],
+  }))
 
-  // Use unified user object from useAuth
-  const userName = user?.displayName ?? user?.email?.split("@")[0] ?? "User"
-  const userInitials = userName.slice(0, 2).toUpperCase()
-  const avatarUrl = user?.avatarUrl ?? undefined
+  const renderItem = useCallback(
+    ({ item, index }: { item: FeedItem; index: number }) => {
+      const text = getAffirmationText(item.affirmation, lang)
+      const isItemFavorite = isFavorite(item.affirmation.id)
 
-  return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[theme.colors.gradientStart, theme.colors.gradientMiddle, theme.colors.gradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollContent,
-            contentStyle,
-            { paddingTop: insets.top + theme.spacing.lg },
-          ]}
-          showsVerticalScrollIndicator={false}
+      const handleItemShare = async () => {
+        haptics.buttonPress()
+        try {
+          await Share.share({ message: text })
+        } catch {
+          // User cancelled
+        }
+      }
+
+      const handleItemFavorite = () => {
+        hapticImpact.light()
+        favoriteButtonScale.value = withSequence(
+          withSpring(1.3, { damping: 8 }),
+          withSpring(1, { damping: 8 }),
+        )
+        toggleFavorite(item.affirmation.id)
+      }
+
+      return (
+        <Pressable
+          style={[styles.page, { height: screenHeight }]}
+          onPress={handlePress}
         >
-          {/* Header Section */}
-          <Animated.View entering={FadeInDown.delay(0).springify()} style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Avatar
-                source={avatarUrl ? { uri: avatarUrl } : undefined}
-                fallback={userInitials}
-                size="md"
-              />
-              <View style={styles.headerText}>
-                <Text size="sm" color="secondary" tx="homeScreen:goodMorning" />
-                <Text size="xl" weight="bold">
-                  {userName}
-                </Text>
-              </View>
-            </View>
-            <Pressable style={styles.notificationButton} onPress={handleTogglePush}>
-              <Ionicons
-                name={isPushEnabled ? "notifications" : "notifications-off-outline"}
-                size={24}
-                color={theme.colors.foreground}
-              />
-              {isPushEnabled && <Badge dot variant="error" size="sm" />}
-            </Pressable>
-          </Animated.View>
-
-          {/* Featured Card */}
-          <PressableCard style={styles.featuredCard} delay={ANIMATION.STAGGER_DELAY}>
-            <View style={styles.featuredContent}>
-              <Badge tx="homeScreen:dailyChallenge" variant="info" size="sm" />
-              <View style={styles.titleRow}>
-                <View style={styles.featuredIconBox}>
-                  <Ionicons
-                    name="flower-outline"
-                    size={24}
-                    color={theme.colors.palette.primary600}
-                  />
-                </View>
-                <Text
-                  size="2xl"
-                  weight="bold"
-                  style={styles.featuredTitle}
-                  tx="homeScreen:featuredTitle"
-                />
-              </View>
-              <Text
-                color="secondary"
-                style={styles.featuredSubtitle}
-                tx="homeScreen:featuredSubtitle"
-              />
-              <Pressable style={styles.startButton} onPress={() => haptics.buttonPress()}>
-                <Text weight="semiBold" style={styles.startButtonText} tx="homeScreen:startNow" />
-                <Ionicons name="play-circle" size={22} color={theme.colors.card} />
-              </Pressable>
-            </View>
-          </PressableCard>
-
-          {/* Stats Row */}
-          <View style={styles.statsRow}>
-            <PressableCard
-              style={styles.statCard}
-              containerStyle={styles.statCardContainer}
-              delay={ANIMATION.STAGGER_DELAY * 2}
-            >
-              <View style={styles.statIconBox}>
-                <Ionicons name="flame-outline" size={18} color={theme.colors.palette.accent500} />
-              </View>
-              <Text size="2xl" weight="bold">
-                12
-              </Text>
-              <Text size="xs" color="secondary" tx="homeScreen:statStreak" />
-            </PressableCard>
-            <PressableCard
-              style={styles.statCard}
-              containerStyle={styles.statCardContainer}
-              delay={ANIMATION.STAGGER_DELAY * 2.5}
-            >
-              <View style={styles.statIconBox}>
-                <Ionicons name="checkmark-circle-outline" size={18} color={theme.colors.success} />
-              </View>
-              <Text size="2xl" weight="bold">
-                85%
-              </Text>
-              <Text size="xs" color="secondary" tx="homeScreen:statCompleted" />
-            </PressableCard>
-            <PressableCard
-              style={styles.statCard}
-              containerStyle={styles.statCardContainer}
-              delay={ANIMATION.STAGGER_DELAY * 3}
-            >
-              <View style={styles.statIconBox}>
-                <Ionicons name="star-outline" size={18} color={theme.colors.warning} />
-              </View>
-              <Text size="2xl" weight="bold">
-                4.8
-              </Text>
-              <Text size="xs" color="secondary" tx="homeScreen:statRating" />
-            </PressableCard>
+          {/* Text centered on screen */}
+          <View style={styles.centeredTextContainer}>
+            <Animated.View entering={FadeIn.duration(400)} style={styles.textContainer}>
+              <Text style={styles.affirmationText}>{text}</Text>
+            </Animated.View>
           </View>
 
-          {/* Quick Actions */}
-          <Animated.View entering={FadeInDown.delay(ANIMATION.STAGGER_DELAY * 3.5).springify()}>
-            <Text size="xl" weight="bold" style={styles.sectionTitle} tx="homeScreen:explore" />
-          </Animated.View>
+          {/* Action buttons - positioned below center */}
+          <View style={styles.itemActionsRow}>
+            <Pressable style={styles.actionButton} onPress={handleItemShare}>
+              <Ionicons name="share-outline" size={28} color="#FFFFFF" />
+            </Pressable>
 
-          <PressableCard
-            style={styles.actionCard}
-            onPress={handleNavigateToComponents}
-            delay={ANIMATION.STAGGER_DELAY * 4}
-          >
-            <View style={styles.actionContent}>
-              <View style={styles.actionTitleRow}>
-                <View
-                  style={[styles.iconBox, { backgroundColor: theme.colors.palette.primary100 }]}
-                >
-                  <Ionicons name="cube-outline" size={24} color={theme.colors.palette.primary600} />
-                </View>
-                <Text weight="semiBold" style={styles.actionTitle} tx="homeScreen:uiComponents" />
-              </View>
-              <Text
-                size="sm"
-                color="secondary"
-                style={styles.actionDescription}
-                tx="homeScreen:uiComponentsDescription"
-              />
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.foregroundTertiary} />
-          </PressableCard>
-
-          <PressableCard
-            style={styles.actionCard}
-            onPress={() => navigation.navigate("Profile")}
-            delay={ANIMATION.STAGGER_DELAY * 4.5}
-          >
-            <View style={styles.actionContent}>
-              <View style={styles.actionTitleRow}>
-                <View
-                  style={[styles.iconBox, { backgroundColor: theme.colors.palette.secondary100 }]}
-                >
-                  <Ionicons
-                    name="person-outline"
-                    size={24}
-                    color={theme.colors.palette.secondary600}
-                  />
-                </View>
-                <Text weight="semiBold" style={styles.actionTitle} tx="homeScreen:myProfile" />
-              </View>
-              <Text
-                size="sm"
-                color="secondary"
-                style={styles.actionDescription}
-                tx="homeScreen:myProfileDescription"
-              />
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.foregroundTertiary} />
-          </PressableCard>
-
-          <PressableCard
-            style={styles.actionCard}
-            onPress={() => navigation.navigate("Paywall")}
-            delay={ANIMATION.STAGGER_DELAY * 5}
-          >
-            <View style={styles.actionContent}>
-              <View style={styles.actionTitleRow}>
-                <View style={[styles.iconBox, { backgroundColor: theme.colors.palette.accent100 }]}>
-                  <Ionicons name="star-outline" size={24} color={theme.colors.palette.accent600} />
-                </View>
-                <Text
-                  weight="semiBold"
-                  style={styles.actionTitle}
-                  tx="homeScreen:premiumFeatures"
+            <Animated.View style={index === currentIndex ? favoriteAnimatedStyle : undefined}>
+              <Pressable style={styles.actionButton} onPress={handleItemFavorite}>
+                <Ionicons
+                  name={isItemFavorite ? "heart" : "heart-outline"}
+                  size={28}
+                  color={isItemFavorite ? "#FF6B6B" : "#FFFFFF"}
                 />
-              </View>
-              <Text
-                size="sm"
-                color="secondary"
-                style={styles.actionDescription}
-                tx="homeScreen:premiumFeaturesDescription"
-              />
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.foregroundTertiary} />
-          </PressableCard>
-        </ScrollView>
-      </LinearGradient>
+              </Pressable>
+            </Animated.View>
+          </View>
+        </Pressable>
+      )
+    },
+    [screenHeight, lang, handlePress, isFavorite, toggleFavorite, favoriteButtonScale, currentIndex, favoriteAnimatedStyle],
+  )
+
+  const getItemLayout = useCallback(
+    (_: unknown, index: number) => ({
+      length: screenHeight,
+      offset: screenHeight * index,
+      index,
+    }),
+    [screenHeight],
+  )
+
+  const keyExtractor = useCallback((item: FeedItem) => item.affirmation.id, [])
+
+  const handleContainerLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      const { height } = event.nativeEvent.layout
+      if (height > 0 && height !== containerHeight) {
+        setContainerHeight(height)
+      }
+    },
+    [containerHeight],
+  )
+
+  // Show loading state
+  if (!isReady || feedItems.length === 0 || containerHeight === 0) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]} onLayout={handleContainerLayout}>
+        <ActivityIndicator size="large" color="#8B7769" />
+      </View>
+    )
+  }
+
+  const gradientColors = currentBackground?.gradientColors || ["#667EEA", "#764BA2", "#A855F7"]
+
+  return (
+    <View style={styles.container} onLayout={handleContainerLayout}>
+      {/* Fixed Background */}
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.backgroundGradient}
+      />
+
+      {/* Dark Overlay */}
+      <View style={[styles.overlay, { backgroundColor: `rgba(0, 0, 0, ${currentBackground?.overlayOpacity || 0.3})` }]} />
+
+      {/* Fixed Header */}
+      <View style={[styles.header, { paddingTop: insets.top + theme.spacing.md }]}>
+        <Pressable style={styles.headerButton} onPress={handleProfilePress}>
+          <Ionicons name="person" size={22} color="#FFFFFF" />
+        </Pressable>
+
+        <Pressable style={styles.headerButton} onPress={handlePremiumPress}>
+          <Ionicons name="diamond" size={22} color="#FFFFFF" />
+        </Pressable>
+      </View>
+
+      {/* Scrollable Content (only text) */}
+      <FlatList
+        ref={flatListRef}
+        data={feedItems}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        snapToInterval={screenHeight}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        bounces={false}
+        overScrollMode="never"
+        onViewableItemsChanged={handleViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        getItemLayout={getItemLayout}
+        initialNumToRender={2}
+        maxToRenderPerBatch={2}
+        windowSize={3}
+        removeClippedSubviews={Platform.OS === "android"}
+        style={styles.flatList}
+      />
+
+      {/* Swipe Hint - Fixed at bottom */}
+      {!hasSeenSwipeHint && (
+        <Animated.View
+          entering={FadeIn.delay(1000)}
+          style={[styles.swipeHintContainer, { paddingBottom: insets.bottom + theme.spacing.lg }]}
+        >
+          <Ionicons name="chevron-up" size={20} color="rgba(255, 255, 255, 0.5)" />
+          <Text style={styles.swipeHintText}>
+            {lang === "fr" ? "Balayez vers le haut" : "Swipe up"}
+          </Text>
+        </Animated.View>
+      )}
+
+      {/* Heart Animation (Double-tap) */}
+      {showHeartAnimation && (
+        <Animated.View style={[styles.heartAnimationContainer, heartAnimatedStyle]}>
+          <Ionicons name="heart" size={120} color="#FFFFFF" />
+        </Animated.View>
+      )}
     </View>
   )
 }
@@ -274,163 +353,124 @@ export const HomeScreen: FC<HomeScreenProps> = function HomeScreen(_props) {
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    // Web needs explicit height
-    ...(isWeb && {
-      minHeight: webDimension("100vh"),
-    }),
+    backgroundColor: theme.colors.background,
   },
-  gradient: {
-    flex: 1,
-    // Web needs explicit height
-    ...(isWeb && {
-      minHeight: webDimension("100vh"),
-    }),
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
   },
-  scrollView: {
-    flex: 1,
-    // Enable mouse wheel scrolling on web
-    ...(isWeb && {
-      overflowY: "auto" as unknown as "scroll",
-    }),
+  backgroundGradient: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
-  scrollContent: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: 120,
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
+
+  // Fixed Header
   header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: theme.spacing.xl,
-  },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.sm,
-  },
-  headerText: {
-    gap: 2,
-  },
-  notificationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-    ...theme.shadows.sm,
-  },
-  featuredCard: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius["3xl"],
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    ...theme.shadows.xl,
-  },
-  featuredContent: {
-    gap: theme.spacing.sm,
-  },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.xs,
-  },
-  featuredIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: theme.radius.lg,
-    backgroundColor: theme.colors.palette.primary100,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  featuredTitle: {
-    flex: 1,
-    lineHeight: theme.typography.lineHeights["2xl"],
-    letterSpacing: -0.5,
-  },
-  featuredSubtitle: {
-    marginBottom: theme.spacing.sm,
-    lineHeight: theme.typography.lineHeights.base,
-  },
-  startButton: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.foreground,
-    borderRadius: theme.radius.full,
     paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    gap: theme.spacing.xs,
-    minHeight: theme.sizes.button.md,
-    ...theme.shadows.sm,
+    zIndex: 10,
   },
-  startButtonText: {
-    color: theme.colors.card,
-    fontSize: theme.typography.sizes.base,
-  },
-  statsRow: {
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.xl,
-  },
-  statCardContainer: {
-    flex: 1,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: theme.colors.card,
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.radius.xl,
-    alignItems: "center",
-    gap: theme.spacing.xs,
-    ...theme.shadows.sm,
-  },
-  statIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.backgroundSecondary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: theme.spacing.xxs,
-  },
-  sectionTitle: {
-    marginBottom: theme.spacing.md,
-  },
-  actionCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.xl,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    ...theme.shadows.sm,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.radius.lg,
+  headerButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(139, 119, 101, 0.7)",
     alignItems: "center",
     justifyContent: "center",
   },
-  actionContent: {
+
+  // Scrollable Content
+  flatList: {
     flex: 1,
-    gap: theme.spacing.xs,
   },
-  actionTitleRow: {
+  page: {
+    flex: 1,
+    alignItems: "center",
+  },
+  centeredTextContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: theme.spacing.xl,
+  },
+  textContainer: {
+    maxWidth: 340,
+  },
+  affirmationText: {
+    fontFamily: theme.typography.fonts.serifMedium,
+    fontSize: 28,
+    lineHeight: 40,
+    color: "#FFFFFF",
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.5)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+
+  // Action buttons - positioned below center
+  itemActionsRow: {
+    position: "absolute",
+    top: "60%",
     flexDirection: "row",
     alignItems: "center",
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xl,
   },
-  actionTitle: {
-    flex: 1,
+  actionButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
-  actionDescription: {
-    marginLeft: 0,
+
+  // Swipe Hint (fixed at bottom)
+  swipeHintContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    gap: theme.spacing.xs,
+    zIndex: 10,
+  },
+  swipeHintText: {
+    fontFamily: theme.typography.fonts.regular,
+    fontSize: theme.typography.sizes.sm,
+    color: "rgba(255, 255, 255, 0.5)",
+  },
+
+  // Heart Animation
+  heartAnimationContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 100,
+    pointerEvents: "none",
   },
 }))

@@ -76,7 +76,7 @@ export const useOnboardingStore = create<OnboardingState>()(
   persist(
     (set, get) => ({
       // Initial state
-      currentStepId: ONBOARDING_STEPS[0]?.id ?? "splash_logo",
+      currentStepId: ONBOARDING_STEPS[0]?.id ?? "affirmation_welcome",
       answers: {},
       isCompleted: false,
       startedAt: null,
@@ -161,7 +161,7 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       resetOnboarding: () => {
         set({
-          currentStepId: ONBOARDING_STEPS[0]?.id ?? "splash_logo",
+          currentStepId: ONBOARDING_STEPS[0]?.id ?? "affirmation_welcome",
           answers: {},
           isCompleted: false,
           startedAt: null,
@@ -187,6 +187,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         // Can't go back from splash screens or if no history
         if (stepHistory.length === 0) return false
         if (currentStep?.type === "splash") return false
+        if (currentStep?.type === "affirmation_splash") return false
         if (currentStep?.type === "paywall") return false
 
         return true
@@ -230,8 +231,17 @@ export const selectCanGoBack = (state: OnboardingState) => {
   const currentStep = getStepById(state.currentStepId)
   if (state.stepHistory.length === 0) return false
   if (currentStep?.type === "splash") return false
+  if (currentStep?.type === "affirmation_splash") return false
   if (currentStep?.type === "paywall") return false
   return true
+}
+
+export const selectUserDomain = (state: OnboardingState) => {
+  return (state.answers.transform_domain as string) || "confidence"
+}
+
+export const selectNotificationTime = (state: OnboardingState) => {
+  return (state.answers.notification_time as string) || "morning"
 }
 
 // =============================================================================
