@@ -1,15 +1,34 @@
-import { FC, useState } from "react"
-import { View, TouchableOpacity } from "react-native"
+/**
+ * OnboardingScreen - Complete 48-step onboarding flow
+ *
+ * Based on I AM Daily Affirmations analysis, adapted for Serein (meditation/anxiety app).
+ * Features:
+ * - Progressive questions (demographics → emotions → goals)
+ * - Dynamic branching based on answers
+ * - Loading screens between sections
+ * - Social proof and education
+ * - Notifications permission request
+ * - Paywall with timeline
+ */
+
+import { FC, useCallback, useEffect } from "react"
+import { View, Pressable, BackHandler } from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { useNavigation } from "@react-navigation/native"
-import { useTranslation } from "react-i18next"
+import { LinearGradient } from "expo-linear-gradient"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { OnboardingScreenLayout } from "@/components/layouts/OnboardingScreenLayout"
 import { Text } from "@/components/Text"
+import { OnboardingStepRenderer } from "@/components/onboarding"
 import { useAuth } from "@/hooks"
 import type { AppStackScreenProps } from "@/navigators/navigationTypes"
-import { useNotificationStore } from "@/stores/notificationStore"
+import {
+  useOnboardingStore,
+  selectProgress,
+  selectCanGoBack,
+  selectCurrentStep,
+} from "@/stores"
 import { logger } from "@/utils/Logger"
 
 // =============================================================================
@@ -23,133 +42,96 @@ interface OnboardingScreenProps extends AppStackScreenProps<"Onboarding"> {}
 // =============================================================================
 
 export const OnboardingScreen: FC<OnboardingScreenProps> = function OnboardingScreen(_props) {
-  const { t } = useTranslation()
   const { theme } = useUnistyles()
+  const insets = useSafeAreaInsets()
   const navigation = useNavigation<AppStackScreenProps<"Onboarding">["navigation"]>()
   const { completeOnboarding } = useAuth()
-  const togglePush = useNotificationStore((state) => state.togglePush)
-  const [step, setStep] = useState(0)
-  const [isRequestingPermission, setIsRequestingPermission] = useState(false)
 
-  // Slide animations
-  const handleNext = async () => {
-    if (step < 2) {
-      setStep(step + 1)
-    } else {
-      // Mark onboarding as complete BEFORE navigation
-      // This ensures the state is saved before the navigator re-evaluates routes
-      await completeOnboarding()
-      // Navigate to Paywall after saving onboarding status
-      // The Paywall screen will handle navigation to Main
-      navigation.replace("Paywall", { fromOnboarding: true })
-    }
-  }
+  // Onboarding store
+  const progress = useOnboardingStore(selectProgress)
+  const canGoBack = useOnboardingStore(selectCanGoBack)
+  const currentStep = useOnboardingStore(selectCurrentStep)
+  const goToPreviousStep = useOnboardingStore((state) => state.goToPreviousStep)
+  const isCompleted = useOnboardingStore((state) => state.isCompleted)
 
-  const handleEnableNotifications = async () => {
-    if (isRequestingPermission) return
+  // Determine if we should show the header (not on splash screens)
+  const showHeader = currentStep?.type !== "splash" && currentStep?.type !== "loading"
 
-    setIsRequestingPermission(true)
+  // Handle back button (Android)
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (canGoBack) {
+        goToPreviousStep()
+        return true
+      }
+      return false
+    })
+
+    return () => backHandler.remove()
+  }, [canGoBack, goToPreviousStep])
+
+  // Handle onboarding completion
+  const handleComplete = useCallback(async () => {
     try {
-      await togglePush()
+      logger.info("🎉 [Onboarding] Completed")
+
+      // Mark onboarding as complete
+      await completeOnboarding()
+
+      // Navigate to main app (paywall is now part of onboarding flow)
+      navigation.replace("Main", { screen: "Home" })
     } catch (error) {
-      logger.warn("📬 [Onboarding] Failed to enable notifications", { error })
-    } finally {
-      setIsRequestingPermission(false)
-      handleNext()
+      logger.error("Failed to complete onboarding", { error })
+      // Navigate anyway
+      navigation.replace("Main", { screen: "Home" })
     }
-  }
+  }, [completeOnboarding, navigation])
 
-  // Step 0: Welcome
-  if (step === 0) {
-    return (
-      <OnboardingScreenLayout
-        currentStep={0}
-        totalSteps={3}
-        headerIcon="👋"
-        titleTx="onboardingScreen:welcomeTitle"
-        subtitleTx="onboardingScreen:welcomeSubtitle"
-      >
-        <TouchableOpacity style={styles.primaryButton} onPress={handleNext} activeOpacity={0.8}>
-          <Text weight="semiBold" style={styles.primaryButtonText} tx="onboardingScreen:letsGo" />
-        </TouchableOpacity>
-      </OnboardingScreenLayout>
-    )
-  }
+  // Auto-complete when store says we're done
+  useEffect(() => {
+    if (isCompleted) {
+      handleComplete()
+    }
+  }, [isCompleted, handleComplete])
 
-  // Step 1: Goal Selection
-  if (step === 1) {
-    const goalOptions = [
-      { key: "goalBuildApp", label: t("onboardingScreen:goalBuildApp") },
-      { key: "goalLearnReactNative", label: t("onboardingScreen:goalLearnReactNative") },
-      { key: "goalJustExploring", label: t("onboardingScreen:goalJustExploring") },
-    ]
-
-    return (
-      <OnboardingScreenLayout
-        currentStep={1}
-        totalSteps={3}
-        headerIcon="🎯"
-        titleTx="onboardingScreen:goalsTitle"
-        subtitleTx="onboardingScreen:goalsSubtitle"
-      >
-        <View style={styles.optionsContainer}>
-          {goalOptions.map((option) => (
-            <TouchableOpacity key={option.key} style={styles.optionButton} onPress={handleNext}>
-              <Text weight="semiBold" style={styles.optionText}>
-                {option.label}
-              </Text>
-              <Ionicons name="chevron-forward" size={20} color={theme.colors.foregroundSecondary} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </OnboardingScreenLayout>
-    )
-  }
-
-  // Step 2: Notifications
   return (
-    <OnboardingScreenLayout
-      currentStep={2}
-      totalSteps={3}
-      headerIcon="🔔"
-      titleTx="onboardingScreen:notificationsTitle"
-      subtitleTx="onboardingScreen:notificationsSubtitle"
-    >
-      {/* Notification Preview Card */}
-      <View style={styles.notificationCard}>
-        <View style={styles.notificationHeader}>
-          <View style={styles.notificationIcon}>
-            <Ionicons name="chatbubble-ellipses" size={20} color={theme.colors.card} />
-          </View>
-          <View>
-            <Text
-              weight="semiBold"
-              style={styles.notificationTitle}
-              tx="onboardingScreen:notificationPreviewTitle"
-            />
-            <Text size="xs" color="secondary" tx="onboardingScreen:notificationPreviewTime" />
-          </View>
-        </View>
-        <Text color="secondary" tx="onboardingScreen:notificationPreviewMessage" />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.primaryButton, isRequestingPermission && styles.primaryButtonDisabled]}
-        onPress={handleEnableNotifications}
-        activeOpacity={0.8}
-        disabled={isRequestingPermission}
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[theme.colors.gradientStart, theme.colors.gradientMiddle, theme.colors.gradientEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradient}
       >
-        <Text weight="semiBold" style={styles.primaryButtonText}>
-          {isRequestingPermission
-            ? t("onboardingScreen:enabling")
-            : t("onboardingScreen:turnOnNotifications")}
-        </Text>
-      </TouchableOpacity>
+        {/* Header with back button and progress */}
+        {showHeader && (
+          <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+            {/* Back button */}
+            <View style={styles.headerLeft}>
+              {canGoBack && (
+                <Pressable onPress={goToPreviousStep} style={styles.backButton} hitSlop={20}>
+                  <Ionicons name="chevron-back" size={28} color={theme.colors.foreground} />
+                </Pressable>
+              )}
+            </View>
 
-      <TouchableOpacity style={styles.secondaryButton} onPress={handleNext} activeOpacity={0.8}>
-        <Text weight="medium" color="secondary" tx="onboardingScreen:maybeLater" />
-      </TouchableOpacity>
-    </OnboardingScreenLayout>
+            {/* Progress bar */}
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBackground}>
+                <View style={[styles.progressFill, { width: `${progress}%` }]} />
+              </View>
+            </View>
+
+            {/* Spacer for balance */}
+            <View style={styles.headerRight} />
+          </View>
+        )}
+
+        {/* Step content */}
+        <View style={[styles.content, !showHeader && { paddingTop: insets.top }]}>
+          <OnboardingStepRenderer onComplete={handleComplete} />
+        </View>
+      </LinearGradient>
+    </View>
   )
 }
 
@@ -158,67 +140,45 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = function OnboardingSc
 // =============================================================================
 
 const styles = StyleSheet.create((theme) => ({
-  primaryButton: {
+  container: {
+    flex: 1,
+  },
+  gradient: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
+  },
+  headerLeft: {
+    width: 44,
+    alignItems: "flex-start",
+  },
+  headerRight: {
+    width: 44,
+  },
+  backButton: {
+    padding: theme.spacing.xs,
+  },
+  progressContainer: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.md,
+  },
+  progressBackground: {
+    height: 4,
+    backgroundColor: theme.colors.foregroundTertiary,
+    borderRadius: 2,
+    opacity: 0.3,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
     backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.lg,
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.lg,
-    width: "100%",
-    marginBottom: theme.spacing.md,
-    ...theme.shadows.md,
+    borderRadius: 2,
   },
-  primaryButtonText: {
-    color: theme.colors.primaryForeground,
-    fontSize: theme.typography.sizes.lg,
-  },
-  primaryButtonDisabled: {
-    opacity: 0.8,
-  },
-  secondaryButton: {
-    alignItems: "center",
-    paddingVertical: theme.spacing.sm,
-  },
-  optionsContainer: {
-    gap: theme.spacing.md,
-    width: "100%",
-  },
-  optionButton: {
-    alignItems: "center",
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.lg,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: theme.spacing.lg,
-    ...theme.shadows.sm,
-  },
-  optionText: {
-    color: theme.colors.foreground,
-    fontSize: theme.typography.sizes.lg,
-  },
-  notificationCard: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.xl,
-    marginBottom: theme.spacing.xl,
-    padding: theme.spacing.lg,
-    width: "100%",
-    ...theme.shadows.lg,
-  },
-  notificationHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    marginBottom: theme.spacing.sm,
-  },
-  notificationIcon: {
-    alignItems: "center",
-    backgroundColor: theme.colors.error,
-    borderRadius: theme.radius.sm,
-    height: 32,
-    justifyContent: "center",
-    marginRight: theme.spacing.md,
-    width: 32,
-  },
-  notificationTitle: {
-    color: theme.colors.foreground,
+  content: {
+    flex: 1,
   },
 }))

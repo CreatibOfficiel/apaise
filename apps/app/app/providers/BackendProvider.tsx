@@ -18,10 +18,8 @@
 import { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from "react"
 import { QueryClientProvider } from "@tanstack/react-query"
 
-import { env, isSupabase, isConvex } from "../config/env"
+import { env, isSupabase } from "../config/env"
 import { queryClient } from "../hooks/queries"
-import { ConvexAuthSync } from "../providers/ConvexAuthSync"
-import { ConvexProvider } from "../providers/ConvexProvider"
 import { getBackendAsync, isBackendInitialized } from "../services/backend"
 import type { Backend, BackendProvider as BackendProviderType } from "../services/backend/types"
 import { logger } from "../utils/Logger"
@@ -105,16 +103,6 @@ function SupabaseProvider({ children }: { children: ReactNode }) {
 // Convex Provider
 // ============================================================================
 
-function ConvexProviderWrapper({ children }: { children: ReactNode }) {
-  // ConvexProvider is imported at top of file to avoid dynamic import race conditions
-  // This ensures the provider is always available when children render
-  // ConvexAuthSync syncs Convex auth state to the Zustand auth store for AppNavigator
-  return (
-    <ConvexProvider>
-      <ConvexAuthSync>{children}</ConvexAuthSync>
-    </ConvexProvider>
-  )
-}
 
 // ============================================================================
 // Main Provider
@@ -205,9 +193,6 @@ export function BackendProvider({
     return <SupabaseProvider>{providerContent}</SupabaseProvider>
   }
 
-  if (isConvex) {
-    return <ConvexProviderWrapper>{providerContent}</ConvexProviderWrapper>
-  }
 
   // Fallback (shouldn't happen)
   return providerContent

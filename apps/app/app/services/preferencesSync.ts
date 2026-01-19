@@ -28,7 +28,7 @@ const { supabase, isUsingMockSupabase } = isSupabase
 
 // Conditionally import Convex push token service
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const convexPushTokens = isConvex ? require("./backend/convex/pushTokens") : null
+const convexPushTokens = null
 
 // For preferences (theme, notifications settings), skip sync for Convex (use React mutations instead)
 const shouldSkipPreferenceSync = isConvex || isUsingMockSupabase

@@ -1,0 +1,607 @@
+// Serein - Affirmations Database
+// 470 affirmations across 7 categories
+// Free: 90 | Premium: 380
+
+export interface Affirmation {
+  id: string
+  text_fr: string
+  text_en: string
+  category: Category
+  premium: boolean
+}
+
+export type Category =
+  | "anxiety"
+  | "social_anxiety"
+  | "sleep"
+  | "work_stress"
+  | "gratitude"
+  | "confidence"
+  | "letting_go"
+
+export const categoryLabels: Record<Category, { fr: string; en: string }> = {
+  anxiety: { fr: "Anxiété", en: "Anxiety" },
+  social_anxiety: { fr: "Anxiété sociale", en: "Social Anxiety" },
+  sleep: { fr: "Sommeil", en: "Sleep" },
+  work_stress: { fr: "Stress au travail", en: "Work Stress" },
+  gratitude: { fr: "Gratitude", en: "Gratitude" },
+  confidence: { fr: "Confiance en soi", en: "Self-Confidence" },
+  letting_go: { fr: "Lâcher-prise", en: "Letting Go" },
+}
+
+export const affirmations: Affirmation[] = [
+  // ============================================================
+  // ANXIETY - 100 affirmations (20 free, 80 premium)
+  // ============================================================
+
+  // Free (20)
+  { id: "anx-001", text_fr: "Je suis en sécurité. Tout va bien se passer.", text_en: "I am safe. Everything will be okay.", category: "anxiety", premium: false },
+  { id: "anx-002", text_fr: "Je respire profondément et je me sens calme.", text_en: "I breathe deeply and feel calm.", category: "anxiety", premium: false },
+  { id: "anx-003", text_fr: "Ce moment passera, comme tous les autres.", text_en: "This moment will pass, like all others.", category: "anxiety", premium: false },
+  { id: "anx-004", text_fr: "Je suis plus fort(e) que mes inquiétudes.", text_en: "I am stronger than my worries.", category: "anxiety", premium: false },
+  { id: "anx-005", text_fr: "Je choisis la paix plutôt que la peur.", text_en: "I choose peace over fear.", category: "anxiety", premium: false },
+  { id: "anx-006", text_fr: "Mon corps sait comment se détendre.", text_en: "My body knows how to relax.", category: "anxiety", premium: false },
+  { id: "anx-007", text_fr: "Je suis capable de gérer ce qui vient.", text_en: "I am capable of handling what comes.", category: "anxiety", premium: false },
+  { id: "anx-008", text_fr: "Chaque respiration m'apporte du calme.", text_en: "Each breath brings me calm.", category: "anxiety", premium: false },
+  { id: "anx-009", text_fr: "Je mérite la tranquillité d'esprit.", text_en: "I deserve peace of mind.", category: "anxiety", premium: false },
+  { id: "anx-010", text_fr: "Mes pensées ne définissent pas ma réalité.", text_en: "My thoughts don't define my reality.", category: "anxiety", premium: false },
+  { id: "anx-011", text_fr: "Je me libère de ce qui ne me sert pas.", text_en: "I release what doesn't serve me.", category: "anxiety", premium: false },
+  { id: "anx-012", text_fr: "Je suis ancré(e) dans le moment présent.", text_en: "I am grounded in the present moment.", category: "anxiety", premium: false },
+  { id: "anx-013", text_fr: "La paix intérieure est mon droit naturel.", text_en: "Inner peace is my natural right.", category: "anxiety", premium: false },
+  { id: "anx-014", text_fr: "Je fais confiance au processus de la vie.", text_en: "I trust the process of life.", category: "anxiety", premium: false },
+  { id: "anx-015", text_fr: "Mon anxiété diminue à chaque instant.", text_en: "My anxiety lessens with each moment.", category: "anxiety", premium: false },
+  { id: "anx-016", text_fr: "Je suis en contrôle de mon bien-être.", text_en: "I am in control of my wellbeing.", category: "anxiety", premium: false },
+  { id: "anx-017", text_fr: "Je m'autorise à ressentir et à lâcher prise.", text_en: "I allow myself to feel and let go.", category: "anxiety", premium: false },
+  { id: "anx-018", text_fr: "La sérénité coule en moi.", text_en: "Serenity flows through me.", category: "anxiety", premium: false },
+  { id: "anx-019", text_fr: "Je suis entouré(e) de calme et de douceur.", text_en: "I am surrounded by calm and gentleness.", category: "anxiety", premium: false },
+  { id: "anx-020", text_fr: "Aujourd'hui, je choisis de m'apaiser.", text_en: "Today, I choose to soothe myself.", category: "anxiety", premium: false },
+
+  // Premium (80)
+  { id: "anx-021", text_fr: "Mon esprit s'éclaircit comme un ciel après l'orage.", text_en: "My mind clears like a sky after a storm.", category: "anxiety", premium: true },
+  { id: "anx-022", text_fr: "Je suis une vague de calme dans l'océan de la vie.", text_en: "I am a wave of calm in the ocean of life.", category: "anxiety", premium: true },
+  { id: "anx-023", text_fr: "Chaque cellule de mon corps se détend.", text_en: "Every cell in my body relaxes.", category: "anxiety", premium: true },
+  { id: "anx-024", text_fr: "Je transforme l'anxiété en énergie positive.", text_en: "I transform anxiety into positive energy.", category: "anxiety", premium: true },
+  { id: "anx-025", text_fr: "La paix est toujours à portée de main.", text_en: "Peace is always within reach.", category: "anxiety", premium: true },
+  { id: "anx-026", text_fr: "Je suis le calme au centre de la tempête.", text_en: "I am the calm at the center of the storm.", category: "anxiety", premium: true },
+  { id: "anx-027", text_fr: "Mon cœur bat au rythme de la sérénité.", text_en: "My heart beats to the rhythm of serenity.", category: "anxiety", premium: true },
+  { id: "anx-028", text_fr: "Je laisse partir les pensées qui me troublent.", text_en: "I let go of thoughts that trouble me.", category: "anxiety", premium: true },
+  { id: "anx-029", text_fr: "Je suis maître de mes émotions.", text_en: "I am master of my emotions.", category: "anxiety", premium: true },
+  { id: "anx-030", text_fr: "Le calme m'enveloppe comme une couverture douce.", text_en: "Calm wraps around me like a soft blanket.", category: "anxiety", premium: true },
+  { id: "anx-031", text_fr: "Je m'accorde la permission d'être en paix.", text_en: "I give myself permission to be at peace.", category: "anxiety", premium: true },
+  { id: "anx-032", text_fr: "Mon esprit est un lac tranquille.", text_en: "My mind is a tranquil lake.", category: "anxiety", premium: true },
+  { id: "anx-033", text_fr: "Je respire la paix, j'expire l'anxiété.", text_en: "I breathe in peace, breathe out anxiety.", category: "anxiety", premium: true },
+  { id: "anx-034", text_fr: "Chaque instant me rapproche de la sérénité.", text_en: "Each moment brings me closer to serenity.", category: "anxiety", premium: true },
+  { id: "anx-035", text_fr: "Je suis ancré(e) dans ma force intérieure.", text_en: "I am anchored in my inner strength.", category: "anxiety", premium: true },
+  { id: "anx-036", text_fr: "Les soucis passent, ma paix reste.", text_en: "Worries pass, my peace remains.", category: "anxiety", premium: true },
+  { id: "anx-037", text_fr: "Je suis plus grand(e) que toute anxiété.", text_en: "I am bigger than any anxiety.", category: "anxiety", premium: true },
+  { id: "anx-038", text_fr: "Mon âme connaît le chemin vers le calme.", text_en: "My soul knows the way to calm.", category: "anxiety", premium: true },
+  { id: "anx-039", text_fr: "Je me traite avec douceur et compassion.", text_en: "I treat myself with gentleness and compassion.", category: "anxiety", premium: true },
+  { id: "anx-040", text_fr: "La tranquillité est mon état naturel.", text_en: "Tranquility is my natural state.", category: "anxiety", premium: true },
+  { id: "anx-041", text_fr: "Je suis connecté(e) à une source de paix infinie.", text_en: "I am connected to an infinite source of peace.", category: "anxiety", premium: true },
+  { id: "anx-042", text_fr: "Mes peurs s'évanouissent comme la brume au soleil.", text_en: "My fears dissolve like mist in the sun.", category: "anxiety", premium: true },
+  { id: "anx-043", text_fr: "Je cultive la paix dans mon jardin intérieur.", text_en: "I cultivate peace in my inner garden.", category: "anxiety", premium: true },
+  { id: "anx-044", text_fr: "Je suis libre de choisir la sérénité.", text_en: "I am free to choose serenity.", category: "anxiety", premium: true },
+  { id: "anx-045", text_fr: "Mon corps et mon esprit travaillent en harmonie.", text_en: "My body and mind work in harmony.", category: "anxiety", premium: true },
+  { id: "anx-046", text_fr: "Je fais confiance à ma capacité à m'apaiser.", text_en: "I trust my ability to calm myself.", category: "anxiety", premium: true },
+  { id: "anx-047", text_fr: "Le calme coule dans mes veines.", text_en: "Calm flows through my veins.", category: "anxiety", premium: true },
+  { id: "anx-048", text_fr: "Je suis un havre de paix.", text_en: "I am a haven of peace.", category: "anxiety", premium: true },
+  { id: "anx-049", text_fr: "Mes pensées deviennent plus légères.", text_en: "My thoughts become lighter.", category: "anxiety", premium: true },
+  { id: "anx-050", text_fr: "Je mérite de vivre sans anxiété constante.", text_en: "I deserve to live without constant anxiety.", category: "anxiety", premium: true },
+  { id: "anx-051", text_fr: "Je suis entouré(e) d'une bulle de protection.", text_en: "I am surrounded by a protective bubble.", category: "anxiety", premium: true },
+  { id: "anx-052", text_fr: "Mon anxiété ne définit pas qui je suis.", text_en: "My anxiety doesn't define who I am.", category: "anxiety", premium: true },
+  { id: "anx-053", text_fr: "Je trouve la paix dans les petits moments.", text_en: "I find peace in small moments.", category: "anxiety", premium: true },
+  { id: "anx-054", text_fr: "Je suis patient(e) avec mon processus de guérison.", text_en: "I am patient with my healing process.", category: "anxiety", premium: true },
+  { id: "anx-055", text_fr: "La lumière entre même par les plus petites fissures.", text_en: "Light enters even through the smallest cracks.", category: "anxiety", premium: true },
+  { id: "anx-056", text_fr: "Je suis capable de créer mon propre calme.", text_en: "I am capable of creating my own calm.", category: "anxiety", premium: true },
+  { id: "anx-057", text_fr: "Mon bien-être est ma priorité.", text_en: "My wellbeing is my priority.", category: "anxiety", premium: true },
+  { id: "anx-058", text_fr: "Je choisis de répondre avec calme.", text_en: "I choose to respond with calm.", category: "anxiety", premium: true },
+  { id: "anx-059", text_fr: "Chaque jour, je deviens plus serein(e).", text_en: "Each day, I become more serene.", category: "anxiety", premium: true },
+  { id: "anx-060", text_fr: "Je suis en paix avec l'incertitude.", text_en: "I am at peace with uncertainty.", category: "anxiety", premium: true },
+  { id: "anx-061", text_fr: "Mon esprit se clarifie naturellement.", text_en: "My mind naturally clears.", category: "anxiety", premium: true },
+  { id: "anx-062", text_fr: "Je me donne l'espace pour respirer.", text_en: "I give myself space to breathe.", category: "anxiety", premium: true },
+  { id: "anx-063", text_fr: "La paix habite en moi.", text_en: "Peace lives within me.", category: "anxiety", premium: true },
+  { id: "anx-064", text_fr: "Je suis en harmonie avec l'univers.", text_en: "I am in harmony with the universe.", category: "anxiety", premium: true },
+  { id: "anx-065", text_fr: "Mon anxiété n'a pas le dernier mot.", text_en: "My anxiety doesn't have the last word.", category: "anxiety", premium: true },
+  { id: "anx-066", text_fr: "Je choisis la lumière plutôt que l'ombre.", text_en: "I choose light over shadow.", category: "anxiety", premium: true },
+  { id: "anx-067", text_fr: "Je suis le gardien de ma paix intérieure.", text_en: "I am the guardian of my inner peace.", category: "anxiety", premium: true },
+  { id: "anx-068", text_fr: "Mes racines sont profondes et stables.", text_en: "My roots are deep and stable.", category: "anxiety", premium: true },
+  { id: "anx-069", text_fr: "Je me détache des résultats et je profite du voyage.", text_en: "I detach from outcomes and enjoy the journey.", category: "anxiety", premium: true },
+  { id: "anx-070", text_fr: "Le silence en moi est puissant.", text_en: "The silence within me is powerful.", category: "anxiety", premium: true },
+  { id: "anx-071", text_fr: "Je suis exactement là où je dois être.", text_en: "I am exactly where I need to be.", category: "anxiety", premium: true },
+  { id: "anx-072", text_fr: "Mon cœur est ouvert à la paix.", text_en: "My heart is open to peace.", category: "anxiety", premium: true },
+  { id: "anx-073", text_fr: "Je me libère des tensions inutiles.", text_en: "I release unnecessary tensions.", category: "anxiety", premium: true },
+  { id: "anx-074", text_fr: "La vie me porte avec bienveillance.", text_en: "Life carries me with kindness.", category: "anxiety", premium: true },
+  { id: "anx-075", text_fr: "Je suis capable de surmonter tout défi.", text_en: "I am capable of overcoming any challenge.", category: "anxiety", premium: true },
+  { id: "anx-076", text_fr: "Mon esprit est clair et concentré.", text_en: "My mind is clear and focused.", category: "anxiety", premium: true },
+  { id: "anx-077", text_fr: "Je refuse de laisser l'anxiété contrôler ma journée.", text_en: "I refuse to let anxiety control my day.", category: "anxiety", premium: true },
+  { id: "anx-078", text_fr: "Je suis digne d'une vie paisible.", text_en: "I am worthy of a peaceful life.", category: "anxiety", premium: true },
+  { id: "anx-079", text_fr: "Chaque matin apporte de nouvelles possibilités.", text_en: "Each morning brings new possibilities.", category: "anxiety", premium: true },
+  { id: "anx-080", text_fr: "Je suis résilient(e) face aux difficultés.", text_en: "I am resilient in the face of difficulties.", category: "anxiety", premium: true },
+  { id: "anx-081", text_fr: "Ma paix intérieure est inébranlable.", text_en: "My inner peace is unshakeable.", category: "anxiety", premium: true },
+  { id: "anx-082", text_fr: "Je fais confiance au timing de ma vie.", text_en: "I trust the timing of my life.", category: "anxiety", premium: true },
+  { id: "anx-083", text_fr: "Je suis reconnaissant(e) pour ce moment de calme.", text_en: "I am grateful for this moment of calm.", category: "anxiety", premium: true },
+  { id: "anx-084", text_fr: "Mon énergie est douce et apaisante.", text_en: "My energy is gentle and soothing.", category: "anxiety", premium: true },
+  { id: "anx-085", text_fr: "Je me permets de ralentir.", text_en: "I allow myself to slow down.", category: "anxiety", premium: true },
+  { id: "anx-086", text_fr: "Le calme est ma superpuissance.", text_en: "Calm is my superpower.", category: "anxiety", premium: true },
+  { id: "anx-087", text_fr: "Je suis en sécurité dans mon propre corps.", text_en: "I am safe in my own body.", category: "anxiety", premium: true },
+  { id: "anx-088", text_fr: "Mes émotions sont valides et passagères.", text_en: "My emotions are valid and temporary.", category: "anxiety", premium: true },
+  { id: "anx-089", text_fr: "Je mérite des moments de pure tranquillité.", text_en: "I deserve moments of pure tranquility.", category: "anxiety", premium: true },
+  { id: "anx-090", text_fr: "Je suis capable de transformer ma peur en courage.", text_en: "I am capable of transforming fear into courage.", category: "anxiety", premium: true },
+  { id: "anx-091", text_fr: "Mon souffle est mon ancre.", text_en: "My breath is my anchor.", category: "anxiety", premium: true },
+  { id: "anx-092", text_fr: "Je suis bienveillant(e) envers moi-même.", text_en: "I am kind to myself.", category: "anxiety", premium: true },
+  { id: "anx-093", text_fr: "La tempête passera et je resterai debout.", text_en: "The storm will pass and I will remain standing.", category: "anxiety", premium: true },
+  { id: "anx-094", text_fr: "Je suis le créateur de mon état d'esprit.", text_en: "I am the creator of my state of mind.", category: "anxiety", premium: true },
+  { id: "anx-095", text_fr: "Mon corps se détend avec chaque expiration.", text_en: "My body relaxes with each exhale.", category: "anxiety", premium: true },
+  { id: "anx-096", text_fr: "Je suis en paix avec mon passé.", text_en: "I am at peace with my past.", category: "anxiety", premium: true },
+  { id: "anx-097", text_fr: "L'avenir sera bon pour moi.", text_en: "The future will be good to me.", category: "anxiety", premium: true },
+  { id: "anx-098", text_fr: "Je choisis de ne pas m'inquiéter inutilement.", text_en: "I choose not to worry needlessly.", category: "anxiety", premium: true },
+  { id: "anx-099", text_fr: "Ma force intérieure grandit chaque jour.", text_en: "My inner strength grows each day.", category: "anxiety", premium: true },
+  { id: "anx-100", text_fr: "Je suis complet(e) et en paix.", text_en: "I am complete and at peace.", category: "anxiety", premium: true },
+
+  // ============================================================
+  // SOCIAL ANXIETY - 75 affirmations (15 free, 60 premium)
+  // ============================================================
+
+  // Free (15)
+  { id: "soc-001", text_fr: "Je suis à l'aise avec qui je suis.", text_en: "I am comfortable with who I am.", category: "social_anxiety", premium: false },
+  { id: "soc-002", text_fr: "Ma présence compte et a de la valeur.", text_en: "My presence matters and has value.", category: "social_anxiety", premium: false },
+  { id: "soc-003", text_fr: "Je n'ai pas besoin de l'approbation de tous.", text_en: "I don't need everyone's approval.", category: "social_anxiety", premium: false },
+  { id: "soc-004", text_fr: "Je suis digne d'amitié et de connexion.", text_en: "I am worthy of friendship and connection.", category: "social_anxiety", premium: false },
+  { id: "soc-005", text_fr: "Les autres pensent moins à moi que je ne le crois.", text_en: "Others think about me less than I believe.", category: "social_anxiety", premium: false },
+  { id: "soc-006", text_fr: "Je peux être moi-même sans crainte.", text_en: "I can be myself without fear.", category: "social_anxiety", premium: false },
+  { id: "soc-007", text_fr: "Mes imperfections font partie de mon charme.", text_en: "My imperfections are part of my charm.", category: "social_anxiety", premium: false },
+  { id: "soc-008", text_fr: "Je mérite de prendre ma place.", text_en: "I deserve to take up space.", category: "social_anxiety", premium: false },
+  { id: "soc-009", text_fr: "Je suis capable de créer des liens authentiques.", text_en: "I am capable of creating authentic connections.", category: "social_anxiety", premium: false },
+  { id: "soc-010", text_fr: "Mon opinion a de l'importance.", text_en: "My opinion matters.", category: "social_anxiety", premium: false },
+  { id: "soc-011", text_fr: "Je me sens de plus en plus à l'aise en société.", text_en: "I feel more and more comfortable in social settings.", category: "social_anxiety", premium: false },
+  { id: "soc-012", text_fr: "Les conversations peuvent être agréables.", text_en: "Conversations can be enjoyable.", category: "social_anxiety", premium: false },
+  { id: "soc-013", text_fr: "Je choisis de voir le meilleur chez les autres.", text_en: "I choose to see the best in others.", category: "social_anxiety", premium: false },
+  { id: "soc-014", text_fr: "Je suis accepté(e) tel(le) que je suis.", text_en: "I am accepted as I am.", category: "social_anxiety", premium: false },
+  { id: "soc-015", text_fr: "Ma voix mérite d'être entendue.", text_en: "My voice deserves to be heard.", category: "social_anxiety", premium: false },
+
+  // Premium (60)
+  { id: "soc-016", text_fr: "Je libère le besoin de plaire à tout le monde.", text_en: "I release the need to please everyone.", category: "social_anxiety", premium: true },
+  { id: "soc-017", text_fr: "Je suis intéressant(e) et les gens veulent me connaître.", text_en: "I am interesting and people want to know me.", category: "social_anxiety", premium: true },
+  { id: "soc-018", text_fr: "Les silences ne sont pas gênants, ils sont naturels.", text_en: "Silences aren't awkward, they're natural.", category: "social_anxiety", premium: true },
+  { id: "soc-019", text_fr: "Je peux quitter une situation inconfortable sans culpabilité.", text_en: "I can leave an uncomfortable situation without guilt.", category: "social_anxiety", premium: true },
+  { id: "soc-020", text_fr: "Ma valeur ne dépend pas du regard des autres.", text_en: "My worth doesn't depend on others' opinions.", category: "social_anxiety", premium: true },
+  { id: "soc-021", text_fr: "Je suis capable de gérer les conversations difficiles.", text_en: "I am capable of handling difficult conversations.", category: "social_anxiety", premium: true },
+  { id: "soc-022", text_fr: "Chaque interaction est une occasion d'apprendre.", text_en: "Every interaction is an opportunity to learn.", category: "social_anxiety", premium: true },
+  { id: "soc-023", text_fr: "Je m'autorise à être vulnérable.", text_en: "I allow myself to be vulnerable.", category: "social_anxiety", premium: true },
+  { id: "soc-024", text_fr: "Les gens sont souvent bienveillants.", text_en: "People are often kind.", category: "social_anxiety", premium: true },
+  { id: "soc-025", text_fr: "Je peux dire non sans me justifier.", text_en: "I can say no without explaining myself.", category: "social_anxiety", premium: true },
+  { id: "soc-026", text_fr: "Ma présence apporte quelque chose d'unique.", text_en: "My presence brings something unique.", category: "social_anxiety", premium: true },
+  { id: "soc-027", text_fr: "Je suis plus courageux(se) que mes peurs.", text_en: "I am braver than my fears.", category: "social_anxiety", premium: true },
+  { id: "soc-028", text_fr: "Les petits pas comptent aussi.", text_en: "Small steps count too.", category: "social_anxiety", premium: true },
+  { id: "soc-029", text_fr: "Je célèbre chaque victoire sociale.", text_en: "I celebrate every social victory.", category: "social_anxiety", premium: true },
+  { id: "soc-030", text_fr: "Je n'ai pas à être parfait(e) pour être aimé(e).", text_en: "I don't have to be perfect to be loved.", category: "social_anxiety", premium: true },
+  { id: "soc-031", text_fr: "Mon authenticité attire les bonnes personnes.", text_en: "My authenticity attracts the right people.", category: "social_anxiety", premium: true },
+  { id: "soc-032", text_fr: "Je suis digne de respect et de considération.", text_en: "I am worthy of respect and consideration.", category: "social_anxiety", premium: true },
+  { id: "soc-033", text_fr: "Chaque rencontre est une chance, pas une menace.", text_en: "Every encounter is an opportunity, not a threat.", category: "social_anxiety", premium: true },
+  { id: "soc-034", text_fr: "Je peux gérer le rejet avec grâce.", text_en: "I can handle rejection with grace.", category: "social_anxiety", premium: true },
+  { id: "soc-035", text_fr: "Mon énergie sociale se recharge avec du repos.", text_en: "My social energy recharges with rest.", category: "social_anxiety", premium: true },
+  { id: "soc-036", text_fr: "Je suis libre de mes pensées auto-critiques.", text_en: "I am free from self-critical thoughts.", category: "social_anxiety", premium: true },
+  { id: "soc-037", text_fr: "Les erreurs sociales sont humaines et pardonnables.", text_en: "Social mistakes are human and forgivable.", category: "social_anxiety", premium: true },
+  { id: "soc-038", text_fr: "Je mérite des relations saines et épanouissantes.", text_en: "I deserve healthy and fulfilling relationships.", category: "social_anxiety", premium: true },
+  { id: "soc-039", text_fr: "Je peux établir mes propres limites.", text_en: "I can set my own boundaries.", category: "social_anxiety", premium: true },
+  { id: "soc-040", text_fr: "Mon anxiété sociale diminue chaque jour.", text_en: "My social anxiety lessens each day.", category: "social_anxiety", premium: true },
+  { id: "soc-041", text_fr: "Je suis capable de briller en société.", text_en: "I am capable of shining in social settings.", category: "social_anxiety", premium: true },
+  { id: "soc-042", text_fr: "Les gens apprécient ma compagnie.", text_en: "People appreciate my company.", category: "social_anxiety", premium: true },
+  { id: "soc-043", text_fr: "Je peux être aimé(e) pour ma vraie personnalité.", text_en: "I can be loved for my true personality.", category: "social_anxiety", premium: true },
+  { id: "soc-044", text_fr: "Mon rythme social est valide.", text_en: "My social pace is valid.", category: "social_anxiety", premium: true },
+  { id: "soc-045", text_fr: "Je n'ai pas à divertir les autres constamment.", text_en: "I don't have to entertain others constantly.", category: "social_anxiety", premium: true },
+  { id: "soc-046", text_fr: "Ma timidité cache une profondeur que j'honore.", text_en: "My shyness hides a depth that I honor.", category: "social_anxiety", premium: true },
+  { id: "soc-047", text_fr: "Je peux demander de l'aide sans honte.", text_en: "I can ask for help without shame.", category: "social_anxiety", premium: true },
+  { id: "soc-048", text_fr: "Les jugements des autres ne me définissent pas.", text_en: "Others' judgments don't define me.", category: "social_anxiety", premium: true },
+  { id: "soc-049", text_fr: "Je suis un(e) ami(e) de valeur.", text_en: "I am a valuable friend.", category: "social_anxiety", premium: true },
+  { id: "soc-050", text_fr: "Mon confort social s'améliore avec la pratique.", text_en: "My social comfort improves with practice.", category: "social_anxiety", premium: true },
+  { id: "soc-051", text_fr: "Je peux être présent(e) sans être performant(e).", text_en: "I can be present without performing.", category: "social_anxiety", premium: true },
+  { id: "soc-052", text_fr: "Ma sensibilité est une force, pas une faiblesse.", text_en: "My sensitivity is a strength, not a weakness.", category: "social_anxiety", premium: true },
+  { id: "soc-053", text_fr: "Je fais confiance à mes capacités sociales.", text_en: "I trust my social abilities.", category: "social_anxiety", premium: true },
+  { id: "soc-054", text_fr: "Les vraies connexions prennent du temps.", text_en: "Real connections take time.", category: "social_anxiety", premium: true },
+  { id: "soc-055", text_fr: "Je suis assez pour être aimé(e).", text_en: "I am enough to be loved.", category: "social_anxiety", premium: true },
+  { id: "soc-056", text_fr: "Mon introversion est un don.", text_en: "My introversion is a gift.", category: "social_anxiety", premium: true },
+  { id: "soc-057", text_fr: "Je peux m'exprimer clairement et calmement.", text_en: "I can express myself clearly and calmly.", category: "social_anxiety", premium: true },
+  { id: "soc-058", text_fr: "Les gens ne me jugent pas autant que je le pense.", text_en: "People don't judge me as much as I think.", category: "social_anxiety", premium: true },
+  { id: "soc-059", text_fr: "Je suis capable de créer des souvenirs joyeux.", text_en: "I am capable of creating joyful memories.", category: "social_anxiety", premium: true },
+  { id: "soc-060", text_fr: "Ma zone de confort s'élargit chaque jour.", text_en: "My comfort zone expands each day.", category: "social_anxiety", premium: true },
+  { id: "soc-061", text_fr: "Je choisis de me concentrer sur l'instant présent.", text_en: "I choose to focus on the present moment.", category: "social_anxiety", premium: true },
+  { id: "soc-062", text_fr: "Mon énergie attire des personnes bienveillantes.", text_en: "My energy attracts kind people.", category: "social_anxiety", premium: true },
+  { id: "soc-063", text_fr: "Je peux survivre à l'embarras.", text_en: "I can survive embarrassment.", category: "social_anxiety", premium: true },
+  { id: "soc-064", text_fr: "Ma valeur sociale ne se mesure pas aux likes.", text_en: "My social worth isn't measured by likes.", category: "social_anxiety", premium: true },
+  { id: "soc-065", text_fr: "Je suis courageux(se) de sortir de ma zone de confort.", text_en: "I am brave for stepping out of my comfort zone.", category: "social_anxiety", premium: true },
+  { id: "soc-066", text_fr: "Les connexions profondes valent l'inconfort temporaire.", text_en: "Deep connections are worth temporary discomfort.", category: "social_anxiety", premium: true },
+  { id: "soc-067", text_fr: "Je peux être aimé(e) même en étant silencieux(se).", text_en: "I can be loved even when quiet.", category: "social_anxiety", premium: true },
+  { id: "soc-068", text_fr: "Mon anxiété ne contrôle pas mes choix.", text_en: "My anxiety doesn't control my choices.", category: "social_anxiety", premium: true },
+  { id: "soc-069", text_fr: "Je suis digne d'attention positive.", text_en: "I am worthy of positive attention.", category: "social_anxiety", premium: true },
+  { id: "soc-070", text_fr: "Chaque conversation m'apprend quelque chose.", text_en: "Every conversation teaches me something.", category: "social_anxiety", premium: true },
+  { id: "soc-071", text_fr: "Je peux être moi-même et être apprécié(e).", text_en: "I can be myself and be appreciated.", category: "social_anxiety", premium: true },
+  { id: "soc-072", text_fr: "Mon sourire est accueillant et sincère.", text_en: "My smile is welcoming and genuine.", category: "social_anxiety", premium: true },
+  { id: "soc-073", text_fr: "Je suis patient(e) avec mon évolution sociale.", text_en: "I am patient with my social growth.", category: "social_anxiety", premium: true },
+  { id: "soc-074", text_fr: "Les gens veulent me voir réussir.", text_en: "People want to see me succeed.", category: "social_anxiety", premium: true },
+  { id: "soc-075", text_fr: "Je suis un être social capable et aimant.", text_en: "I am a capable and loving social being.", category: "social_anxiety", premium: true },
+
+  // ============================================================
+  // SLEEP - 75 affirmations (15 free, 60 premium)
+  // ============================================================
+
+  // Free (15)
+  { id: "slp-001", text_fr: "Je mérite un sommeil réparateur.", text_en: "I deserve restful sleep.", category: "sleep", premium: false },
+  { id: "slp-002", text_fr: "Mon corps sait comment s'endormir.", text_en: "My body knows how to fall asleep.", category: "sleep", premium: false },
+  { id: "slp-003", text_fr: "Je lâche les pensées de la journée.", text_en: "I release the thoughts of the day.", category: "sleep", premium: false },
+  { id: "slp-004", text_fr: "La nuit m'apporte paix et régénération.", text_en: "Night brings me peace and renewal.", category: "sleep", premium: false },
+  { id: "slp-005", text_fr: "Je suis en sécurité pour dormir.", text_en: "I am safe to sleep.", category: "sleep", premium: false },
+  { id: "slp-006", text_fr: "Mon lit est un havre de repos.", text_en: "My bed is a haven of rest.", category: "sleep", premium: false },
+  { id: "slp-007", text_fr: "Je me laisse porter vers le sommeil.", text_en: "I let myself drift into sleep.", category: "sleep", premium: false },
+  { id: "slp-008", text_fr: "Demain peut attendre, ce soir je me repose.", text_en: "Tomorrow can wait, tonight I rest.", category: "sleep", premium: false },
+  { id: "slp-009", text_fr: "Mon esprit s'apaise naturellement.", text_en: "My mind calms naturally.", category: "sleep", premium: false },
+  { id: "slp-010", text_fr: "Je fais confiance à la nuit.", text_en: "I trust the night.", category: "sleep", premium: false },
+  { id: "slp-011", text_fr: "Chaque respiration me rapproche du sommeil.", text_en: "Each breath brings me closer to sleep.", category: "sleep", premium: false },
+  { id: "slp-012", text_fr: "Je mérite de me reposer pleinement.", text_en: "I deserve to rest fully.", category: "sleep", premium: false },
+  { id: "slp-013", text_fr: "Mon corps se détend muscle après muscle.", text_en: "My body relaxes muscle by muscle.", category: "sleep", premium: false },
+  { id: "slp-014", text_fr: "Le sommeil vient facilement à moi.", text_en: "Sleep comes easily to me.", category: "sleep", premium: false },
+  { id: "slp-015", text_fr: "Je me réveille reposé(e) et rafraîchi(e).", text_en: "I wake up rested and refreshed.", category: "sleep", premium: false },
+
+  // Premium (60)
+  { id: "slp-016", text_fr: "La lune veille sur mon repos.", text_en: "The moon watches over my rest.", category: "sleep", premium: true },
+  { id: "slp-017", text_fr: "Je m'abandonne aux bras de la nuit.", text_en: "I surrender to the arms of night.", category: "sleep", premium: true },
+  { id: "slp-018", text_fr: "Mes soucis peuvent attendre demain.", text_en: "My worries can wait until tomorrow.", category: "sleep", premium: true },
+  { id: "slp-019", text_fr: "Je suis enveloppé(e) de calme.", text_en: "I am wrapped in calm.", category: "sleep", premium: true },
+  { id: "slp-020", text_fr: "Mon sommeil est profond et réparateur.", text_en: "My sleep is deep and restorative.", category: "sleep", premium: true },
+  { id: "slp-021", text_fr: "Je relâche toute tension de mon corps.", text_en: "I release all tension from my body.", category: "sleep", premium: true },
+  { id: "slp-022", text_fr: "Le silence de la nuit me berce.", text_en: "The silence of the night cradles me.", category: "sleep", premium: true },
+  { id: "slp-023", text_fr: "Je mérite des nuits paisibles.", text_en: "I deserve peaceful nights.", category: "sleep", premium: true },
+  { id: "slp-024", text_fr: "Mon esprit glisse doucement vers le repos.", text_en: "My mind gently glides toward rest.", category: "sleep", premium: true },
+  { id: "slp-025", text_fr: "Je fais confiance à mon corps pour se régénérer.", text_en: "I trust my body to regenerate.", category: "sleep", premium: true },
+  { id: "slp-026", text_fr: "Les étoiles veillent sur mes rêves.", text_en: "The stars watch over my dreams.", category: "sleep", premium: true },
+  { id: "slp-027", text_fr: "Je laisse partir les pensées intrusives.", text_en: "I let intrusive thoughts go.", category: "sleep", premium: true },
+  { id: "slp-028", text_fr: "Mon oreiller accueille ma tête avec douceur.", text_en: "My pillow welcomes my head gently.", category: "sleep", premium: true },
+  { id: "slp-029", text_fr: "Je m'endors avec gratitude.", text_en: "I fall asleep with gratitude.", category: "sleep", premium: true },
+  { id: "slp-030", text_fr: "Le sommeil est mon allié.", text_en: "Sleep is my ally.", category: "sleep", premium: true },
+  { id: "slp-031", text_fr: "Je suis en paix avec la journée qui se termine.", text_en: "I am at peace with the day that ends.", category: "sleep", premium: true },
+  { id: "slp-032", text_fr: "Mon corps sait exactement de combien de repos il a besoin.", text_en: "My body knows exactly how much rest it needs.", category: "sleep", premium: true },
+  { id: "slp-033", text_fr: "Je respire lentement et profondément.", text_en: "I breathe slowly and deeply.", category: "sleep", premium: true },
+  { id: "slp-034", text_fr: "La fatigue quitte mon corps.", text_en: "Tiredness leaves my body.", category: "sleep", premium: true },
+  { id: "slp-035", text_fr: "Je suis reconnaissant(e) pour ce moment de repos.", text_en: "I am grateful for this moment of rest.", category: "sleep", premium: true },
+  { id: "slp-036", text_fr: "Mes rêves sont doux et agréables.", text_en: "My dreams are sweet and pleasant.", category: "sleep", premium: true },
+  { id: "slp-037", text_fr: "Je me prépare à une nuit de sommeil profond.", text_en: "I prepare for a night of deep sleep.", category: "sleep", premium: true },
+  { id: "slp-038", text_fr: "Mon lit est un sanctuaire de paix.", text_en: "My bed is a sanctuary of peace.", category: "sleep", premium: true },
+  { id: "slp-039", text_fr: "Je libère les tensions de mes épaules.", text_en: "I release the tension from my shoulders.", category: "sleep", premium: true },
+  { id: "slp-040", text_fr: "Le sommeil me régénère complètement.", text_en: "Sleep regenerates me completely.", category: "sleep", premium: true },
+  { id: "slp-041", text_fr: "Je suis prêt(e) à accueillir le repos.", text_en: "I am ready to welcome rest.", category: "sleep", premium: true },
+  { id: "slp-042", text_fr: "Mon esprit s'éteint doucement comme une bougie.", text_en: "My mind fades gently like a candle.", category: "sleep", premium: true },
+  { id: "slp-043", text_fr: "Je laisse le sommeil me trouver.", text_en: "I let sleep find me.", category: "sleep", premium: true },
+  { id: "slp-044", text_fr: "Chaque nuit est une occasion de renouveau.", text_en: "Each night is an opportunity for renewal.", category: "sleep", premium: true },
+  { id: "slp-045", text_fr: "Mon corps flotte vers le sommeil.", text_en: "My body floats toward sleep.", category: "sleep", premium: true },
+  { id: "slp-046", text_fr: "Je suis en harmonie avec le rythme de la nuit.", text_en: "I am in harmony with the night's rhythm.", category: "sleep", premium: true },
+  { id: "slp-047", text_fr: "La tranquillité m'envahit.", text_en: "Tranquility washes over me.", category: "sleep", premium: true },
+  { id: "slp-048", text_fr: "Je me sens de plus en plus léger(ère).", text_en: "I feel lighter and lighter.", category: "sleep", premium: true },
+  { id: "slp-049", text_fr: "Le monde peut tourner sans moi cette nuit.", text_en: "The world can turn without me tonight.", category: "sleep", premium: true },
+  { id: "slp-050", text_fr: "Je suis bercé(e) par le calme.", text_en: "I am cradled by calm.", category: "sleep", premium: true },
+  { id: "slp-051", text_fr: "Mon cœur bat au rythme du repos.", text_en: "My heart beats to the rhythm of rest.", category: "sleep", premium: true },
+  { id: "slp-052", text_fr: "Je m'autorise à tout lâcher.", text_en: "I allow myself to let everything go.", category: "sleep", premium: true },
+  { id: "slp-053", text_fr: "Le sommeil est mon droit naturel.", text_en: "Sleep is my natural right.", category: "sleep", premium: true },
+  { id: "slp-054", text_fr: "Je me sens en sécurité et protégé(e).", text_en: "I feel safe and protected.", category: "sleep", premium: true },
+  { id: "slp-055", text_fr: "Mon esprit voyage vers des contrées paisibles.", text_en: "My mind travels to peaceful lands.", category: "sleep", premium: true },
+  { id: "slp-056", text_fr: "Je fais confiance à mon corps pour guérir pendant le sommeil.", text_en: "I trust my body to heal during sleep.", category: "sleep", premium: true },
+  { id: "slp-057", text_fr: "La nuit est mon temps de récupération.", text_en: "Night is my time for recovery.", category: "sleep", premium: true },
+  { id: "slp-058", text_fr: "Je m'endors avec un sourire.", text_en: "I fall asleep with a smile.", category: "sleep", premium: true },
+  { id: "slp-059", text_fr: "Mes paupières sont lourdes et détendues.", text_en: "My eyelids are heavy and relaxed.", category: "sleep", premium: true },
+  { id: "slp-060", text_fr: "Je suis enveloppé(e) dans une couverture de sérénité.", text_en: "I am wrapped in a blanket of serenity.", category: "sleep", premium: true },
+  { id: "slp-061", text_fr: "Mon corps sait comment se reposer parfaitement.", text_en: "My body knows how to rest perfectly.", category: "sleep", premium: true },
+  { id: "slp-062", text_fr: "Je libère le besoin de contrôler.", text_en: "I release the need to control.", category: "sleep", premium: true },
+  { id: "slp-063", text_fr: "Le sommeil efface le stress de la journée.", text_en: "Sleep erases the stress of the day.", category: "sleep", premium: true },
+  { id: "slp-064", text_fr: "Je me réveille avec une énergie renouvelée.", text_en: "I wake up with renewed energy.", category: "sleep", premium: true },
+  { id: "slp-065", text_fr: "Mon système nerveux se calme.", text_en: "My nervous system calms down.", category: "sleep", premium: true },
+  { id: "slp-066", text_fr: "Je suis prêt(e) à recevoir un sommeil profond.", text_en: "I am ready to receive deep sleep.", category: "sleep", premium: true },
+  { id: "slp-067", text_fr: "La nuit porte conseil et repos.", text_en: "The night brings wisdom and rest.", category: "sleep", premium: true },
+  { id: "slp-068", text_fr: "Je fais confiance au processus naturel du sommeil.", text_en: "I trust the natural process of sleep.", category: "sleep", premium: true },
+  { id: "slp-069", text_fr: "Mon esprit et mon corps sont synchronisés pour le repos.", text_en: "My mind and body are synchronized for rest.", category: "sleep", premium: true },
+  { id: "slp-070", text_fr: "Je mérite des rêves paisibles.", text_en: "I deserve peaceful dreams.", category: "sleep", premium: true },
+  { id: "slp-071", text_fr: "Chaque cellule de mon corps se régénère.", text_en: "Every cell in my body regenerates.", category: "sleep", premium: true },
+  { id: "slp-072", text_fr: "Je suis en paix avec moi-même ce soir.", text_en: "I am at peace with myself tonight.", category: "sleep", premium: true },
+  { id: "slp-073", text_fr: "Le sommeil est un cadeau que je m'offre.", text_en: "Sleep is a gift I give myself.", category: "sleep", premium: true },
+  { id: "slp-074", text_fr: "Je m'endors facilement et naturellement.", text_en: "I fall asleep easily and naturally.", category: "sleep", premium: true },
+  { id: "slp-075", text_fr: "Bonne nuit, je me laisse aller au repos.", text_en: "Good night, I surrender to rest.", category: "sleep", premium: true },
+
+  // ============================================================
+  // WORK STRESS - 60 affirmations (10 free, 50 premium)
+  // ============================================================
+
+  // Free (10)
+  { id: "wrk-001", text_fr: "Je suis capable de gérer ma charge de travail.", text_en: "I am capable of managing my workload.", category: "work_stress", premium: false },
+  { id: "wrk-002", text_fr: "Mon travail ne définit pas ma valeur.", text_en: "My work doesn't define my worth.", category: "work_stress", premium: false },
+  { id: "wrk-003", text_fr: "Je mérite des pauses régulières.", text_en: "I deserve regular breaks.", category: "work_stress", premium: false },
+  { id: "wrk-004", text_fr: "Je peux dire non aux demandes excessives.", text_en: "I can say no to excessive demands.", category: "work_stress", premium: false },
+  { id: "wrk-005", text_fr: "Je fais de mon mieux, et c'est suffisant.", text_en: "I do my best, and that is enough.", category: "work_stress", premium: false },
+  { id: "wrk-006", text_fr: "Je sépare ma vie professionnelle de ma vie personnelle.", text_en: "I separate my work life from my personal life.", category: "work_stress", premium: false },
+  { id: "wrk-007", text_fr: "Je suis plus qu'un employé.", text_en: "I am more than an employee.", category: "work_stress", premium: false },
+  { id: "wrk-008", text_fr: "Je peux demander de l'aide quand j'en ai besoin.", text_en: "I can ask for help when I need it.", category: "work_stress", premium: false },
+  { id: "wrk-009", text_fr: "Ma santé mentale est prioritaire.", text_en: "My mental health is a priority.", category: "work_stress", premium: false },
+  { id: "wrk-010", text_fr: "Je célèbre mes accomplissements professionnels.", text_en: "I celebrate my professional achievements.", category: "work_stress", premium: false },
+
+  // Premium (50)
+  { id: "wrk-011", text_fr: "Je reste calme sous pression.", text_en: "I remain calm under pressure.", category: "work_stress", premium: true },
+  { id: "wrk-012", text_fr: "Chaque défi professionnel me fait grandir.", text_en: "Every professional challenge helps me grow.", category: "work_stress", premium: true },
+  { id: "wrk-013", text_fr: "Je mérite un équilibre travail-vie sain.", text_en: "I deserve a healthy work-life balance.", category: "work_stress", premium: true },
+  { id: "wrk-014", text_fr: "Je peux accomplir une tâche à la fois.", text_en: "I can accomplish one task at a time.", category: "work_stress", premium: true },
+  { id: "wrk-015", text_fr: "Mon énergie est précieuse et je la protège.", text_en: "My energy is precious and I protect it.", category: "work_stress", premium: true },
+  { id: "wrk-016", text_fr: "Je ne suis pas responsable de tout.", text_en: "I am not responsible for everything.", category: "work_stress", premium: true },
+  { id: "wrk-017", text_fr: "Je peux déléguer sans culpabilité.", text_en: "I can delegate without guilt.", category: "work_stress", premium: true },
+  { id: "wrk-018", text_fr: "Les deadlines ne contrôlent pas ma paix.", text_en: "Deadlines don't control my peace.", category: "work_stress", premium: true },
+  { id: "wrk-019", text_fr: "Je suis compétent(e) et qualifié(e).", text_en: "I am competent and qualified.", category: "work_stress", premium: true },
+  { id: "wrk-020", text_fr: "Je mérite du respect au travail.", text_en: "I deserve respect at work.", category: "work_stress", premium: true },
+  { id: "wrk-021", text_fr: "Je peux établir des limites saines.", text_en: "I can set healthy boundaries.", category: "work_stress", premium: true },
+  { id: "wrk-022", text_fr: "Mon bien-être passe avant ma productivité.", text_en: "My wellbeing comes before my productivity.", category: "work_stress", premium: true },
+  { id: "wrk-023", text_fr: "Je suis capable de résoudre les problèmes.", text_en: "I am capable of solving problems.", category: "work_stress", premium: true },
+  { id: "wrk-024", text_fr: "Je prends soin de moi au bureau.", text_en: "I take care of myself at the office.", category: "work_stress", premium: true },
+  { id: "wrk-025", text_fr: "Les erreurs sont des opportunités d'apprentissage.", text_en: "Mistakes are learning opportunities.", category: "work_stress", premium: true },
+  { id: "wrk-026", text_fr: "Je refuse le perfectionnisme toxique.", text_en: "I reject toxic perfectionism.", category: "work_stress", premium: true },
+  { id: "wrk-027", text_fr: "Je peux prendre du recul sur mon travail.", text_en: "I can step back from my work.", category: "work_stress", premium: true },
+  { id: "wrk-028", text_fr: "Ma valeur ne se mesure pas en heures travaillées.", text_en: "My worth isn't measured in hours worked.", category: "work_stress", premium: true },
+  { id: "wrk-029", text_fr: "Je suis capable de gérer les conflits calmement.", text_en: "I am capable of handling conflicts calmly.", category: "work_stress", premium: true },
+  { id: "wrk-030", text_fr: "Je mérite de quitter le travail à l'heure.", text_en: "I deserve to leave work on time.", category: "work_stress", premium: true },
+  { id: "wrk-031", text_fr: "Je peux être productif(ve) sans être épuisé(e).", text_en: "I can be productive without being exhausted.", category: "work_stress", premium: true },
+  { id: "wrk-032", text_fr: "Mon travail est important mais pas vital.", text_en: "My work is important but not vital.", category: "work_stress", premium: true },
+  { id: "wrk-033", text_fr: "Je choisis de ne pas ramener le stress à la maison.", text_en: "I choose not to bring stress home.", category: "work_stress", premium: true },
+  { id: "wrk-034", text_fr: "Je suis résilient(e) face aux défis professionnels.", text_en: "I am resilient facing professional challenges.", category: "work_stress", premium: true },
+  { id: "wrk-035", text_fr: "Je mérite de réussir sans sacrifier ma santé.", text_en: "I deserve to succeed without sacrificing my health.", category: "work_stress", premium: true },
+  { id: "wrk-036", text_fr: "Je peux prendre une pause sans me sentir coupable.", text_en: "I can take a break without feeling guilty.", category: "work_stress", premium: true },
+  { id: "wrk-037", text_fr: "Mon corps mérite du mouvement pendant la journée.", text_en: "My body deserves movement during the day.", category: "work_stress", premium: true },
+  { id: "wrk-038", text_fr: "Je suis capable de gérer plusieurs projets.", text_en: "I am capable of managing multiple projects.", category: "work_stress", premium: true },
+  { id: "wrk-039", text_fr: "Je refuse de me comparer à mes collègues.", text_en: "I refuse to compare myself to my colleagues.", category: "work_stress", premium: true },
+  { id: "wrk-040", text_fr: "Ma carrière évolue à son propre rythme.", text_en: "My career evolves at its own pace.", category: "work_stress", premium: true },
+  { id: "wrk-041", text_fr: "Je suis digne de reconnaissance pour mon travail.", text_en: "I am worthy of recognition for my work.", category: "work_stress", premium: true },
+  { id: "wrk-042", text_fr: "Je peux demander une augmentation.", text_en: "I can ask for a raise.", category: "work_stress", premium: true },
+  { id: "wrk-043", text_fr: "Mon temps libre est sacré.", text_en: "My free time is sacred.", category: "work_stress", premium: true },
+  { id: "wrk-044", text_fr: "Je refuse le burnout.", text_en: "I refuse burnout.", category: "work_stress", premium: true },
+  { id: "wrk-045", text_fr: "Je suis capable de m'adapter aux changements.", text_en: "I am capable of adapting to changes.", category: "work_stress", premium: true },
+  { id: "wrk-046", text_fr: "Mon opinion professionnelle a de la valeur.", text_en: "My professional opinion has value.", category: "work_stress", premium: true },
+  { id: "wrk-047", text_fr: "Je peux réussir sans me surmener.", text_en: "I can succeed without overworking.", category: "work_stress", premium: true },
+  { id: "wrk-048", text_fr: "Je mérite un environnement de travail positif.", text_en: "I deserve a positive work environment.", category: "work_stress", premium: true },
+  { id: "wrk-049", text_fr: "Je suis plus que mon titre professionnel.", text_en: "I am more than my job title.", category: "work_stress", premium: true },
+  { id: "wrk-050", text_fr: "Je peux changer de carrière si je le souhaite.", text_en: "I can change careers if I wish.", category: "work_stress", premium: true },
+  { id: "wrk-051", text_fr: "Mon stress au travail est temporaire.", text_en: "My work stress is temporary.", category: "work_stress", premium: true },
+  { id: "wrk-052", text_fr: "Je mérite d'être payé(e) à ma juste valeur.", text_en: "I deserve to be paid my worth.", category: "work_stress", premium: true },
+  { id: "wrk-053", text_fr: "Je peux prendre des vacances sans culpabiliser.", text_en: "I can take vacation without guilt.", category: "work_stress", premium: true },
+  { id: "wrk-054", text_fr: "Mon travail est un aspect de ma vie, pas toute ma vie.", text_en: "My work is one aspect of life, not my whole life.", category: "work_stress", premium: true },
+  { id: "wrk-055", text_fr: "Je suis capable de réussir avec calme.", text_en: "I am capable of succeeding with calm.", category: "work_stress", premium: true },
+  { id: "wrk-056", text_fr: "Je refuse de laisser le travail envahir mes pensées.", text_en: "I refuse to let work invade my thoughts.", category: "work_stress", premium: true },
+  { id: "wrk-057", text_fr: "Je mérite un manager qui me respecte.", text_en: "I deserve a manager who respects me.", category: "work_stress", premium: true },
+  { id: "wrk-058", text_fr: "Je peux être ambitieux(se) et serein(e).", text_en: "I can be ambitious and serene.", category: "work_stress", premium: true },
+  { id: "wrk-059", text_fr: "Mon énergie se renouvelle après le travail.", text_en: "My energy renews after work.", category: "work_stress", premium: true },
+  { id: "wrk-060", text_fr: "Je suis capable de trouver la paix au travail.", text_en: "I am capable of finding peace at work.", category: "work_stress", premium: true },
+
+  // ============================================================
+  // GRATITUDE - 50 affirmations (10 free, 40 premium)
+  // ============================================================
+
+  // Free (10)
+  { id: "gra-001", text_fr: "Je suis reconnaissant(e) pour ce jour nouveau.", text_en: "I am grateful for this new day.", category: "gratitude", premium: false },
+  { id: "gra-002", text_fr: "J'apprécie les petites joies de la vie.", text_en: "I appreciate the small joys in life.", category: "gratitude", premium: false },
+  { id: "gra-003", text_fr: "Je suis reconnaissant(e) pour mon corps.", text_en: "I am grateful for my body.", category: "gratitude", premium: false },
+  { id: "gra-004", text_fr: "J'ai tant de raisons d'être heureux(se).", text_en: "I have so many reasons to be happy.", category: "gratitude", premium: false },
+  { id: "gra-005", text_fr: "Je suis reconnaissant(e) pour les personnes dans ma vie.", text_en: "I am grateful for the people in my life.", category: "gratitude", premium: false },
+  { id: "gra-006", text_fr: "La gratitude remplit mon cœur.", text_en: "Gratitude fills my heart.", category: "gratitude", premium: false },
+  { id: "gra-007", text_fr: "Je vois le positif dans chaque situation.", text_en: "I see the positive in every situation.", category: "gratitude", premium: false },
+  { id: "gra-008", text_fr: "Je suis reconnaissant(e) pour ma santé.", text_en: "I am grateful for my health.", category: "gratitude", premium: false },
+  { id: "gra-009", text_fr: "Chaque moment est un cadeau.", text_en: "Every moment is a gift.", category: "gratitude", premium: false },
+  { id: "gra-010", text_fr: "Je suis reconnaissant(e) pour qui je deviens.", text_en: "I am grateful for who I am becoming.", category: "gratitude", premium: false },
+
+  // Premium (40)
+  { id: "gra-011", text_fr: "La gratitude transforme mes journées.", text_en: "Gratitude transforms my days.", category: "gratitude", premium: true },
+  { id: "gra-012", text_fr: "Je suis reconnaissant(e) pour les leçons de vie.", text_en: "I am grateful for life's lessons.", category: "gratitude", premium: true },
+  { id: "gra-013", text_fr: "J'apprécie le confort de mon foyer.", text_en: "I appreciate the comfort of my home.", category: "gratitude", premium: true },
+  { id: "gra-014", text_fr: "Je suis reconnaissant(e) pour mes sens.", text_en: "I am grateful for my senses.", category: "gratitude", premium: true },
+  { id: "gra-015", text_fr: "Chaque difficulté m'a rendu(e) plus fort(e).", text_en: "Every difficulty has made me stronger.", category: "gratitude", premium: true },
+  { id: "gra-016", text_fr: "Je suis reconnaissant(e) pour l'amour que je reçois.", text_en: "I am grateful for the love I receive.", category: "gratitude", premium: true },
+  { id: "gra-017", text_fr: "J'apprécie la beauté de la nature.", text_en: "I appreciate the beauty of nature.", category: "gratitude", premium: true },
+  { id: "gra-018", text_fr: "Je suis reconnaissant(e) pour mes capacités.", text_en: "I am grateful for my abilities.", category: "gratitude", premium: true },
+  { id: "gra-019", text_fr: "La vie est riche en bénédictions.", text_en: "Life is rich with blessings.", category: "gratitude", premium: true },
+  { id: "gra-020", text_fr: "Je suis reconnaissant(e) pour chaque respiration.", text_en: "I am grateful for every breath.", category: "gratitude", premium: true },
+  { id: "gra-021", text_fr: "J'apprécie les moments de silence.", text_en: "I appreciate moments of silence.", category: "gratitude", premium: true },
+  { id: "gra-022", text_fr: "Je suis reconnaissant(e) pour mon parcours unique.", text_en: "I am grateful for my unique journey.", category: "gratitude", premium: true },
+  { id: "gra-023", text_fr: "Chaque repas est une bénédiction.", text_en: "Every meal is a blessing.", category: "gratitude", premium: true },
+  { id: "gra-024", text_fr: "Je suis reconnaissant(e) pour les opportunités.", text_en: "I am grateful for opportunities.", category: "gratitude", premium: true },
+  { id: "gra-025", text_fr: "J'apprécie le temps que j'ai.", text_en: "I appreciate the time I have.", category: "gratitude", premium: true },
+  { id: "gra-026", text_fr: "Je suis reconnaissant(e) pour les nouvelles rencontres.", text_en: "I am grateful for new encounters.", category: "gratitude", premium: true },
+  { id: "gra-027", text_fr: "La gratitude attire plus de bonheur.", text_en: "Gratitude attracts more happiness.", category: "gratitude", premium: true },
+  { id: "gra-028", text_fr: "Je suis reconnaissant(e) pour ma créativité.", text_en: "I am grateful for my creativity.", category: "gratitude", premium: true },
+  { id: "gra-029", text_fr: "J'apprécie le rire et la joie.", text_en: "I appreciate laughter and joy.", category: "gratitude", premium: true },
+  { id: "gra-030", text_fr: "Je suis reconnaissant(e) pour les souvenirs heureux.", text_en: "I am grateful for happy memories.", category: "gratitude", premium: true },
+  { id: "gra-031", text_fr: "Chaque jour apporte de nouvelles merveilles.", text_en: "Each day brings new wonders.", category: "gratitude", premium: true },
+  { id: "gra-032", text_fr: "Je suis reconnaissant(e) pour ma force intérieure.", text_en: "I am grateful for my inner strength.", category: "gratitude", premium: true },
+  { id: "gra-033", text_fr: "J'apprécie les petites victoires quotidiennes.", text_en: "I appreciate the small daily victories.", category: "gratitude", premium: true },
+  { id: "gra-034", text_fr: "Je suis reconnaissant(e) pour la musique.", text_en: "I am grateful for music.", category: "gratitude", premium: true },
+  { id: "gra-035", text_fr: "La vie m'offre des cadeaux chaque jour.", text_en: "Life offers me gifts every day.", category: "gratitude", premium: true },
+  { id: "gra-036", text_fr: "Je suis reconnaissant(e) pour les moments de paix.", text_en: "I am grateful for moments of peace.", category: "gratitude", premium: true },
+  { id: "gra-037", text_fr: "J'apprécie la chaleur du soleil.", text_en: "I appreciate the warmth of the sun.", category: "gratitude", premium: true },
+  { id: "gra-038", text_fr: "Je suis reconnaissant(e) pour chaque expérience.", text_en: "I am grateful for every experience.", category: "gratitude", premium: true },
+  { id: "gra-039", text_fr: "La gratitude ouvre mon cœur.", text_en: "Gratitude opens my heart.", category: "gratitude", premium: true },
+  { id: "gra-040", text_fr: "Je suis reconnaissant(e) pour les saisons de la vie.", text_en: "I am grateful for life's seasons.", category: "gratitude", premium: true },
+  { id: "gra-041", text_fr: "J'apprécie le cadeau de l'amitié.", text_en: "I appreciate the gift of friendship.", category: "gratitude", premium: true },
+  { id: "gra-042", text_fr: "Je suis reconnaissant(e) pour mon évolution.", text_en: "I am grateful for my growth.", category: "gratitude", premium: true },
+  { id: "gra-043", text_fr: "Chaque obstacle surmonté mérite ma gratitude.", text_en: "Every obstacle overcome deserves my gratitude.", category: "gratitude", premium: true },
+  { id: "gra-044", text_fr: "Je suis reconnaissant(e) pour l'abondance.", text_en: "I am grateful for abundance.", category: "gratitude", premium: true },
+  { id: "gra-045", text_fr: "J'apprécie le pouvoir de la gentillesse.", text_en: "I appreciate the power of kindness.", category: "gratitude", premium: true },
+  { id: "gra-046", text_fr: "Je suis reconnaissant(e) pour les rêves qui se réalisent.", text_en: "I am grateful for dreams that come true.", category: "gratitude", premium: true },
+  { id: "gra-047", text_fr: "La gratitude est ma pratique quotidienne.", text_en: "Gratitude is my daily practice.", category: "gratitude", premium: true },
+  { id: "gra-048", text_fr: "Je suis reconnaissant(e) pour ce moment présent.", text_en: "I am grateful for this present moment.", category: "gratitude", premium: true },
+  { id: "gra-049", text_fr: "J'apprécie tout ce que j'ai.", text_en: "I appreciate all that I have.", category: "gratitude", premium: true },
+  { id: "gra-050", text_fr: "Je suis reconnaissant(e) pour la vie elle-même.", text_en: "I am grateful for life itself.", category: "gratitude", premium: true },
+
+  // ============================================================
+  // CONFIDENCE - 60 affirmations (10 free, 50 premium)
+  // ============================================================
+
+  // Free (10)
+  { id: "con-001", text_fr: "Je suis digne d'amour et de respect.", text_en: "I am worthy of love and respect.", category: "confidence", premium: false },
+  { id: "con-002", text_fr: "Je crois en moi et en mes capacités.", text_en: "I believe in myself and my abilities.", category: "confidence", premium: false },
+  { id: "con-003", text_fr: "Je suis assez, exactement comme je suis.", text_en: "I am enough, exactly as I am.", category: "confidence", premium: false },
+  { id: "con-004", text_fr: "Ma voix compte et mérite d'être entendue.", text_en: "My voice matters and deserves to be heard.", category: "confidence", premium: false },
+  { id: "con-005", text_fr: "Je suis capable de réaliser mes rêves.", text_en: "I am capable of achieving my dreams.", category: "confidence", premium: false },
+  { id: "con-006", text_fr: "Je suis unique et précieux(se).", text_en: "I am unique and precious.", category: "confidence", premium: false },
+  { id: "con-007", text_fr: "Je mérite le bonheur et le succès.", text_en: "I deserve happiness and success.", category: "confidence", premium: false },
+  { id: "con-008", text_fr: "Je suis fier(e) de qui je suis.", text_en: "I am proud of who I am.", category: "confidence", premium: false },
+  { id: "con-009", text_fr: "Mes échecs ne me définissent pas.", text_en: "My failures don't define me.", category: "confidence", premium: false },
+  { id: "con-010", text_fr: "Je suis le héros de ma propre histoire.", text_en: "I am the hero of my own story.", category: "confidence", premium: false },
+
+  // Premium (50)
+  { id: "con-011", text_fr: "Je fais confiance à mes décisions.", text_en: "I trust my decisions.", category: "confidence", premium: true },
+  { id: "con-012", text_fr: "Ma confiance grandit chaque jour.", text_en: "My confidence grows each day.", category: "confidence", premium: true },
+  { id: "con-013", text_fr: "Je suis digne de toutes les bonnes choses.", text_en: "I am worthy of all good things.", category: "confidence", premium: true },
+  { id: "con-014", text_fr: "Je me respecte et je me valorise.", text_en: "I respect and value myself.", category: "confidence", premium: true },
+  { id: "con-015", text_fr: "Je suis capable de surmonter les obstacles.", text_en: "I am capable of overcoming obstacles.", category: "confidence", premium: true },
+  { id: "con-016", text_fr: "Mon opinion a de la valeur.", text_en: "My opinion has value.", category: "confidence", premium: true },
+  { id: "con-017", text_fr: "Je m'autorise à briller.", text_en: "I allow myself to shine.", category: "confidence", premium: true },
+  { id: "con-018", text_fr: "Je suis fort(e) et résilient(e).", text_en: "I am strong and resilient.", category: "confidence", premium: true },
+  { id: "con-019", text_fr: "Je mérite de prendre soin de moi.", text_en: "I deserve to take care of myself.", category: "confidence", premium: true },
+  { id: "con-020", text_fr: "Je suis capable de créer la vie que je veux.", text_en: "I am capable of creating the life I want.", category: "confidence", premium: true },
+  { id: "con-021", text_fr: "Ma présence fait une différence positive.", text_en: "My presence makes a positive difference.", category: "confidence", premium: true },
+  { id: "con-022", text_fr: "Je suis assez intelligent(e) pour réussir.", text_en: "I am smart enough to succeed.", category: "confidence", premium: true },
+  { id: "con-023", text_fr: "Je m'aime inconditionnellement.", text_en: "I love myself unconditionally.", category: "confidence", premium: true },
+  { id: "con-024", text_fr: "Je suis capable de grandes choses.", text_en: "I am capable of great things.", category: "confidence", premium: true },
+  { id: "con-025", text_fr: "Mon potentiel est illimité.", text_en: "My potential is unlimited.", category: "confidence", premium: true },
+  { id: "con-026", text_fr: "Je suis digne d'opportunités incroyables.", text_en: "I am worthy of incredible opportunities.", category: "confidence", premium: true },
+  { id: "con-027", text_fr: "Je fais confiance à mon intuition.", text_en: "I trust my intuition.", category: "confidence", premium: true },
+  { id: "con-028", text_fr: "Je suis assez courageux(se) pour essayer.", text_en: "I am brave enough to try.", category: "confidence", premium: true },
+  { id: "con-029", text_fr: "Ma valeur ne dépend pas de mon apparence.", text_en: "My worth doesn't depend on my appearance.", category: "confidence", premium: true },
+  { id: "con-030", text_fr: "Je suis capable de gérer ce qui vient.", text_en: "I am capable of handling what comes.", category: "confidence", premium: true },
+  { id: "con-031", text_fr: "Je mérite de réussir.", text_en: "I deserve to succeed.", category: "confidence", premium: true },
+  { id: "con-032", text_fr: "Je suis digne d'être aimé(e).", text_en: "I am worthy of being loved.", category: "confidence", premium: true },
+  { id: "con-033", text_fr: "Mon corps est fort et capable.", text_en: "My body is strong and capable.", category: "confidence", premium: true },
+  { id: "con-034", text_fr: "Je suis assez brave pour être moi-même.", text_en: "I am brave enough to be myself.", category: "confidence", premium: true },
+  { id: "con-035", text_fr: "Je mérite d'avoir des rêves ambitieux.", text_en: "I deserve to have ambitious dreams.", category: "confidence", premium: true },
+  { id: "con-036", text_fr: "Je suis capable de changer ma vie.", text_en: "I am capable of changing my life.", category: "confidence", premium: true },
+  { id: "con-037", text_fr: "Ma confiance en moi est inébranlable.", text_en: "My self-confidence is unshakeable.", category: "confidence", premium: true },
+  { id: "con-038", text_fr: "Je suis digne de tout ce que je désire.", text_en: "I am worthy of all that I desire.", category: "confidence", premium: true },
+  { id: "con-039", text_fr: "Je crée ma propre chance.", text_en: "I create my own luck.", category: "confidence", premium: true },
+  { id: "con-040", text_fr: "Je suis capable et compétent(e).", text_en: "I am capable and competent.", category: "confidence", premium: true },
+  { id: "con-041", text_fr: "Je mérite d'être heureux(se).", text_en: "I deserve to be happy.", category: "confidence", premium: true },
+  { id: "con-042", text_fr: "Je suis assez pour le monde.", text_en: "I am enough for the world.", category: "confidence", premium: true },
+  { id: "con-043", text_fr: "Mon histoire a de l'importance.", text_en: "My story matters.", category: "confidence", premium: true },
+  { id: "con-044", text_fr: "Je suis capable de pardonner et d'avancer.", text_en: "I am capable of forgiving and moving on.", category: "confidence", premium: true },
+  { id: "con-045", text_fr: "Je mérite des relations saines.", text_en: "I deserve healthy relationships.", category: "confidence", premium: true },
+  { id: "con-046", text_fr: "Je suis digne de respect.", text_en: "I am worthy of respect.", category: "confidence", premium: true },
+  { id: "con-047", text_fr: "Ma beauté vient de l'intérieur.", text_en: "My beauty comes from within.", category: "confidence", premium: true },
+  { id: "con-048", text_fr: "Je suis capable de transformer mes rêves en réalité.", text_en: "I am capable of turning dreams into reality.", category: "confidence", premium: true },
+  { id: "con-049", text_fr: "Je m'accepte complètement.", text_en: "I accept myself completely.", category: "confidence", premium: true },
+  { id: "con-050", text_fr: "Je suis assez fort(e) pour affronter l'adversité.", text_en: "I am strong enough to face adversity.", category: "confidence", premium: true },
+  { id: "con-051", text_fr: "Je suis digne de tout l'amour du monde.", text_en: "I am worthy of all the love in the world.", category: "confidence", premium: true },
+  { id: "con-052", text_fr: "Je crois en mon potentiel infini.", text_en: "I believe in my infinite potential.", category: "confidence", premium: true },
+  { id: "con-053", text_fr: "Je suis capable de vivre une vie extraordinaire.", text_en: "I am capable of living an extraordinary life.", category: "confidence", premium: true },
+  { id: "con-054", text_fr: "Je mérite d'être célébré(e).", text_en: "I deserve to be celebrated.", category: "confidence", premium: true },
+  { id: "con-055", text_fr: "Je suis assez pour moi-même.", text_en: "I am enough for myself.", category: "confidence", premium: true },
+  { id: "con-056", text_fr: "Mon cœur est rempli de courage.", text_en: "My heart is filled with courage.", category: "confidence", premium: true },
+  { id: "con-057", text_fr: "Je suis digne de vivre ma meilleure vie.", text_en: "I am worthy of living my best life.", category: "confidence", premium: true },
+  { id: "con-058", text_fr: "Je suis capable de m'épanouir.", text_en: "I am capable of flourishing.", category: "confidence", premium: true },
+  { id: "con-059", text_fr: "Je mérite tout le bien qui m'arrive.", text_en: "I deserve all the good that comes to me.", category: "confidence", premium: true },
+  { id: "con-060", text_fr: "Je suis un être magnifique et complet.", text_en: "I am a magnificent and complete being.", category: "confidence", premium: true },
+
+  // ============================================================
+  // LETTING GO - 50 affirmations (10 free, 40 premium)
+  // ============================================================
+
+  // Free (10)
+  { id: "let-001", text_fr: "Je lâche ce que je ne peux pas contrôler.", text_en: "I let go of what I cannot control.", category: "letting_go", premium: false },
+  { id: "let-002", text_fr: "Je me libère du passé.", text_en: "I free myself from the past.", category: "letting_go", premium: false },
+  { id: "let-003", text_fr: "Je pardonne et j'avance.", text_en: "I forgive and move forward.", category: "letting_go", premium: false },
+  { id: "let-004", text_fr: "Je lâche le besoin de perfection.", text_en: "I let go of the need for perfection.", category: "letting_go", premium: false },
+  { id: "let-005", text_fr: "Je fais confiance au flux de la vie.", text_en: "I trust the flow of life.", category: "letting_go", premium: false },
+  { id: "let-006", text_fr: "Je libère les émotions qui ne me servent plus.", text_en: "I release emotions that no longer serve me.", category: "letting_go", premium: false },
+  { id: "let-007", text_fr: "Je suis en paix avec ce qui est.", text_en: "I am at peace with what is.", category: "letting_go", premium: false },
+  { id: "let-008", text_fr: "Je me détache des attentes des autres.", text_en: "I detach from others' expectations.", category: "letting_go", premium: false },
+  { id: "let-009", text_fr: "Je laisse aller les pensées négatives.", text_en: "I let go of negative thoughts.", category: "letting_go", premium: false },
+  { id: "let-010", text_fr: "Je m'autorise à recommencer.", text_en: "I allow myself to start again.", category: "letting_go", premium: false },
+
+  // Premium (40)
+  { id: "let-011", text_fr: "Je lâche le contrôle avec grâce.", text_en: "I release control with grace.", category: "letting_go", premium: true },
+  { id: "let-012", text_fr: "Je me libère de la culpabilité.", text_en: "I free myself from guilt.", category: "letting_go", premium: true },
+  { id: "let-013", text_fr: "Je pardonne à ceux qui m'ont blessé(e).", text_en: "I forgive those who hurt me.", category: "letting_go", premium: true },
+  { id: "let-014", text_fr: "Je lâche le poids du passé.", text_en: "I release the weight of the past.", category: "letting_go", premium: true },
+  { id: "let-015", text_fr: "Je fais confiance à l'univers.", text_en: "I trust the universe.", category: "letting_go", premium: true },
+  { id: "let-016", text_fr: "Je me libère de la peur de l'échec.", text_en: "I free myself from fear of failure.", category: "letting_go", premium: true },
+  { id: "let-017", text_fr: "Je lâche les regrets.", text_en: "I let go of regrets.", category: "letting_go", premium: true },
+  { id: "let-018", text_fr: "Je suis libre de mes anciennes croyances.", text_en: "I am free from old beliefs.", category: "letting_go", premium: true },
+  { id: "let-019", text_fr: "Je me détache du résultat.", text_en: "I detach from the outcome.", category: "letting_go", premium: true },
+  { id: "let-020", text_fr: "Je laisse partir ce qui ne me sert plus.", text_en: "I let go of what no longer serves me.", category: "letting_go", premium: true },
+  { id: "let-021", text_fr: "Je me libère du jugement.", text_en: "I free myself from judgment.", category: "letting_go", premium: true },
+  { id: "let-022", text_fr: "Je lâche le besoin d'avoir raison.", text_en: "I let go of the need to be right.", category: "letting_go", premium: true },
+  { id: "let-023", text_fr: "Je me pardonne mes erreurs passées.", text_en: "I forgive myself for past mistakes.", category: "letting_go", premium: true },
+  { id: "let-024", text_fr: "Je fais de la place pour le nouveau.", text_en: "I make room for the new.", category: "letting_go", premium: true },
+  { id: "let-025", text_fr: "Je me libère de la comparaison.", text_en: "I free myself from comparison.", category: "letting_go", premium: true },
+  { id: "let-026", text_fr: "Je lâche les relations toxiques.", text_en: "I let go of toxic relationships.", category: "letting_go", premium: true },
+  { id: "let-027", text_fr: "Je suis en paix avec mes choix.", text_en: "I am at peace with my choices.", category: "letting_go", premium: true },
+  { id: "let-028", text_fr: "Je me détache des opinions négatives.", text_en: "I detach from negative opinions.", category: "letting_go", premium: true },
+  { id: "let-029", text_fr: "Je laisse la vie me surprendre.", text_en: "I let life surprise me.", category: "letting_go", premium: true },
+  { id: "let-030", text_fr: "Je me libère de l'anxiété du futur.", text_en: "I free myself from anxiety about the future.", category: "letting_go", premium: true },
+  { id: "let-031", text_fr: "Je lâche les attentes irréalistes.", text_en: "I let go of unrealistic expectations.", category: "letting_go", premium: true },
+  { id: "let-032", text_fr: "Je suis libre de la pression extérieure.", text_en: "I am free from external pressure.", category: "letting_go", premium: true },
+  { id: "let-033", text_fr: "Je me détache du besoin d'approbation.", text_en: "I detach from the need for approval.", category: "letting_go", premium: true },
+  { id: "let-034", text_fr: "Je laisse aller les vieilles blessures.", text_en: "I let go of old wounds.", category: "letting_go", premium: true },
+  { id: "let-035", text_fr: "Je me libère de la colère.", text_en: "I free myself from anger.", category: "letting_go", premium: true },
+  { id: "let-036", text_fr: "Je lâche le besoin de tout comprendre.", text_en: "I let go of the need to understand everything.", category: "letting_go", premium: true },
+  { id: "let-037", text_fr: "Je suis en paix avec l'incertitude.", text_en: "I am at peace with uncertainty.", category: "letting_go", premium: true },
+  { id: "let-038", text_fr: "Je me détache des habitudes négatives.", text_en: "I detach from negative habits.", category: "letting_go", premium: true },
+  { id: "let-039", text_fr: "Je laisse partir la résistance.", text_en: "I let go of resistance.", category: "letting_go", premium: true },
+  { id: "let-040", text_fr: "Je me libère des limitations auto-imposées.", text_en: "I free myself from self-imposed limitations.", category: "letting_go", premium: true },
+  { id: "let-041", text_fr: "Je lâche le passé avec amour.", text_en: "I release the past with love.", category: "letting_go", premium: true },
+  { id: "let-042", text_fr: "Je suis libre de créer une nouvelle histoire.", text_en: "I am free to create a new story.", category: "letting_go", premium: true },
+  { id: "let-043", text_fr: "Je me détache de ce qui me retient.", text_en: "I detach from what holds me back.", category: "letting_go", premium: true },
+  { id: "let-044", text_fr: "Je laisse la lumière entrer.", text_en: "I let the light in.", category: "letting_go", premium: true },
+  { id: "let-045", text_fr: "Je me libère du poids des autres.", text_en: "I free myself from others' burdens.", category: "letting_go", premium: true },
+  { id: "let-046", text_fr: "Je lâche le besoin de contrôler les autres.", text_en: "I let go of the need to control others.", category: "letting_go", premium: true },
+  { id: "let-047", text_fr: "Je suis en paix avec mon chemin.", text_en: "I am at peace with my path.", category: "letting_go", premium: true },
+  { id: "let-048", text_fr: "Je me détache des drames inutiles.", text_en: "I detach from unnecessary drama.", category: "letting_go", premium: true },
+  { id: "let-049", text_fr: "Je laisse aller et je fais confiance.", text_en: "I let go and trust.", category: "letting_go", premium: true },
+  { id: "let-050", text_fr: "Je suis libre, léger(ère) et en paix.", text_en: "I am free, light, and at peace.", category: "letting_go", premium: true },
+]
+
+// Helper functions
+export const getAffirmationsByCategory = (category: Category): Affirmation[] => {
+  return affirmations.filter((a) => a.category === category)
+}
+
+export const getFreeAffirmations = (): Affirmation[] => {
+  return affirmations.filter((a) => !a.premium)
+}
+
+export const getPremiumAffirmations = (): Affirmation[] => {
+  return affirmations.filter((a) => a.premium)
+}
+
+export const getRandomAffirmation = (category?: Category, premiumOnly?: boolean): Affirmation => {
+  let filtered = affirmations
+  if (category) {
+    filtered = filtered.filter((a) => a.category === category)
+  }
+  if (premiumOnly !== undefined) {
+    filtered = filtered.filter((a) => a.premium === premiumOnly)
+  }
+  return filtered[Math.floor(Math.random() * filtered.length)]
+}
+
+export const getCategoryStats = (): Record<Category, { free: number; premium: number; total: number }> => {
+  const stats = {} as Record<Category, { free: number; premium: number; total: number }>
+
+  const categories: Category[] = [
+    "anxiety",
+    "social_anxiety",
+    "sleep",
+    "work_stress",
+    "gratitude",
+    "confidence",
+    "letting_go",
+  ]
+
+  for (const cat of categories) {
+    const catAffirmations = affirmations.filter((a) => a.category === cat)
+    stats[cat] = {
+      free: catAffirmations.filter((a) => !a.premium).length,
+      premium: catAffirmations.filter((a) => a.premium).length,
+      total: catAffirmations.length,
+    }
+  }
+
+  return stats
+}

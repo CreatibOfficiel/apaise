@@ -31,7 +31,6 @@
 
 import { useCallback, useMemo } from "react"
 
-import { isConvex } from "../config/env"
 
 // ============================================================================
 // Types - Unified User Interface
@@ -305,146 +304,25 @@ function useSupabaseAppAuth(): AppAuthState & AppAuthActions {
 // ============================================================================
 
 function useConvexAppAuth(): AppAuthState & AppAuthActions {
-  // Lazy import to enable code splitting
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { useConvexAuth, useConvexMagicLink } = require("./convex")
-
-  const auth = useConvexAuth()
-  const magicLink = useConvexMagicLink()
-
-  // Transform Convex user to unified AppUser
-  const user: AppUser | null = useMemo(() => {
-    if (!auth.user) return null
-
-    const displayName = auth.user.name || auth.user.email?.split("@")[0] || null
-
-    return {
-      id: auth.user._id,
-      email: auth.user.email || null,
-      displayName,
-      firstName: null, // Convex uses single 'name' field
-      lastName: null,
-      fullName: auth.user.name || null,
-      avatarUrl: auth.user.avatarUrl || auth.user.image || null,
-      bio: auth.user.bio || null,
-      emailVerified: !!auth.user.emailVerificationTime,
-      createdAt: auth.user._creationTime ? new Date(auth.user._creationTime).toISOString() : null,
-      metadata: auth.user.preferences || {},
-    }
-  }, [auth.user])
-
-  const updateProfile = useCallback(
-    async (data: ProfileUpdateData): Promise<{ error: Error | null }> => {
-      try {
-        // Convex uses 'name' instead of firstName/lastName
-        const convexData: { name?: string; bio?: string; avatarUrl?: string } = {}
-        if (data.fullName !== undefined) {
-          convexData.name = data.fullName
-        } else if (data.firstName !== undefined || data.lastName !== undefined) {
-          const first = data.firstName ?? ""
-          const last = data.lastName ?? ""
-          convexData.name = `${first} ${last}`.trim()
-        }
-        if (data.bio !== undefined) convexData.bio = data.bio
-        if (data.avatarUrl !== undefined) convexData.avatarUrl = data.avatarUrl
-
-        await auth.updateProfile(convexData)
-        return { error: null }
-      } catch (err) {
-        return { error: err as Error }
-      }
-    },
-    [auth],
-  )
-
-  const completeOnboarding = useCallback(async (): Promise<{ error: Error | null }> => {
-    try {
-      await auth.completeOnboarding()
-      return { error: null }
-    } catch (err) {
-      return { error: err as Error }
-    }
-  }, [auth])
-
-  // Convex doesn't support direct user state manipulation (it's reactive)
-  const setUser = useCallback((_newUser: AppUser | null) => {
-    // No-op for Convex - user state is managed reactively via useQuery
-    // The UI will update automatically when the mutation completes
-  }, [])
-
-  const initialize = useCallback(async () => {
-    // Convex handles initialization automatically via ConvexAuthProvider
-    // No manual initialization needed
-  }, [])
-
+  // Convex removed - returning no-op stub to satisfy React hooks rules
   return {
-    // State
-    isAuthenticated: auth.isAuthenticated,
-    isLoading: auth.isLoading,
-    user,
-    userId: auth.userId ?? null,
-    isEmailVerified: auth.isEmailVerified,
-    hasCompletedOnboarding: auth.hasCompletedOnboarding,
-    provider: "convex",
-    // Actions
-    signIn: async (email: string, password: string) => {
-      try {
-        await auth.signInWithPassword(email, password)
-        return { error: null }
-      } catch (err) {
-        return { error: err as Error }
-      }
-    },
-    signUp: async (email: string, password: string) => {
-      try {
-        await auth.signUpWithPassword(email, password)
-        return { error: null }
-      } catch (err) {
-        return { error: err as Error }
-      }
-    },
-    signInWithGoogle: async () => {
-      try {
-        await auth.signInWithOAuth("google")
-        return { error: null }
-      } catch (err) {
-        return { error: err as Error }
-      }
-    },
-    signInWithApple: async () => {
-      try {
-        await auth.signInWithOAuth("apple")
-        return { error: null }
-      } catch (err) {
-        return { error: err as Error }
-      }
-    },
-    signInWithMagicLink: async (email: string) => {
-      return magicLink.sendMagicLink(email)
-    },
-    verifyOtp: async (email: string, token: string) => {
-      return magicLink.verifyOtp(email, token)
-    },
-    signOut: async () => {
-      try {
-        await auth.signOut()
-        return { error: null }
-      } catch (err) {
-        return { error: err as Error }
-      }
-    },
-    resetPassword: async (email: string) => {
-      try {
-        await auth.resetPassword(email)
-        return { error: null }
-      } catch (err) {
-        return { error: err as Error }
-      }
-    },
-    updateProfile,
-    completeOnboarding,
-    setUser,
-    initialize,
+    isAuthenticated: false,
+    isLoading: false,
+    user: null,
+    session: null,
+    error: null,
+    signInWithEmail: async () => ({ success: false, error: "Convex not configured" }),
+    signUpWithEmail: async () => ({ success: false, error: "Convex not configured" }),
+    signInWithGoogle: async () => ({ success: false, error: "Convex not configured" }),
+    signInWithApple: async () => ({ success: false, error: "Convex not configured" }),
+    sendMagicLink: async () => ({ success: false, error: "Convex not configured" }),
+    verifyMagicLink: async () => ({ success: false, error: "Convex not configured" }),
+    signOut: async () => {},
+    updateProfile: async () => ({ success: false, error: "Convex not configured" }),
+    changePassword: async () => ({ success: false, error: "Convex not configured" }),
+    deleteAccount: async () => ({ success: false, error: "Convex not configured" }),
+    resetPassword: async () => ({ success: false, error: "Convex not configured" }),
+    refreshSession: async () => {},
   }
 }
 
@@ -488,7 +366,7 @@ export function useAuth(): AppAuthState & AppAuthActions {
   const supabaseAuth = useSupabaseAppAuth()
 
   // Return the appropriate auth based on backend config
-  return isConvex ? convexAuth : supabaseAuth
+  return supabaseAuth // Convex removed
 }
 
 /**

@@ -24,12 +24,7 @@ import { Text } from "./Text"
 
 // Conditionally import Convex hooks
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { useMutation, api } = isConvex
-  ? {
-      useMutation: require("@/hooks/convex").useMutation,
-      api: require("@convex/_generated/api").api,
-    }
-  : { useMutation: null, api: null }
+const { useMutation, api } = { useMutation: null, api: null }
 
 export interface DeleteAccountModalProps {
   visible: boolean

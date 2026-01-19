@@ -20,7 +20,6 @@
  *
  * ```tsx
  * import { useQuery, useMutation } from "@/hooks"
- * import { api } from "@convex/_generated/api"
  *
  * const users = useQuery(api.users.list)  // Reactive!
  * const updateUser = useMutation(api.users.update)
@@ -80,15 +79,5 @@ export { queryClient } from "./queries/queryClient"
 export { queryKeys } from "./queries/queryKeys"
 
 // ============================================================================
-// Convex Data Hooks (only needed if using Convex backend)
+// Convex Data Hooks - REMOVED (using Supabase backend)
 // ============================================================================
-
-export {
-  useQuery,
-  useMutation,
-  useAction,
-  useConvex,
-  Authenticated,
-  Unauthenticated,
-  AuthLoading,
-} from "./convex"

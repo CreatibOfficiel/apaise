@@ -6,7 +6,7 @@
  * - Convex: Uses Convex mutations for deletion
  */
 
-import { isSupabase, isConvex } from "@/config/env"
+import { isSupabase } from "@/config/env"
 import { useAuthStore, useSubscriptionStore } from "@/stores"
 import { GUEST_USER_KEY } from "@/stores/auth"
 import type { Session } from "@/types/auth"
@@ -20,11 +20,7 @@ const { supabase, supabaseKey, supabaseUrl, isUsingMockSupabase } = isSupabase
   ? require("./supabase")
   : { supabase: null, supabaseKey: null, supabaseUrl: null, isUsingMockSupabase: true }
 
-// Conditionally import Convex client - only when using Convex backend
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { convexClient: _convexClient } = isConvex
-  ? require("./backend/convex/client")
-  : { convexClient: null }
+// Convex client removed - using Supabase backend
 
 const DELETE_TIMEOUT_MS = 10_000
 
