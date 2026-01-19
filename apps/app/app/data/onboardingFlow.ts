@@ -1,10 +1,10 @@
 /**
  * Onboarding Flow Configuration
  *
- * This file defines the complete onboarding flow with 48 screens,
+ * This file defines the complete onboarding flow with 24 screens,
  * including branching logic based on user responses.
  *
- * Based on analysis of I AM Daily Affirmations ($400K/month revenue)
+ * Reduced from 48 screens (-50%) for better conversion.
  */
 
 import type { TxKeyPath } from "@/i18n"
@@ -76,28 +76,15 @@ export interface OnboardingStep {
 export type OnboardingAnswers = Record<string, string | string[]>
 
 // =============================================================================
-// FLOW CONFIGURATION
+// FLOW CONFIGURATION (24 screens)
 // =============================================================================
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   // =========================================================================
-  // PHASE 1: INTRO & SOCIAL PROOF (1-5)
+  // PHASE 1: INTRO (1-2)
   // =========================================================================
   {
-    id: "splash_logo",
-    type: "splash",
-    content: {
-      animation: "breathing_circle",
-      stat: {
-        number: "+2 millions",
-        text: { fr: "de personnes plus sereines", en: "calmer people" },
-      },
-    },
-    autoAdvance: 2000,
-    next: "splash_tagline",
-  },
-  {
-    id: "splash_tagline",
+    id: "splash_combined",
     type: "splash",
     content: {
       title: { fr: "Retrouvez votre calme intérieur", en: "Find your inner calm" },
@@ -105,8 +92,13 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
         fr: "grâce à la méditation et la respiration guidée",
         en: "through guided meditation and breathing",
       },
+      animation: "breathing_circle",
+      stat: {
+        number: "+2 millions",
+        text: { fr: "de personnes plus sereines", en: "calmer people" },
+      },
     },
-    autoAdvance: 2000,
+    autoAdvance: 3000,
     next: "splash_review_1",
   },
   {
@@ -120,59 +112,12 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       },
     },
     autoAdvance: 3000,
-    next: "splash_review_2",
-  },
-  {
-    id: "splash_review_2",
-    type: "splash",
-    content: {
-      rating: 5,
-      review: {
-        fr: "Enfin une app qui m'aide vraiment à dormir. Les exercices de respiration sont incroyables.",
-        en: "Finally an app that really helps me sleep. The breathing exercises are incredible.",
-      },
-    },
-    autoAdvance: 3000,
-    next: "splash_cta",
-  },
-  {
-    id: "splash_cta",
-    type: "splash",
-    content: {
-      title: {
-        fr: "Prêt à commencer votre transformation ?",
-        en: "Ready to start your transformation?",
-      },
-    },
-    cta: { fr: "Commencer", en: "Get Started" },
-    next: "attribution",
+    next: "name_input",
   },
 
   // =========================================================================
-  // PHASE 2: PROFIL DE BASE (6-13)
+  // PHASE 2: PROFIL DE BASE (3-5)
   // =========================================================================
-  {
-    id: "attribution",
-    type: "question_single",
-    content: {
-      title: { fr: "Comment avez-vous découvert Serein ?", en: "How did you discover Serein?" },
-      subtitle: {
-        fr: "Sélectionnez une option pour continuer",
-        en: "Select an option to continue",
-      },
-      options: [
-        { id: "tiktok", label: { fr: "TikTok", en: "TikTok" } },
-        { id: "instagram", label: { fr: "Instagram", en: "Instagram" } },
-        { id: "facebook", label: { fr: "Facebook", en: "Facebook" } },
-        { id: "appstore", label: { fr: "App Store", en: "App Store" } },
-        { id: "friend", label: { fr: "Ami ou famille", en: "Friend or family" } },
-        { id: "therapist", label: { fr: "Mon thérapeute", en: "My therapist" } },
-        { id: "other", label: { fr: "Autre", en: "Other" } },
-      ],
-    },
-    skippable: false,
-    next: "name_input",
-  },
   {
     id: "name_input",
     type: "input_text",
@@ -186,71 +131,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     },
     skippable: true,
     skipLabel: { fr: "Ignorer", en: "Skip" },
-    next: "age",
-  },
-  {
-    id: "age",
-    type: "question_single",
-    content: {
-      title: { fr: "Quel âge avez-vous ?", en: "How old are you?" },
-      subtitle: { fr: "Pour personnaliser votre contenu", en: "To personalize your content" },
-      options: [
-        { id: "13-17", label: { fr: "13 à 17 ans", en: "13 to 17 years" } },
-        { id: "18-24", label: { fr: "18 à 24 ans", en: "18 to 24 years" } },
-        { id: "25-34", label: { fr: "25 à 34 ans", en: "25 to 34 years" } },
-        { id: "35-44", label: { fr: "35 à 44 ans", en: "35 to 44 years" } },
-        { id: "45-54", label: { fr: "45 à 54 ans", en: "45 to 54 years" } },
-        { id: "55+", label: { fr: "55 ans et plus", en: "55 years and older" } },
-      ],
-    },
-    skippable: true,
-    next: "gender",
-  },
-  {
-    id: "gender",
-    type: "question_single",
-    content: {
-      title: { fr: "Comment vous identifiez-vous ?", en: "How do you identify?" },
-      subtitle: {
-        fr: "Pour adapter les méditations guidées",
-        en: "To adapt guided meditations",
-      },
-      options: [
-        { id: "female", label: { fr: "Femme", en: "Female" } },
-        { id: "male", label: { fr: "Homme", en: "Male" } },
-        { id: "other", label: { fr: "Autre", en: "Other" } },
-        { id: "prefer_not", label: { fr: "Je préfère ne pas le dire", en: "Prefer not to say" } },
-      ],
-    },
-    skippable: true,
-    next: "occupation",
-  },
-  {
-    id: "occupation",
-    type: "question_single",
-    content: {
-      title: { fr: "Quelle est votre situation ?", en: "What is your situation?" },
-      options: [
-        { id: "student", label: { fr: "Étudiant", en: "Student" } },
-        { id: "employed", label: { fr: "Employé", en: "Employed" } },
-        { id: "entrepreneur", label: { fr: "Entrepreneur", en: "Entrepreneur" } },
-        { id: "job_search", label: { fr: "En recherche d'emploi", en: "Job searching" } },
-        { id: "parent", label: { fr: "Parent au foyer", en: "Stay-at-home parent" } },
-        { id: "retired", label: { fr: "Retraité", en: "Retired" } },
-        { id: "other", label: { fr: "Autre", en: "Other" } },
-      ],
-    },
-    skippable: true,
-    next: "loading_profile",
-  },
-  {
-    id: "loading_profile",
-    type: "loading",
-    content: {
-      title: { fr: "Création de votre profil...", en: "Creating your profile..." },
-      animation: "breathing_dots",
-    },
-    duration: 2000,
     next: "stat_anxiety",
   },
   {
@@ -303,25 +183,12 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       ],
     },
     skippable: false,
-    next: "loading_goal",
+    next: "current_feeling",
   },
 
   // =========================================================================
-  // PHASE 3: ÉTAT ÉMOTIONNEL (14-21)
+  // PHASE 3: ÉTAT ÉMOTIONNEL (6-9)
   // =========================================================================
-  {
-    id: "loading_goal",
-    type: "loading",
-    content: {
-      title: { fr: "Excellent choix !", en: "Excellent choice!" },
-      subtitle: {
-        fr: "Nous avons des exercices parfaits pour cet objectif",
-        en: "We have perfect exercises for this goal",
-      },
-    },
-    duration: 1500,
-    next: "current_feeling",
-  },
   {
     id: "current_feeling",
     type: "question_single",
@@ -396,102 +263,22 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       ],
       minSelection: 1,
     },
-    next: "worst_time",
-  },
-  {
-    id: "worst_time",
-    type: "question_single",
-    content: {
-      title: {
-        fr: "À quel moment de la journée est-ce le plus difficile ?",
-        en: "When is it hardest during the day?",
-      },
-      options: [
-        { id: "morning", label: { fr: "Le matin au réveil", en: "Morning when waking up" } },
-        { id: "workday", label: { fr: "Pendant la journée de travail", en: "During the workday" } },
-        { id: "evening", label: { fr: "Le soir après le travail", en: "Evening after work" } },
-        { id: "night", label: { fr: "La nuit avant de dormir", en: "At night before sleep" } },
-        { id: "varies", label: { fr: "Ça varie", en: "It varies" } },
-      ],
-    },
-    next: "loading_analysis",
-  },
-  {
-    id: "loading_analysis",
-    type: "loading",
-    content: {
-      title: { fr: "Analyse de votre profil...", en: "Analyzing your profile..." },
-      steps: [
-        { fr: "Analyse de vos réponses", en: "Analyzing your responses" },
-        { fr: "Identification de vos besoins", en: "Identifying your needs" },
-        { fr: "Création de votre programme personnalisé", en: "Creating your personalized program" },
-      ],
-    },
-    duration: 3000,
-    next: "personalized_insight",
-  },
-  {
-    id: "personalized_insight",
-    type: "info",
-    content: {
-      title: { fr: "Nous avons compris vos besoins", en: "We understand your needs" },
-      dynamicContent: (answers: OnboardingAnswers) => {
-        const anxietyFreq = answers.anxiety_frequency as string
-        const worstTime = answers.worst_time as string
-
-        if (anxietyFreq === "constant" || anxietyFreq === "daily") {
-          return {
-            title: { fr: "Nous avons compris vos besoins", en: "We understand your needs" },
-            subtitle: {
-              fr: "Vous vivez avec un stress intense. Nos exercices de respiration d'urgence et nos méditations courtes sont conçus exactement pour cela.",
-              en: "You're living with intense stress. Our emergency breathing exercises and short meditations are designed exactly for this.",
-            },
-          }
-        }
-        if (worstTime === "night") {
-          return {
-            title: { fr: "Nous avons compris vos besoins", en: "We understand your needs" },
-            subtitle: {
-              fr: "Les nuits difficiles peuvent être transformées. Nos histoires pour dormir et méditations nocturnes ont aidé des milliers de personnes.",
-              en: "Difficult nights can be transformed. Our sleep stories and nighttime meditations have helped thousands.",
-            },
-          }
-        }
-        return {
-          title: { fr: "Nous avons compris vos besoins", en: "We understand your needs" },
-          subtitle: {
-            fr: "Serein va vous accompagner pas à pas vers plus de calme et de sérénité au quotidien.",
-            en: "Serein will guide you step by step towards more calm and serenity in your daily life.",
-          },
-        }
-      },
-    },
-    cta: { fr: "Continuer", en: "Continue" },
-    next: "education_intro",
+    next: "education_combined",
   },
 
   // =========================================================================
-  // PHASE 4: ÉDUCATION & ENGAGEMENT (22-31)
+  // PHASE 4: ÉDUCATION & ENGAGEMENT (10-16)
   // =========================================================================
   {
-    id: "education_intro",
+    id: "education_combined",
     type: "info",
     content: {
       title: { fr: "La science derrière Serein", en: "The science behind Serein" },
       subtitle: {
-        fr: "La respiration consciente active votre système nerveux parasympathique, réduisant instantanément le stress.",
-        en: "Conscious breathing activates your parasympathetic nervous system, instantly reducing stress.",
+        fr: "La respiration consciente active votre système nerveux parasympathique, réduisant instantanément le stress. Avec seulement 5 minutes par jour :",
+        en: "Conscious breathing activates your parasympathetic nervous system, instantly reducing stress. With just 5 minutes a day:",
       },
       animation: "breathing_wave",
-    },
-    cta: { fr: "En savoir plus", en: "Learn more" },
-    next: "education_benefits",
-  },
-  {
-    id: "education_benefits",
-    type: "info",
-    content: {
-      title: { fr: "Avec seulement 5 minutes par jour", en: "With just 5 minutes a day" },
       benefits: [
         {
           icon: "🧠",
@@ -628,36 +415,28 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
         { id: "15min+", label: { fr: "15 minutes ou plus", en: "15 minutes or more" } },
       ],
     },
-    next: "streak_goal",
+    next: "worst_time",
   },
   {
-    id: "streak_goal",
+    id: "worst_time",
     type: "question_single",
     content: {
-      title: { fr: "Quel est votre premier objectif ?", en: "What is your first goal?" },
+      title: {
+        fr: "À quel moment de la journée est-ce le plus difficile ?",
+        en: "When is it hardest during the day?",
+      },
+      subtitle: {
+        fr: "Nous programmerons vos rappels en conséquence",
+        en: "We'll schedule your reminders accordingly",
+      },
       options: [
-        { id: "3days", label: { fr: "3 jours consécutifs", en: "3 consecutive days" } },
-        { id: "7days", label: { fr: "7 jours consécutifs", en: "7 consecutive days" }, recommended: true },
-        { id: "21days", label: { fr: "21 jours consécutifs", en: "21 consecutive days" } },
+        { id: "morning", label: { fr: "Le matin au réveil", en: "Morning when waking up" } },
+        { id: "workday", label: { fr: "Pendant la journée de travail", en: "During the workday" } },
+        { id: "evening", label: { fr: "Le soir après le travail", en: "Evening after work" } },
+        { id: "night", label: { fr: "La nuit avant de dormir", en: "At night before sleep" } },
+        { id: "varies", label: { fr: "Ça varie", en: "It varies" } },
       ],
     },
-    next: "streak_preview",
-  },
-  {
-    id: "streak_preview",
-    type: "info",
-    content: {
-      title: { fr: "Créez une habitude durable", en: "Build a lasting habit" },
-      subtitle: {
-        fr: "Construisez votre série jour après jour",
-        en: "Build your streak day by day",
-      },
-      stat: {
-        number: "21",
-        text: { fr: "jours pour créer une habitude", en: "days to build a habit" },
-      },
-    },
-    cta: { fr: "Continuer", en: "Continue" },
     next: "notifications_ask",
   },
   {
@@ -673,25 +452,12 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     cta: { fr: "Autoriser les notifications", en: "Allow notifications" },
     skipLabel: { fr: "Plus tard", en: "Later" },
     skippable: true,
-    next: "personalization_intro",
+    next: "content_preferences",
   },
 
   // =========================================================================
-  // PHASE 5: PERSONNALISATION (32-41)
+  // PHASE 5: PERSONNALISATION (17-19)
   // =========================================================================
-  {
-    id: "personalization_intro",
-    type: "info",
-    content: {
-      title: { fr: "Personnalisons votre expérience", en: "Let's personalize your experience" },
-      subtitle: {
-        fr: "Quelques questions pour créer votre programme sur mesure",
-        en: "A few questions to create your custom program",
-      },
-    },
-    cta: { fr: "Continuer", en: "Continue" },
-    next: "content_preferences",
-  },
   {
     id: "content_preferences",
     type: "question_multi",
@@ -714,22 +480,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       ],
       minSelection: 2,
     },
-    next: "voice_preference",
-  },
-  {
-    id: "voice_preference",
-    type: "question_single",
-    content: {
-      title: {
-        fr: "Quelle voix préférez-vous pour les méditations ?",
-        en: "What voice do you prefer for meditations?",
-      },
-      options: [
-        { id: "female", label: { fr: "Voix féminine", en: "Female voice" } },
-        { id: "male", label: { fr: "Voix masculine", en: "Male voice" } },
-        { id: "no_preference", label: { fr: "Pas de préférence", en: "No preference" } },
-      ],
-    },
     next: "theme_selection",
   },
   {
@@ -742,61 +492,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
         en: "You can change it anytime",
       },
     },
-    next: "specific_goals",
-  },
-  {
-    id: "specific_goals",
-    type: "question_multi",
-    content: {
-      title: { fr: "Que souhaitez-vous améliorer ?", en: "What do you want to improve?" },
-      subtitle: { fr: "Choisissez au moins un objectif", en: "Choose at least one goal" },
-      options: [
-        { id: "anxiety", label: { fr: "Gérer l'anxiété", en: "Manage anxiety" } },
-        { id: "sleep", label: { fr: "Améliorer mon sommeil", en: "Improve my sleep" } },
-        { id: "stress_work", label: { fr: "Stress au travail", en: "Work stress" } },
-        { id: "confidence", label: { fr: "Confiance en moi", en: "Self-confidence" } },
-        { id: "relationships", label: { fr: "Relations plus sereines", en: "More peaceful relationships" } },
-        { id: "focus", label: { fr: "Concentration", en: "Focus" } },
-        { id: "emotions", label: { fr: "Gérer mes émotions", en: "Manage my emotions" } },
-        { id: "present", label: { fr: "Vivre le moment présent", en: "Live in the moment" } },
-      ],
-      minSelection: 1,
-    },
-    next: "challenges",
-  },
-  {
-    id: "challenges",
-    type: "question_multi",
-    content: {
-      title: { fr: "Qu'est-ce qui vous pèse en ce moment ?", en: "What's weighing on you right now?" },
-      options: [
-        { id: "past", label: { fr: "Ruminations sur le passé", en: "Dwelling on the past" } },
-        { id: "future", label: { fr: "Inquiétudes pour l'avenir", en: "Worries about the future" } },
-        { id: "self_criticism", label: { fr: "Auto-critique sévère", en: "Harsh self-criticism" } },
-        { id: "comparison", label: { fr: "Comparaison aux autres", en: "Comparing to others" } },
-        { id: "perfectionism", label: { fr: "Perfectionnisme", en: "Perfectionism" } },
-        { id: "loneliness", label: { fr: "Sentiment de solitude", en: "Feeling of loneliness" } },
-        { id: "overwhelm", label: { fr: "Sensation d'être débordé", en: "Feeling overwhelmed" } },
-      ],
-      minSelection: 1,
-    },
-    next: "loading_program",
-  },
-  {
-    id: "loading_program",
-    type: "loading",
-    content: {
-      title: {
-        fr: "Création de votre programme personnalisé...",
-        en: "Creating your personalized program...",
-      },
-      steps: [
-        { fr: "Analyse de vos objectifs", en: "Analyzing your goals" },
-        { fr: "Sélection des exercices adaptés", en: "Selecting adapted exercises" },
-        { fr: "Préparation de votre parcours", en: "Preparing your journey" },
-      ],
-    },
-    duration: 3000,
     next: "program_preview",
   },
   {
@@ -815,46 +510,11 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       ],
     },
     cta: { fr: "Découvrir mon programme", en: "Discover my program" },
-    next: "social_proof_final",
-  },
-  {
-    id: "social_proof_final",
-    type: "info",
-    content: {
-      title: { fr: "Rejoignez notre communauté", en: "Join our community" },
-      stat: {
-        number: "2M+",
-        text: { fr: "Utilisateurs actifs", en: "Active users" },
-      },
-    },
-    cta: { fr: "Continuer", en: "Continue" },
-    next: "free_trial_intro",
-  },
-  {
-    id: "free_trial_intro",
-    type: "info",
-    content: {
-      title: { fr: "Essayez Serein gratuitement", en: "Try Serein for free" },
-      subtitle: {
-        fr: "Nous vous offrons 7 jours d'accès complet, sans engagement",
-        en: "We offer you 7 days of full access, no commitment",
-      },
-      benefits: [
-        {
-          icon: "✓",
-          text: { fr: "Accès illimité à tous les exercices", en: "Unlimited access to all exercises" },
-        },
-        { icon: "✓", text: { fr: "Méditations personnalisées", en: "Personalized meditations" } },
-        { icon: "✓", text: { fr: "Suivi de progression", en: "Progress tracking" } },
-        { icon: "✓", text: { fr: "Annulation à tout moment", en: "Cancel anytime" } },
-      ],
-    },
-    cta: { fr: "Commencer mon essai gratuit", en: "Start my free trial" },
     next: "paywall_timeline",
   },
 
   // =========================================================================
-  // PHASE 6: PRÉ-PAYWALL & PAYWALL (42-45)
+  // PHASE 6: PAYWALL (20-22)
   // =========================================================================
   {
     id: "paywall_timeline",
@@ -890,55 +550,12 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       animation: "confetti",
     },
     cta: { fr: "Commencer", en: "Get started" },
-    next: "widget_promo",
-  },
-  {
-    id: "widget_promo",
-    type: "info",
-    content: {
-      title: { fr: "Ajoutez le widget Serein", en: "Add the Serein widget" },
-      subtitle: {
-        fr: "Accédez à un exercice de respiration rapide directement depuis votre écran d'accueil",
-        en: "Access a quick breathing exercise directly from your home screen",
-      },
-    },
-    cta: { fr: "Ajouter le widget", en: "Add widget" },
-    skipLabel: { fr: "Plus tard", en: "Later" },
-    skippable: true,
-    next: "onboarding_complete",
+    next: "app_home",
   },
 
   // =========================================================================
-  // PHASE 7: POST-PAYWALL (46-48)
+  // PHASE 7: REDIRECT (23)
   // =========================================================================
-  {
-    id: "onboarding_complete",
-    type: "loading",
-    content: {
-      title: { fr: "Tout est prêt !", en: "All set!" },
-      subtitle: {
-        fr: "Commençons par votre premier exercice",
-        en: "Let's start with your first exercise",
-      },
-    },
-    duration: 2000,
-    next: "first_exercise",
-  },
-  {
-    id: "first_exercise",
-    type: "info",
-    content: {
-      title: { fr: "Votre premier exercice", en: "Your first exercise" },
-      subtitle: {
-        fr: "Un exercice simple et puissant pour calmer instantanément votre système nerveux",
-        en: "A simple and powerful exercise to instantly calm your nervous system",
-      },
-    },
-    cta: { fr: "Commencer l'exercice", en: "Start exercise" },
-    skipLabel: { fr: "Explorer l'app d'abord", en: "Explore app first" },
-    skippable: true,
-    next: "app_home",
-  },
   {
     id: "app_home",
     type: "redirect",
